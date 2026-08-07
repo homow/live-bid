@@ -1,37 +1,144 @@
-# Root .gitattributes for fullstack project
+# ============================================
+# ========== Root .gitattributes =============
+# ========== Microservices + Next.js ==========
+# ============================================
 
-# Normalize line endings
+# ---------- Normalize line endings ----------
 * text=auto
 
-# JS/TS/JSON/CSS/HTML files LF
-*.js    text eol=lf
+# ---------- Backend Services (NestJS) ----------
+# Source files (LF)
 *.ts    text eol=lf
+*.js    text eol=lf
+*.json  text eol=lf
+*.yml   text eol=lf
+*.yaml  text eol=lf
+*.md    text eol=lf
+
+# ---------- Frontend (Next.js) ----------
 *.jsx   text eol=lf
 *.tsx   text eol=lf
-*.json  text eol=lf
 *.css   text eol=lf
 *.scss  text eol=lf
 *.html  text eol=lf
-*.md    text eol=lf
+*.xml   text eol=lf
+*.svg   text eol=lf
 
-# Binary files
+# ---------- Docker & DevOps ----------
+Dockerfile*  text eol=lf
+*.dockerfile text eol=lf
+*.sh         text eol=lf
+*.bash       text eol=lf
+
+# ---------- Config files ----------
+*.conf   text eol=lf
+*.cfg    text eol=lf
+*.ini    text eol=lf
+*.toml   text eol=lf
+*.env    text eol=lf
+
+# ---------- Binary files ----------
+# Images
 *.png   binary
 *.jpg   binary
 *.jpeg  binary
 *.gif   binary
 *.ico   binary
+*.webp  binary
+*.bmp   binary
+*.tiff  binary
+
+# Fonts
+*.ttf   binary
+*.otf   binary
+*.woff  binary
+*.woff2 binary
+*.eot   binary
+
+# Media
+*.mp3   binary
+*.mp4   binary
+*.avi   binary
+*.mov   binary
+*.wmv   binary
+*.flv   binary
+*.mkv   binary
+
+# Documents
 *.pdf   binary
+*.doc   binary
+*.docx  binary
+*.xls   binary
+*.xlsx  binary
+*.ppt   binary
+*.pptx  binary
+
+# Archives
 *.zip   binary
 *.tar   binary
 *.gz    binary
-*.mp3   binary
-*.mp4   binary
+*.bz2   binary
+*.xz    binary
+*.7z    binary
+*.rar   binary
 
-# Merge/diff settings
+# Database dumps
+*.sql   binary
+*.dump  binary
+*.backup binary
+
+# ---------- Merge/Diff settings ----------
+# Lock files (keep yours on merge conflicts)
 *.lock merge=ours
 package-lock.json merge=ours
 yarn.lock merge=ours
+pnpm-lock.yaml merge=ours
 
-# Ignore env files in export/archive
-.env    export-ignore
-.env.*  export-ignore
+# Auto-generated files
+*.min.js  -diff
+*.min.css -diff
+*.map     -diff
+
+# ---------- Service-specific ----------
+# Each microservice has its own root, but these are global
+
+# Service 1: Authentication Service
+/auth-service/*.ts text eol=lf
+/auth-service/*.json text eol=lf
+
+# Service 2: User Service
+/user-service/*.ts text eol=lf
+/user-service/*.json text eol=lf
+
+# Service 3: Payment Service
+/payment-service/*.ts text eol=lf
+/payment-service/*.json text eol=lf
+
+# Frontend Service (Next.js)
+/frontend/*.tsx text eol=lf
+/frontend/*.jsx text eol=lf
+/frontend/*.css text eol=lf
+
+# ---------- Ignore env in exports ----------
+.env            export-ignore
+.env.*          export-ignore
+.env.local      export-ignore
+.env.*.local    export-ignore
+
+# ---------- Git archive ----------
+# When creating a tarball (.tar.gz), ignore these
+.git            export-ignore
+.github         export-ignore
+.gitignore      export-ignore
+.gitattributes  export-ignore
+.idea           export-ignore
+.vscode         export-ignore
+node_modules    export-ignore
+dist            export-ignore
+build           export-ignore
+.next           export-ignore
+coverage        export-ignore
+.nyc_output     export-ignore
+.DS_Store       export-ignore
+Thumbs.db       export-ignore
+*.log           export-ignore
