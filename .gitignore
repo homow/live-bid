@@ -1,0 +1,72 @@
+# ============================================
+# ========== NestJS + Next.js ================
+# ============================================
+
+# Node
+node_modules/
+**/node_modules/
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+**/dist/
+**/build/
+**/.next/
+**/out/
+
+# Logs
+logs/
+*.log
+
+# Environment
+.env
+.env*.local
+.env.*.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Cache
+.cache/
+**/.cache/
+**/.next/cache/
+
+# Temp
+.tmp/
+.temp/
+*.tmp
+
+# Docker
+volumes/
+docker-compose.override.yml
+
+# Tests
+coverage/
+**/coverage/
+.nyc_output
+**/.jest/
+**/cypress/
+
+# Uploads
+uploads/
+public/uploads/
+server/public/uploads/
+
+# Runtime
+pids/
+*.pid
+*.pid.lock
+
+# Misc
+*.local
+*.backup
+*.bak
