@@ -18,12 +18,13 @@ async function bootstrap() {
     },
   );
 
+  await app.listen();
 }
 
 bootstrap()
   .then(() => thenBootstraps({
-    baseUrl: "",
     port: PORT,
+    baseUrl: "",
     apiVersion: "",
     swaggerUrl: "",
   }))
