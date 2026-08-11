@@ -21,6 +21,9 @@
     "noImplicitAny": false,
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false,
-    "paths": {}
+    "paths": {
+        "@live-bid/contracts": ["packages/contracts/src"],
+        "@live-bid/contracts/*": ["packages/contracts/src/*"]
+    }
   }
 }
