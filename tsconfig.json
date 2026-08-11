@@ -22,8 +22,18 @@
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false,
     "paths": {
-        "@live-bid/contracts": ["packages/contracts/src"],
-        "@live-bid/contracts/*": ["packages/contracts/src/*"]
+      "@live-bid/contracts": [
+        "packages/contracts/src"
+      ],
+      "@live-bid/contracts/*": [
+        "packages/contracts/src/*"
+      ],
+      "@live-bid/nestjs": [
+        "packages/nestjs/src"
+      ],
+      "@live-bid/nestjs/*": [
+        "packages/nestjs/src/*"
+      ]
     }
   }
 }
