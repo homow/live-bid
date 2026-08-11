@@ -1,7 +1,10 @@
 import {AppModule} from './app.module';
-import {colors} from "@live-bid/nestjs";
 import {NestFactory} from '@nestjs/core';
+import {catchBootstraps, thenBootstraps} from "@live-bid/nestjs";
 import {MicroserviceOptions, Transport} from "@nestjs/microservices";
+
+const HOST = process.env.HOST || "0.0.0.0";
+const PORT = Number(process.env.PORT || 3001) || 3001;
 
 async function bootstrap() {
   const app = await NestFactory.createMicroservice<MicroserviceOptions>(
@@ -9,8 +12,8 @@ async function bootstrap() {
     {
       transport: Transport.TCP,
       options: {
-        host: process.env.HOST || "0.0.0.0",
-        port: 3001,
+        host: HOST,
+        port: PORT,
       },
     },
   );
@@ -18,16 +21,10 @@ async function bootstrap() {
 }
 
 bootstrap()
-  .then()
-  .catch(e => console.error(`
-${colors.bold}${colors.red}╔════════════════════════════════════════════════════════════════╗${colors.reset}
-${colors.bold}${colors.red}║${colors.reset}  ${colors.bold}${colors.red}❌ FAILED TO START NESTJS APPLICATION ❌${colors.reset}        ${colors.bold}${colors.red}║${colors.reset}
-${colors.bold}${colors.red}╚════════════════════════════════════════════════════════════════╝${colors.reset}
-
-${colors.bold}${colors.red}Error Details:${colors.reset}
-${colors.dim}${colors.gray}────────────────────────────────────────────────────────────────${colors.reset}
-
-${colors.red}●${colors.reset} ${colors.bold}Message:${colors.reset} ${colors.white}${e}${colors.reset}
-
-${colors.dim}${colors.gray}────────────────────────────────────────────────────────────────${colors.reset}
-`));
+  .then(() => thenBootstraps({
+    baseUrl: "",
+    port: PORT,
+    apiVersion: "",
+    swaggerUrl: "",
+  }))
+  .catch(e => catchBootstraps(e as Error));
