@@ -19,7 +19,7 @@
     "dev:gateway": "nest start gateway --watch",
     "dev:auth": "nest start auth-service --watch",
     "dev:web": "npm run dev --workspace=clients/web",
-    "dev:packages": "concurrently \"npm run build -- --watch --workspace=packages/nestjs\" \"npm run build -- --watch --workspace=packages/contracts\"",
+    "dev:packages": "concurrently \"npm run build --workspace=packages/nestjs -- --watch\" \"npm run build --workspace=packages/contracts -- --watch\"",
     "dev": "concurrently -n pkgs,gateway,auth,web -c gray,cyan,yellow,green \"npm:dev:packages\" \"npm:dev:gateway\" \"npm:dev:auth\" \"npm:dev:web\"",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "vitest run",

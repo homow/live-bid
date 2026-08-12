@@ -2,8 +2,8 @@
   "name": "@live-bid/contracts",
   "version": "0.0.1",
   "private": true,
-  "main": "./dist/src/index.js",
-  "types": "./src/index.d.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "scripts": {
     "build": "tsc -p tsconfig.json"
   }
