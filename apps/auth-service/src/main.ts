@@ -4,7 +4,7 @@ import {catchBootstraps, thenBootstraps} from "@live-bid/nestjs";
 import {MicroserviceOptions, Transport} from "@nestjs/microservices";
 
 const HOST = process.env.HOST || "0.0.0.0";
-const PORT = Number(process.env.PORT || 3001) || 3001;
+const PORT = Number(process.env.PORT || 3002) || 3002;
 
 async function bootstrap() {
   const app = await NestFactory.createMicroservice<MicroserviceOptions>(

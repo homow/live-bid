@@ -2,7 +2,7 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "declaration": false,
-    "outDir": "../../dist/apps/live-bid"
+    "outDir": "../../dist/apps/gateway"
   },
   "include": [
     "src/**/*"
