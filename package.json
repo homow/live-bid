@@ -37,6 +37,8 @@
     "@nestjs/platform-socket.io": "^11.1.29",
     "@nestjs/websockets": "^11.1.29",
     "graphql": "^16.14.2",
+    "graphql-redis-subscriptions": "^2.7.0",
+    "graphql-ws": "^6.2.1",
     "ioredis": "^6.0.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
