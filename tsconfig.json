@@ -33,12 +33,6 @@
       ],
       "@live-bid/contracts/*": [
         "packages/contracts/src/*"
-      ],
-      "@live-bid/nestjs": [
-        "packages/nestjs/src"
-      ],
-      "@live-bid/nestjs/*": [
-        "packages/nestjs/src/*"
       ]
     }
   }
