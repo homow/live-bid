@@ -2,7 +2,7 @@ import {resolve} from "path";
 import {config} from "dotenv";
 import {AppModule} from './app.module';
 import {NestFactory} from '@nestjs/core';
-import {thenBootstraps, catchBootstraps} from "@live-bid/nestjs";
+import {thenBootstraps, catchBootstraps} from "@live-bid/nestjs/nestjs-bootstraps";
 
 config({path: resolve(process.cwd(), "apps/gateway/.env")});
 
