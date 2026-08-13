@@ -2,6 +2,7 @@ import {resolve} from "path";
 import {config} from "dotenv";
 import {AppModule} from './app.module';
 import {NestFactory} from '@nestjs/core';
+import {thenBootstraps, catchBootstraps} from "@live-bid/nestjs";
 
 config({path: resolve(process.cwd(), "apps/gateway/.env")});
 
@@ -12,4 +13,11 @@ async function bootstrap() {
   await app.listen(PORT);
 }
 
-bootstrap();
+bootstrap()
+  .then(() => thenBootstraps({
+    port: PORT,
+    baseUrl: "",
+    swaggerUrl: "",
+    apiVersion: "",
+  }))
+  .catch(e => catchBootstraps(e as Error));
