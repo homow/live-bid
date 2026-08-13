@@ -1,7 +1,8 @@
+import "@app/auth/lib/config/env";
 import {AppModule} from './app.module';
 import {NestFactory} from '@nestjs/core';
-import {catchBootstraps, thenBootstraps} from "@live-bid/nestjs/nestjs-bootstraps";
 import {MicroserviceOptions, Transport} from "@nestjs/microservices";
+import {catchBootstraps, thenBootstraps} from "@live-bid/nestjs/nestjs-bootstraps";
 
 const HOST = process.env.HOST || "0.0.0.0";
 const PORT = Number(process.env.PORT || 3002) || 3002;
