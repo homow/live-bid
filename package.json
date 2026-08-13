@@ -17,7 +17,7 @@
     "build:web": "npm run build --workspace=clients/web",
     "build:all": "npm run build:packages && concurrently \"npm:build:gateway\" \"npm:build:auth\" \"npm:build:web\"",
     "dev:gateway": "concurrently \"npm:dev:packages\" \"nest start gateway --watch\"",
-    "dev:auth": "concurrently \"npm:dev:packages\" \"nest start auth-service --watch\"",
+    "dev:auth": "concurrently \"npm:dev:packages\" \"nest start auth --watch\"",
     "dev:web": "concurrently \"npm:dev:packages\" \"npm run dev --workspace=clients/web\"",
     "dev:packages": "concurrently \"npm run build --workspace=packages/nestjs -- --watch\" \"npm run build --workspace=packages/contracts -- --watch\"",
     "dev": "concurrently -n pkgs,gateway,auth,web -c gray,cyan,yellow,green \"npm:dev:packages\" \"npm:dev:gateway\" \"npm:dev:auth\" \"npm:dev:web\"",
