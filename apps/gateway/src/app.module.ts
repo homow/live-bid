@@ -5,6 +5,7 @@ import {AUTH_SERVICE_NAME} from "@live-bid/nestjs/services/names";
 
 @Module({
   imports: [
+
     // Config Service
     ConfigModule.forRoot({
       isGlobal: true,
