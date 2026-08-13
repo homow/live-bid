@@ -1,13 +1,11 @@
-import {resolve} from "path";
-import {config} from "dotenv";
+import "@app/gateway/lib/config/env";
 import {AppModule} from './app.module';
 import {NestFactory} from '@nestjs/core';
 import {thenBootstraps, catchBootstraps} from "@live-bid/nestjs/nestjs-bootstraps";
 
-config({path: resolve(process.cwd(), "apps/gateway/.env")});
+console.log(process.env.PORT);
 
 const PORT = Number(process.env.PORT || 3001);
-console.log(PORT);
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
