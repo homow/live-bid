@@ -7,6 +7,7 @@ import {thenBootstraps, catchBootstraps} from "@live-bid/nestjs/nestjs-bootstrap
 config({path: resolve(process.cwd(), "apps/gateway/.env")});
 
 const PORT = Number(process.env.PORT || 3001);
+console.log(PORT);
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
