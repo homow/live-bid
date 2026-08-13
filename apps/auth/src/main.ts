@@ -1,6 +1,6 @@
 import {AppModule} from './app.module';
 import {NestFactory} from '@nestjs/core';
-import {catchBootstraps, thenBootstraps} from "@live-bid/nestjs";
+import {catchBootstraps, thenBootstraps} from "@live-bid/nestjs/nestjs-bootstraps";
 import {MicroserviceOptions, Transport} from "@nestjs/microservices";
 
 const HOST = process.env.HOST || "0.0.0.0";
