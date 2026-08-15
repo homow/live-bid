@@ -1,8 +1,36 @@
-import { NestFactory } from '@nestjs/core';
-import { CoreModule } from './core.module';
+import {CoreModule} from './core.module';
+import {NestFactory} from '@nestjs/core';
+import {MicroserviceOptions, Transport} from "@nestjs/microservices";
+import {catchBootstraps, thenBootstraps} from "@live-bid/contracts/nestjs-bootstraps";
+
+const REDS_HOST = process.env.REDS_HOST || "127.0.0.1";
+const REDS_PORT = Number(process.env.REDS_PORT || 6379) || 6379;
 
 async function bootstrap() {
-  const app = await NestFactory.create(CoreModule);
-  await app.listen(process.env.port ?? 3000);
+  const app = await NestFactory.createMicroservice<MicroserviceOptions>(
+    CoreModule,
+    {
+      options: {
+        transport: Transport.REDIS,
+        options: {
+          host: REDS_HOST,
+          port: REDS_PORT,
+          retryAttempts: 5,
+          retryDelay: 1000,
+          retryStrategy: () => 1000
+        }
+      }
+    }
+  );
+
+  await app.listen();
 }
-bootstrap();
+
+bootstrap()
+  .then(() => thenBootstraps({
+    port: "",
+    baseUrl: "",
+    apiVersion: "",
+    swaggerUrl: "",
+  }))
+  .catch(e => catchBootstraps(e as Error));
