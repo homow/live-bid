@@ -1,10 +1,12 @@
-import { Module } from '@nestjs/common';
-import { CoreController } from './core.controller';
-import { CoreService } from './core.service';
+import {Module} from '@nestjs/common';
+import {ConfigModule} from "@nestjs/config";
 
 @Module({
-  imports: [],
-  controllers: [CoreController],
-  providers: [CoreService],
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: "apps/auth.env",
+    })
+  ],
 })
 export class CoreModule {}
