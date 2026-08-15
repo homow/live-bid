@@ -1,1 +1,1 @@
-export * from "./auth.messages";
+export * from "./auth.patterns";
