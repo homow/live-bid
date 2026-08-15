@@ -1,1 +1,2 @@
+export const CORE_SERVICE_NAME = "CORE_SERVICE";
 export const AUTH_SERVICE_NAME = "AUTH_SERVICE";
