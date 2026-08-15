@@ -5,7 +5,6 @@ import {AUTH_SERVICE_NAME} from "@live-bid/contracts/services/names";
 
 @Module({
   imports: [
-
     // Config Service
     ConfigModule.forRoot({
       isGlobal: true,
