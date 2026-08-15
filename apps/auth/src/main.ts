@@ -4,8 +4,8 @@ import {NestFactory} from '@nestjs/core';
 import {MicroserviceOptions, Transport} from "@nestjs/microservices";
 import {catchBootstraps, thenBootstraps} from "@live-bid/contracts/nestjs-bootstraps";
 
-const HOST = process.env.HOST || "0.0.0.0";
-const PORT = Number(process.env.PORT || 3002) || 3002;
+const REDS_HOST = process.env.REDS_HOST || "127.0.0.1";
+const REDS_PORT = Number(process.env.REDS_PORT || 6379) || 6379;
 
 async function bootstrap() {
   const app = await NestFactory.createMicroservice<MicroserviceOptions>(
@@ -13,8 +13,11 @@ async function bootstrap() {
     {
       transport: Transport.REDIS,
       options: {
-        host: HOST,
-        port: PORT,
+        host: REDS_HOST,
+        port: REDS_PORT,
+        retryAttempts: 5,
+        retryDelay: 1000,
+        retryStrategy: () => 1000
       },
     },
   );
@@ -24,7 +27,7 @@ async function bootstrap() {
 
 bootstrap()
   .then(() => thenBootstraps({
-    port: PORT,
+    port: "",
     baseUrl: "",
     apiVersion: "",
     swaggerUrl: "",
