@@ -17,7 +17,6 @@
     "build:core": "nest build core",
     "build:web": "npm run build --workspace=clients/web",
     "build:all": "npm run build:packages && concurrently \"npm:build:gateway\" \"npm:build:core\" \"npm:build:auth\" \"npm:build:web\"",
-
     "dev:packages": "npm run build --workspace=packages/contracts -- --watch",
     "dev:gateway": "nest start gateway --watch",
     "dev:auth": "nest start auth --watch",
