@@ -5,8 +5,8 @@ import {ConfigModule} from "@nestjs/config";
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: "apps/auth.env",
+      envFilePath: "apps/core/.env",
     })
   ],
 })
-export class CoreModule {}
+export class AppModule {}
