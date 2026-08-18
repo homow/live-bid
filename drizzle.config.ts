@@ -3,7 +3,7 @@ import {defineConfig} from 'drizzle-kit';
 
 // noinspection JSUnusedGlobalSymbols
 export default defineConfig({
-  schema: './packages/contracts/src/database/schema.ts',
+  schema: './packages/contracts/src/database/schema/index.ts',
   out: './migrations',
   dialect: 'postgresql',
   dbCredentials: {
