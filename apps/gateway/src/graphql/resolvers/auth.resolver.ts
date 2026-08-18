@@ -6,13 +6,13 @@ import {AUTH_SERVICE_NAME} from "@live-bid/contracts/services/names";
 import * as Messages from "@live-bid/contracts/services/patterns/messages";
 
 @Resolver()
-export class AppResolver {
+export class AuthResolver {
   constructor(
     @Inject(AUTH_SERVICE_NAME) private readonly authClient: ClientProxy
   ) {}
 
   @Query(() => String)
   register() {
-    return firstValueFrom(this.authClient.send(Messages.AUTH_MESSAGES, {}));
+    return firstValueFrom(this.authClient.send(Messages.AUTH_MESSAGES.REGISTER, {}));
   }
 }
