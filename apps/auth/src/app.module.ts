@@ -1,3 +1,4 @@
+import * as Modules from "./modules";
 import {Module} from '@nestjs/common';
 import {ConfigModule} from "@nestjs/config";
 
@@ -6,7 +7,10 @@ import {ConfigModule} from "@nestjs/config";
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: "apps/auth/.env",
-    })
+    }),
+
+    // App Modules
+    Modules.AuthModule,
   ],
 })
 export class AppModule {}
