@@ -1,0 +1,15 @@
+/** 1 minutes in milliseconds */
+export const ONE_MINUTE_MS = 60_000 as const;
+export const ONE_HOUR_MS = ONE_MINUTE_MS * 60;
+export const TWO_HOUR_MS = ONE_HOUR_MS * 2;
+
+/** static example date for responses */
+export const exampleDate = new Date();
+
+/** Get present tense and convert to string */
+export const getServerTime = (): string => new Date().toISOString();
+
+/** get local now date */
+export function getLocalDate(result: "fa-IR" | "en-CA") {
+  return new Date().toLocaleDateString(result);
+}
