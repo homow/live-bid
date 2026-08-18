@@ -22,6 +22,9 @@
     "dev:auth": "nest start auth --watch",
     "dev:core": "nest start core --watch",
     "dev:web": "npm run dev --workspace=clients/web",
+    "dev:gateway-auth": "npm run build:packages && concurrently -n pkgs,gateway,auth -c gray,cyan,yellow \"npm:dev:packages\" \"npm:dev:gateway\" \"npm:dev:auth\"",
+    "dev:gateway-core": "npm run build:packages && concurrently -n pkgs,gateway,core -c gray,cyan,yellow \"npm:dev:packages\" \"npm:dev:gateway\" \"npm:dev:core\"",
+    "dev:microservice": "npm run build:packages && concurrently -n pkgs,gateway,auth,core -c gray,cyan,yellow,blue \"npm:dev:packages\" \"npm:dev:gateway\" \"npm:dev:core\" \"npm:dev:auth\"",
     "dev:services": "concurrently -n pkgs,gateway,auth,core,web -c gray,cyan,yellow,blue,green \"npm:dev:packages\" \"npm:dev:gateway\" \"npm:dev:core\" \"npm:dev:auth\" \"npm:dev:web\"",
     "dev": "npm run build:packages && npm run dev:services"
   },
