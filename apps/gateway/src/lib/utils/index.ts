@@ -1,2 +1,2 @@
 export * from "./time";
-export * from "./response";
+export * from "./zod.validate";

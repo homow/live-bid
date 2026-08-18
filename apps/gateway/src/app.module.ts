@@ -1,8 +1,8 @@
 import {Module} from '@nestjs/common';
 import {ConfigModule} from "@nestjs/config";
 import {GraphQLModule} from "@nestjs/graphql";
-import {graphqlConfigs} from "@app/gateway/lib";
 import {ApolloDriverConfig} from "@nestjs/apollo";
+import {ComplexityCustom, graphqlConfigs} from "@app/gateway/lib";
 import {AppGraphQLModule} from "@app/gateway/graphql/graphql.module";
 
 @Module({
@@ -19,5 +19,8 @@ import {AppGraphQLModule} from "@app/gateway/graphql/graphql.module";
     // App GraphQL Module
     AppGraphQLModule,
   ],
+  providers: [
+    ComplexityCustom,
+  ]
 })
 export class AppModule {}
