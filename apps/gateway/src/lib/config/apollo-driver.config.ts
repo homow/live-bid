@@ -1,4 +1,5 @@
 import path from "node:path";
+import "@app/gateway/lib/config/env";
 import type {Request, Response} from "express";
 import {ApolloDriver, ApolloDriverConfig} from "@nestjs/apollo";
 

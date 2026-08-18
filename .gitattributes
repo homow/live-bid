@@ -142,3 +142,7 @@ coverage        export-ignore
 .DS_Store       export-ignore
 Thumbs.db       export-ignore
 *.log           export-ignore
+
+# GraphQL Schema
+schema.graphql text linguist-language=GraphQL
+*.graphql      text linguist-language=GraphQL

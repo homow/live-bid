@@ -70,3 +70,4 @@ pids/
 *.local
 *.backup
 *.bak
+schema.graphql
