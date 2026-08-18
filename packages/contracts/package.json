@@ -28,6 +28,11 @@
       "require": "./dist/services/patterns/messages/index.js",
       "types": "./dist/services/patterns/messages/index.d.ts"
     },
+    "./services/patterns/types": {
+      "import": "./dist/services/patterns/types/index.js",
+      "require": "./dist/services/patterns/types/index.js",
+      "types": "./dist/services/patterns/types/index.d.ts"
+    },
     "./shared/dto": {
       "import": "./dist/shared/dto/index.js",
       "require": "./dist/shared/dto/index.js",
