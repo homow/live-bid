@@ -7,29 +7,6 @@ export interface BaseResponse {
   path?: string;
 }
 
-/** API Responses without data */
-export interface BaseApiResponse {
-  message: string;
-}
-
-/** API Responses with data */
-export interface BaseApiResponseData<T> extends BaseApiResponse {
-  data: T;
-}
-
-/** Base API Responses */
-export type ApiResponse<T = void> = T extends void ? BaseApiResponse : BaseApiResponseData<T>;
-
-/** return a list of data with count */
-export type ListWithCount<T> = T & {
-  count: number;
-};
-
-/** schema response when request is ok */
-export interface InterceptorResponse<T> extends BaseResponse {
-  response: BaseApiResponseData<T> | BaseApiResponse;
-}
-
 /** params type for get schema for swagger when zod validate not success */
 export interface ZodFieldError {
   field: string;
