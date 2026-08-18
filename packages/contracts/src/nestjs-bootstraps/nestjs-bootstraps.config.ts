@@ -15,26 +15,27 @@ export const colors = {
 
 export const thenBootstraps = (
   {
-    baseUrl,
-    swaggerUrl,
     port,
-    apiVersion,
+    graphqlPath = '/graphql',
+    wsPath = '/graphql',
   }: {
-    baseUrl: string;
-    swaggerUrl: string;
     port: number | string;
-    apiVersion: string | number;
+    graphqlPath?: string;
+    wsPath?: string;
   }
 ) => {
-  console.log(`
-${colors.bold}${colors.cyan}╔════════════════════════════════════════════════════════════════╗${colors.reset}
-${colors.bold}${colors.cyan}║${colors.reset}  ${colors.bold}${colors.green}✨ NESTJS APPLICATION STARTED SUCCESSFULLY ✨${colors.reset}      ${colors.bold}${colors.cyan}║${colors.reset}
-${colors.bold}${colors.cyan}╚════════════════════════════════════════════════════════════════╝${colors.reset}
+  const graphqlUrl = `http://localhost:${port}${graphqlPath}`;
+  const wsUrl = `ws://localhost:${port}${wsPath}`;
 
-${colors.dim}${colors.gray}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${colors.reset}
+  console.log(`
+${colors.bold}${colors.cyan}╔══════════════════════════════════════════════════════════════╗${colors.reset}
+${colors.bold}${colors.cyan}║${colors.reset}  ${colors.bold}${colors.green}✦ GRAPHQL SERVER STARTED SUCCESSFULLY ✦${colors.reset}      ${colors.bold}${colors.cyan}║${colors.reset}
+${colors.bold}${colors.cyan}╚══════════════════════════════════════════════════════════════╝${colors.reset}
+
+${colors.dim}${colors.gray}────────────────────────────────────────────────────────────────────${colors.reset}
 
 ${colors.bold}${colors.white}📊 SYSTEM INFO${colors.reset}
-${colors.dim}${colors.gray}────────────────────────────────────────────────────────────────${colors.reset}
+${colors.dim}${colors.gray}────────────────────────────────────────────────────────────────────${colors.reset}
 
 ${colors.cyan}●${colors.reset} ${colors.bold}Environment${colors.reset}         ${colors.green}${process.env.NODE_ENV || 'development'}${colors.reset}
 ${colors.cyan}●${colors.reset} ${colors.bold}Process ID${colors.reset}           ${colors.yellow}${process.pid}${colors.reset}
@@ -42,37 +43,104 @@ ${colors.cyan}●${colors.reset} ${colors.bold}Node Version${colors.reset}      
 ${colors.cyan}●${colors.reset} ${colors.bold}Platform${colors.reset}             ${colors.blue}${process.platform}${colors.reset}
 ${colors.cyan}●${colors.reset} ${colors.bold}Started At${colors.reset}           ${colors.gray}${new Date().toLocaleString()}${colors.reset}
 
-${colors.dim}${colors.gray}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${colors.reset}
+${colors.dim}${colors.gray}────────────────────────────────────────────────────────────────────${colors.reset}
 
-${colors.bold}${colors.green}✅ All endpoints are ready to serve${colors.reset}
+${colors.bold}${colors.green}✅ GraphQL server is ready${colors.reset}
 
-${colors.bold}${colors.white}📍 ENDPOINTS${colors.reset}
-${colors.dim}${colors.gray}────────────────────────────────────────────────────────────────${colors.reset}
+${colors.bold}${colors.white}🔌 ENDPOINTS${colors.reset}
+${colors.dim}${colors.gray}────────────────────────────────────────────────────────────────────${colors.reset}
 
-${colors.green}●${colors.reset} ${colors.bold}Server Address${colors.reset}     ${colors.cyan}${colors.underline}http://localhost:${port}${colors.reset}
-${colors.blue}●${colors.reset} ${colors.bold}API Base Path${colors.reset}      ${colors.blue}${colors.underline}${baseUrl}/v${apiVersion}${colors.reset}
-${colors.yellow}●${colors.reset} ${colors.bold}Swagger JSON${colors.reset}       ${colors.yellow}${colors.underline}${baseUrl}/docs-json${colors.reset}
-${colors.red}●${colors.reset} ${colors.bold}Swagger YAML${colors.reset}       ${colors.red}${colors.underline}${baseUrl}/docs-yaml${colors.reset}
-${colors.magenta}●${colors.reset} ${colors.bold}Swagger UI${colors.reset}         ${colors.magenta}${colors.underline}${swaggerUrl}${colors.reset}
+${colors.green}●${colors.reset} ${colors.bold}GraphQL Playground${colors.reset}  ${colors.cyan}${colors.underline}${graphqlUrl}${colors.reset}
+${colors.blue}●${colors.reset} ${colors.bold}GraphQL Endpoint${colors.reset}    ${colors.blue}${colors.underline}${graphqlUrl}${colors.reset}
+${colors.yellow}●${colors.reset} ${colors.bold}WebSocket Endpoint${colors.reset} ${colors.yellow}${colors.underline}${wsUrl}${colors.reset}
+${colors.magenta}●${colors.reset} ${colors.bold}Introspection${colors.reset}     ${colors.magenta}${process.env.NODE_ENV !== 'production' ? '✅ Enabled' : '🚫 Disabled'}${colors.reset}
 
-${colors.dim}${colors.gray}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${colors.reset}
+${colors.dim}${colors.gray}────────────────────────────────────────────────────────────────────${colors.reset}
 
-${colors.dim}${colors.gray}💡 Press Ctrl+C to shut down the server${colors.reset}
+${colors.dim}${colors.gray}💡 Press Ctrl+C to shutdown${colors.reset}
 
 `);
 };
 
 export const catchBootstraps = (e: Error) => {
   console.error(`
-${colors.bold}${colors.red}╔════════════════════════════════════════════════════════════════╗${colors.reset}
-${colors.bold}${colors.red}║${colors.reset}  ${colors.bold}${colors.red}❌ FAILED TO START NESTJS APPLICATION ❌${colors.reset}        ${colors.bold}${colors.red}║${colors.reset}
-${colors.bold}${colors.red}╚════════════════════════════════════════════════════════════════╝${colors.reset}
+${colors.bold}${colors.red}╔══════════════════════════════════════════════════════════════╗${colors.reset}
+${colors.bold}${colors.red}║${colors.reset}  ${colors.bold}${colors.red}❌ FAILED TO START GRAPHQL SERVER ❌${colors.reset}        ${colors.bold}${colors.red}║${colors.reset}
+${colors.bold}${colors.red}╚══════════════════════════════════════════════════════════════╝${colors.reset}
 
 ${colors.bold}${colors.red}Error Details:${colors.reset}
-${colors.dim}${colors.gray}────────────────────────────────────────────────────────────────${colors.reset}
+${colors.dim}${colors.gray}────────────────────────────────────────────────────────────────────${colors.reset}
 
-${colors.red}●${colors.reset} ${colors.bold}Message:${colors.reset} ${colors.white}${e}${colors.reset}
+${colors.red}●${colors.reset} ${colors.bold}Message:${colors.reset} ${colors.white}${e.message || e}${colors.reset}
 
-${colors.dim}${colors.gray}────────────────────────────────────────────────────────────────${colors.reset}
+${colors.dim}${colors.gray}────────────────────────────────────────────────────────────────────${colors.reset}
+`);
+};
+
+/** Microservices Bootstrap */
+export const microserviceBootstraps = (
+  {
+    serviceName,
+    transport,
+    host = 'localhost',
+    port = undefined,
+    mode = 'microservice',
+  }: {
+    serviceName: string;
+    transport: 'TCP' | 'Redis' | 'NATS' | 'MQTT' | 'gRPC' | 'Kafka' | 'RMQ';
+    host?: string;
+    port?: number;
+    mode?: 'microservice' | 'hybrid' | 'standalone';
+  }
+) => {
+  console.log(`
+${colors.bold}${colors.blue}╔══════════════════════════════════════════════════════════════╗${colors.reset}
+${colors.bold}${colors.blue}║${colors.reset}  ${colors.bold}${colors.green}🔗 ${serviceName.toUpperCase()} MICROSERVICE CONNECTED ✅${colors.reset}     ${colors.bold}${colors.blue}║${colors.reset}
+${colors.bold}${colors.blue}╚══════════════════════════════════════════════════════════════╝${colors.reset}
+
+${colors.dim}${colors.gray}────────────────────────────────────────────────────────────────────${colors.reset}
+
+${colors.bold}${colors.white}⚙️  SERVICE CONFIG${colors.reset}
+${colors.dim}${colors.gray}────────────────────────────────────────────────────────────────────${colors.reset}
+
+${colors.cyan}●${colors.reset} ${colors.bold}Service${colors.reset}              ${colors.green}${serviceName}${colors.reset}
+${colors.cyan}●${colors.reset} ${colors.bold}Transport${colors.reset}            ${colors.yellow}${transport}${colors.reset}
+${colors.cyan}●${colors.reset} ${colors.bold}Mode${colors.reset}                ${colors.magenta}${mode}${colors.reset}
+${colors.cyan}●${colors.reset} ${colors.bold}Status${colors.reset}              ${colors.green}✓ Connected${colors.reset}
+${colors.cyan}●${colors.reset} ${colors.bold}Process ID${colors.reset}          ${colors.gray}${process.pid}${colors.reset}
+${colors.cyan}●${colors.reset} ${colors.bold}Started At${colors.reset}          ${colors.gray}${new Date().toLocaleString()}${colors.reset}
+${port ? `${colors.cyan}●${colors.reset} ${colors.bold}Endpoint${colors.reset}             ${colors.blue}${host}:${port}${colors.reset}` : ''}
+
+${colors.dim}${colors.gray}────────────────────────────────────────────────────────────────────${colors.reset}
+
+${colors.dim}${colors.gray}✅ ${serviceName} is ready to receive requests via ${transport}${colors.reset}
+
+`);
+};
+
+export const microserviceCatch = (
+  {
+    serviceName,
+    transport,
+    error,
+  }: {
+    serviceName: string;
+    transport: string;
+    error: Error;
+  }
+) => {
+  console.error(`
+${colors.bold}${colors.red}╔══════════════════════════════════════════════════════════════╗${colors.reset}
+${colors.bold}${colors.red}║${colors.reset}  ${colors.bold}${colors.red}❌ ${serviceName.toUpperCase()} MICROSERVICE FAILED ❌${colors.reset}     ${colors.bold}${colors.red}║${colors.reset}
+${colors.bold}${colors.red}╚══════════════════════════════════════════════════════════════╝${colors.reset}
+
+${colors.bold}${colors.red}Error Details:${colors.reset}
+${colors.dim}${colors.gray}────────────────────────────────────────────────────────────────────${colors.reset}
+
+${colors.red}●${colors.reset} ${colors.bold}Service${colors.reset}              ${colors.white}${serviceName}${colors.reset}
+${colors.red}●${colors.reset} ${colors.bold}Transport${colors.reset}            ${colors.white}${transport}${colors.reset}
+${colors.red}●${colors.reset} ${colors.bold}Message${colors.reset}             ${colors.white}${error.message || error}${colors.reset}
+
+${colors.dim}${colors.gray}────────────────────────────────────────────────────────────────────${colors.reset}
 `);
 };

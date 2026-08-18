@@ -14,8 +14,6 @@ async function bootstrap() {
 bootstrap()
   .then(() => thenBootstraps({
     port: PORT,
-    baseUrl: "",
-    swaggerUrl: "",
-    apiVersion: "",
+    graphqlPath: "/graphql",
   }))
   .catch(e => catchBootstraps(e as Error));
