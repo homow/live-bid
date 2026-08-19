@@ -1,7 +1,7 @@
 import {AppModule} from './app.module';
 import {NestFactory} from '@nestjs/core';
 import {MicroserviceOptions, Transport} from "@nestjs/microservices";
-import {microserviceBootstraps, microserviceCatch} from "@live-bid/contracts/nestjs-bootstraps";
+import {microserviceBootstraps, microserviceCatch} from "@live-bid/services/bootstrap";
 
 const REDS_HOST = process.env.REDS_HOST || "127.0.0.1";
 const REDS_PORT = Number(process.env.REDS_PORT || 6379) || 6379;

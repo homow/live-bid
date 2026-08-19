@@ -2,8 +2,8 @@ import {firstValueFrom} from "rxjs";
 import {Inject} from "@nestjs/common";
 import {Resolver, Query} from "@nestjs/graphql";
 import {ClientProxy} from "@nestjs/microservices";
-import {AUTH_SERVICE_NAME} from "@live-bid/contracts/services/names";
-import * as Messages from "@live-bid/contracts/services/patterns/messages";
+import {AUTH_SERVICE_NAME} from "@live-bid/services/names";
+import * as Messages from "@live-bid/services/graphql-messages";
 
 @Resolver()
 export class AuthResolver {

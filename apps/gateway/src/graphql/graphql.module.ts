@@ -2,7 +2,7 @@ import {Module} from "@nestjs/common";
 import * as Resolvers from "./resolvers";
 import {ConfigService} from "@nestjs/config";
 import {ClientsModule, Transport} from "@nestjs/microservices";
-import {AUTH_SERVICE_NAME, CORE_SERVICE_NAME} from "@live-bid/contracts/services/names";
+import {AUTH_SERVICE_NAME, CORE_SERVICE_NAME} from "@live-bid/services/names";
 
 @Module({
   imports: [
