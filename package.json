@@ -24,7 +24,7 @@
 
     "dev:contracts": "npm run build --workspace=packages/contracts -- --watch",
     "dev:services": "npm run build --workspace=packages/services -- --watch",
-    "dev:packages": "npm run build:packages && concurrently -n contracts,services -c cyan,yellow \"npm:dev:contracts\" \"npm:dev:services\"",
+    "dev:packages": "concurrently -n contracts,services -c cyan,yellow \"npm:dev:contracts\" \"npm:dev:services\"",
 
     "dev:gateway": "nest start gateway --watch",
     "dev:auth": "nest start auth --watch",
