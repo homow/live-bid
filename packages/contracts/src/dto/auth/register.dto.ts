@@ -19,7 +19,7 @@ export const UserRegisterValidator = z.object({
       /^[a-zA-Z0-9_]*$/,
       "Username can only contain letters, numbers, and underscore"
     ),
-  display_name: DisplayUserNameSchema,
+  displayName: DisplayUserNameSchema,
   password: z.string()
     .trim()
     .min(8)
