@@ -1,0 +1,40 @@
+{
+  "name": "@live-bid/contracts",
+  "version": "0.0.1",
+  "private": true,
+  "types": "./dist/graphql-messages/index.d.ts",
+  "main": "./dist/graphql-messages/index.js",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    "./bootstrap": {
+      "import": "./dist/bootstrap/index.js",
+      "require": "./dist/bootstrap/index.js",
+      "types": "./dist/bootstrap/index.d.ts"
+    },
+    "./names": {
+      "import": "./dist/names/index.js",
+      "require": "./dist/names/index.js",
+      "types": "./dist/names/index.d.ts"
+    },
+    "./events": {
+      "import": "./dist/events/index.js",
+      "require": "./dist/events/index.js",
+      "types": "./dist/events/index.d.ts"
+    },
+    "./graphql-messages": {
+      "import": "./dist/graphql-messages/index.js",
+      "require": "./dist/graphql-messages/index.js",
+      "types": "./dist/graphql-messages/index.d.ts"
+    },
+    "./database": {
+      "import": "./dist/database/index.js",
+      "require": "./dist/database/index.js",
+      "types": "./dist/database/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  }
+}

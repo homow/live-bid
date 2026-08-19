@@ -2,51 +2,21 @@
   "name": "@live-bid/contracts",
   "version": "0.0.1",
   "private": true,
-  "types": "./dist/services/names/index.d.ts",
-  "main": "./dist/services/names/index.js",
+  "types": "./dist/messages/index.d.ts",
+  "main": "./dist/messages/index.js",
   "files": [
     "dist"
   ],
   "exports": {
-    "./nestjs-bootstraps": {
-      "import": "./dist/nestjs-bootstraps/index.js",
-      "require": "./dist/nestjs-bootstraps/index.js",
-      "types": "./dist/nestjs-bootstraps/index.d.ts"
+    "./dto": {
+      "import": "./dist/dto/index.js",
+      "require": "./dist/dto/index.js",
+      "types": "./dist/dto/index.d.ts"
     },
-    "./services/names": {
-      "import": "./dist/services/names/index.js",
-      "require": "./dist/services/names/index.js",
-      "types": "./dist/services/names/index.d.ts"
-    },
-    "./services/patterns/events": {
-      "import": "./dist/services/patterns/events/index.js",
-      "require": "./dist/services/patterns/events/index.js",
-      "types": "./dist/services/patterns/events/index.d.ts"
-    },
-    "./services/patterns/messages": {
-      "import": "./dist/services/patterns/messages/index.js",
-      "require": "./dist/services/patterns/messages/index.js",
-      "types": "./dist/services/patterns/messages/index.d.ts"
-    },
-    "./services/database": {
-      "import": "./dist/services/database/index.js",
-      "require": "./dist/services/database/index.js",
-      "types": "./dist/services/database/index.d.ts"
-    },
-    "./services/patterns/types": {
-      "import": "./dist/services/patterns/types/index.js",
-      "require": "./dist/services/patterns/types/index.js",
-      "types": "./dist/services/patterns/types/index.d.ts"
-    },
-    "./shared/dto": {
-      "import": "./dist/shared/dto/index.js",
-      "require": "./dist/shared/dto/index.js",
-      "types": "./dist/shared/dto/index.d.ts"
-    },
-    "./shared/messages": {
-      "import": "./dist/shared/messages/index.js",
-      "require": "./dist/shared/messages/index.js",
-      "types": "./dist/shared/messages/index.d.ts"
+    "./messages": {
+      "import": "./dist/messages/index.js",
+      "require": "./dist/messages/index.js",
+      "types": "./dist/messages/index.d.ts"
     }
   },
   "scripts": {
