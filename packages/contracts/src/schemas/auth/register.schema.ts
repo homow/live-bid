@@ -1,8 +1,8 @@
 import {z} from "zod";
 
-export const DisplayUserNameSchema = z.string().min(3).max(60).trim();
+export const UserDisplayNameSchema = z.string().min(3).max(60).trim();
 
-export const UserRegisterValidator = z.object({
+export const RegisterSchema = z.object({
   username: z.string()
     .trim()
     .min(3, "Username must be at least 3 characters")
@@ -19,7 +19,7 @@ export const UserRegisterValidator = z.object({
       /^[a-zA-Z0-9_]*$/,
       "Username can only contain letters, numbers, and underscore"
     ),
-  displayName: DisplayUserNameSchema,
+  displayName: UserDisplayNameSchema,
   password: z.string()
     .trim()
     .min(8)
@@ -31,4 +31,4 @@ export const UserRegisterValidator = z.object({
   email: z.email().nonempty().trim()
 });
 
-export type UserRegisterValidatorType = z.infer<typeof DisplayUserNameSchema>;
+export type RegisterSchemaType = z.infer<typeof RegisterSchema>;

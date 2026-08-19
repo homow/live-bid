@@ -8,10 +8,10 @@
     "dist"
   ],
   "exports": {
-    "./dto": {
-      "import": "./dist/dto/index.js",
-      "require": "./dist/dto/index.js",
-      "types": "./dist/dto/index.d.ts"
+    "./schemas": {
+      "import": "./dist/schemas/index.js",
+      "require": "./dist/schemas/index.js",
+      "types": "./dist/schemas/index.d.ts"
     },
     "./messages": {
       "import": "./dist/messages/index.js",

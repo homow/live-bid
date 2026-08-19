@@ -1,5 +1,5 @@
 {
-  "name": "@live-bid/contracts",
+  "name": "@live-bid/services",
   "version": "0.0.1",
   "private": true,
   "types": "./dist/graphql-messages/index.d.ts",
