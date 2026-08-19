@@ -11,22 +11,35 @@
     "packages/*"
   ],
   "scripts": {
-    "build:packages": "npm run build --workspace=packages/contracts",
+    "build:contracts": "npm run build --workspace=packages/contracts",
+    "build:services": "npm run build --workspace=packages/services",
+    "build:packages": "npm run build:services && npm run build:contracts",
+
     "build:gateway": "nest build gateway",
     "build:auth": "nest build auth",
     "build:core": "nest build core",
     "build:web": "npm run build --workspace=clients/web",
+
     "build:all": "npm run build:packages && concurrently \"npm:build:gateway\" \"npm:build:core\" \"npm:build:auth\" \"npm:build:web\"",
-    "dev:packages": "npm run build --workspace=packages/contracts -- --watch",
+
+    "dev:contracts": "npm run build --workspace=packages/contracts -- --watch",
+    "dev:services": "npm run build --workspace=packages/services -- --watch",
+    "dev:packages": "npm run build:packages && concurrently -n contracts,services -c cyan,yellow \"npm:dev:contracts\" \"npm:dev:services\"",
+
     "dev:gateway": "nest start gateway --watch",
     "dev:auth": "nest start auth --watch",
     "dev:core": "nest start core --watch",
     "dev:web": "npm run dev --workspace=clients/web",
+
     "dev:gateway-auth": "npm run build:packages && concurrently -n pkgs,gateway,auth -c gray,cyan,yellow \"npm:dev:packages\" \"npm:dev:gateway\" \"npm:dev:auth\"",
+
     "dev:gateway-core": "npm run build:packages && concurrently -n pkgs,gateway,core -c gray,cyan,yellow \"npm:dev:packages\" \"npm:dev:gateway\" \"npm:dev:core\"",
-    "dev:microservice": "npm run build:packages && concurrently -n pkgs,gateway,auth,core -c gray,cyan,yellow,blue \"npm:dev:packages\" \"npm:dev:gateway\"  \"npm:dev:auth\" \"npm:dev:core\"",
-    "dev:services": "concurrently -n pkgs,gateway,auth,core,web -c gray,cyan,yellow,blue,green \"npm:dev:packages\" \"npm:dev:gateway\" \"npm:dev:auth\" \"npm:dev:core\" \"npm:dev:web\"",
-    "dev": "npm run build:packages && npm run dev:services"
+
+    "dev:microservices": "npm run build:packages && concurrently -n pkgs,gateway,auth,core -c gray,cyan,yellow,blue \"npm:dev:packages\" \"npm:dev:gateway\"  \"npm:dev:auth\" \"npm:dev:core\"",
+
+    "dev:all": "concurrently -n pkgs,gateway,auth,core,web -c gray,cyan,yellow,blue,green \"npm:dev:packages\" \"npm:dev:gateway\" \"npm:dev:auth\" \"npm:dev:core\" \"npm:dev:web\"",
+
+    "dev": "npm run build:packages && npm run dev:all"
   },
   "dependencies": {
     "@apollo/server": "^5.5.1",
