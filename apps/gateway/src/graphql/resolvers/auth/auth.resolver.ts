@@ -29,6 +29,6 @@ export class AuthResolver {
     input: Schemas.RegisterUserSchemaType
   ) {
     console.log(input);
-    return firstValueFrom(this.authClient.send(Messages.AUTH_MESSAGES.REGISTER, {}));
+    return firstValueFrom(this.authClient.send(Messages.AUTH_MESSAGES.REGISTER, input));
   }
 }
