@@ -2,7 +2,7 @@ import {z} from "zod";
 
 export const UserDisplayNameSchema = z.string().min(3).max(60).trim();
 
-export const RegisterSchema = z.object({
+export const RegisterUserSchema = z.object({
   username: z.string()
     .trim()
     .min(3, "Username must be at least 3 characters")
@@ -31,4 +31,4 @@ export const RegisterSchema = z.object({
   email: z.email().nonempty().trim()
 });
 
-export type RegisterSchemaType = z.infer<typeof RegisterSchema>;
+export type RegisterUserSchemaType = z.infer<typeof RegisterUserSchema>;
