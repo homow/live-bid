@@ -1,12 +1,12 @@
 import {firstValueFrom} from "rxjs";
-import {ClientProxy} from "@nestjs/microservices";
 import {Inject} from "@nestjs/common";
-import {Resolver, Mutation, Args, Query} from "@nestjs/graphql";
-import * as Messages from "@live-bid/services/graphql-messages";
-import {AUTH_SERVICE_NAME} from "@live-bid/services/names";
 import * as AuthInputs from "./inputs";
-import * as Schemas from "@live-bid/contracts/schemas";
 import {ZodPipe} from "@app/gateway/common";
+import {ClientProxy} from "@nestjs/microservices";
+import * as Schemas from "@live-bid/contracts/schemas";
+import {AUTH_SERVICE_NAME} from "@live-bid/services/names";
+import * as Messages from "@live-bid/services/graphql-messages";
+import {Resolver, Mutation, Args, Query} from "@nestjs/graphql";
 
 @Resolver()
 export class AuthResolver {

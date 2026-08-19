@@ -52,7 +52,7 @@ ${colors.dim}${colors.gray}─────────────────�
 
 ${colors.green}●${colors.reset} ${colors.bold}GraphQL Playground${colors.reset}  ${colors.cyan}${colors.underline}${graphqlUrl}${colors.reset}
 ${colors.blue}●${colors.reset} ${colors.bold}GraphQL Endpoint${colors.reset}    ${colors.blue}${colors.underline}${graphqlUrl}${colors.reset}
-${colors.yellow}●${colors.reset} ${colors.bold}WebSocket Endpoint${colors.reset} ${colors.yellow}${colors.underline}${wsUrl}${colors.reset}
+${colors.yellow}●${colors.reset} ${colors.bold}WebSocket Endpoint${colors.reset} ${colors.yellow} ${colors.underline}${wsUrl}${colors.reset}
 ${colors.magenta}●${colors.reset} ${colors.bold}Introspection${colors.reset}     ${colors.magenta}${process.env.NODE_ENV !== 'production' ? '✅ Enabled' : '🚫 Disabled'}${colors.reset}
 
 ${colors.dim}${colors.gray}────────────────────────────────────────────────────────────────────${colors.reset}

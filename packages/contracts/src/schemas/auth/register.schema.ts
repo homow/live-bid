@@ -8,16 +8,8 @@ export const RegisterUserSchema = z.object({
     .min(3, "Username must be at least 3 characters")
     .max(30, "Username must be at most 30 characters")
     .regex(
-      /^[a-zA-Z0-9_]+$/,
-      "Username can only contain letters, numbers, and underscore (_)"
-    )
-    .regex(
-      /^[a-zA-Z]/,
-      "Username must start with a letter"
-    )
-    .regex(
-      /^[a-zA-Z0-9_]*$/,
-      "Username can only contain letters, numbers, and underscore"
+      /^[a-zA-Z][a-zA-Z0-9_]*$/,
+      "Username must start with a letter and can only contain letters, numbers, and underscore"
     ),
   displayName: UserDisplayNameSchema,
   password: z.string()
