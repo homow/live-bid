@@ -31,4 +31,4 @@ export const UserRegisterValidator = z.object({
   email: z.email().nonempty().trim()
 });
 
-export type RegisterRegisterValidatorType = z.infer<typeof DisplayUserNameSchema>;
+export type UserRegisterValidatorType = z.infer<typeof DisplayUserNameSchema>;
