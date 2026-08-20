@@ -39,7 +39,14 @@
 
     "dev:all": "concurrently -n pkgs,gateway,auth,core,web -c gray,cyan,yellow,blue,green \"npm:dev:packages\" \"npm:dev:gateway\" \"npm:dev:auth\" \"npm:dev:core\" \"npm:dev:web\"",
 
-    "dev": "npm run build:packages && npm run dev:all"
+    "dev": "npm run build:packages && npm run dev:all",
+
+    "db:drop": "npx drizzle-kit drop",
+    "db:push": "npx drizzle-kit push",
+    "db:studio": "npx drizzle-kit studio",
+    "db:migrate-dev": "npx drizzle-kit migrate",
+    "db:generate": "npx drizzle-kit generate",
+    "db:sync": "npm run db:generate && npm run db:migrate-dev"
   },
   "dependencies": {
     "@apollo/server": "^5.5.1",
