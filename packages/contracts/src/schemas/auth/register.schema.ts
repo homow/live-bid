@@ -11,7 +11,7 @@ export const RegisterUserSchema = z.object({
       /^[a-zA-Z][a-zA-Z0-9_]*$/,
       "Username must start with a letter and can only contain letters, numbers, and underscore"
     ),
-  displayName: UserDisplayNameSchema,
+  display_name: UserDisplayNameSchema,
   password: z.string()
     .trim()
     .min(8)
