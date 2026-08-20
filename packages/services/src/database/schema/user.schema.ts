@@ -9,7 +9,7 @@ export const user = pgTable("users", {
   password: varchar("password", {length: 255}).notNull(),
   email: varchar("email", {length: 13}).notNull().unique(),
   username: varchar("username", {length: 255}).unique(),
-  isActive: boolean("is_active").default(true).notNull(),
+  is_active: boolean("is_active").default(true).notNull(),
   display_name: varchar("display_name", {length: 60}).notNull(),
   role: userRoleEnum('role').notNull().default(UserRoleEnum.USER),
 });
