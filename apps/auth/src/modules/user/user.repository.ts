@@ -1,14 +1,14 @@
 import {Injectable} from "@nestjs/common";
 import {user} from "@live-bid/services/database";
+import * as Schemas from "@live-bid/contracts/schemas";
 import {DrizzleService} from "@live-bid/services/database";
 import {checkDrizzleError, UserRoleEnum} from "@live-bid/services/lib";
-import {type RegisterUserSchemaType} from "@live-bid/contracts/schemas";
 
 @Injectable()
 export class UserRepository {
   constructor(private readonly drizzle: DrizzleService) {}
 
-  async createUser({password, email, display_name}: RegisterUserSchemaType) {
+  async createUser({password, email, display_name}: Schemas.RegisterUserSchemaType) {
     try {
       const [result] = await this.drizzle.db
         .insert(user)
