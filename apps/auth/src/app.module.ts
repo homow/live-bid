@@ -6,11 +6,13 @@ import * as drizzleSchemas from "@live-bid/services/database/schema";
 
 @Module({
   imports: [
+    // Env Config Module
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: "apps/auth/.env",
     }),
 
+    // Drizzle Module
     DrizzleModule.forRoot(drizzleSchemas),
 
     // App Modules
