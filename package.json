@@ -13,7 +13,7 @@
   "scripts": {
     "build:contracts": "npm run build --workspace=packages/contracts",
     "build:services": "npm run build --workspace=packages/services",
-    "build:packages": "npm run build:services && npm run build:contracts",
+    "build:packages": "npm run build:contracts && npm run build:services",
     "build:gateway": "nest build gateway",
     "build:auth": "nest build auth",
     "build:core": "nest build core",

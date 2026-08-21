@@ -33,6 +33,11 @@
       "require": "./dist/database/index.js",
       "types": "./dist/database/index.d.ts"
     },
+    "./database/schema": {
+      "import": "./dist/database/schema/index.js",
+      "require": "./dist/database/schema/index.js",
+      "types": "./dist/database/schema/index.d.ts"
+    },
     "./lib": {
       "import": "./dist/lib/index.js",
       "require": "./dist/lib/index.js",
