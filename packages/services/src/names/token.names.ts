@@ -1,0 +1,2 @@
+export const ACCESS_TOKEN_NAME = "ACCESS_TOKEN";
+export const REFRESH_TOKEN_NAME = "REFRESH_TOKEN";
