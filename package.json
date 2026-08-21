@@ -45,6 +45,7 @@
     "db:push": "npx drizzle-kit push",
     "db:studio": "npx drizzle-kit studio",
     "db:migrate-dev": "npx drizzle-kit migrate",
+    "db:migrate-prod": "npx tsx ./packages/services/src/database/seed/migrate.ts",
     "db:generate": "npx drizzle-kit generate",
     "db:sync": "npm run db:generate && npm run db:migrate-dev"
   },
