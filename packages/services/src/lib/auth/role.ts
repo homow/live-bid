@@ -1,3 +1,5 @@
+import {UserRoleEnum} from "@live-bid/contracts/enums";
+
 /**
  * ============================================================
  *  ROLE-BASED ACCESS CONTROL (RBAC) UTILITIES
@@ -18,11 +20,6 @@
  * @see UserRoleEnum
  * @see isRoleAccess
  */
-export enum UserRoleEnum {
-  USER = 'USER',
-  ADMIN = 'ADMIN',
-  OWNER = 'OWNER',
-}
 
 /**
  * Represents the role hierarchy levels.

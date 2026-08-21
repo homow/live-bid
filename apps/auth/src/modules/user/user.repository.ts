@@ -1,8 +1,9 @@
 import {Injectable} from "@nestjs/common";
 import {user} from "@live-bid/services/database";
 import * as Schemas from "@live-bid/contracts/schemas";
+import {UserRoleEnum} from "@live-bid/contracts/enums";
+import {checkDrizzleError} from "@live-bid/services/lib";
 import {DrizzleService} from "@live-bid/services/database";
-import {checkDrizzleError, UserRoleEnum} from "@live-bid/services/lib";
 
 const USER_PUBLIC_COLUMNS = {
   id: user.id,

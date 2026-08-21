@@ -7,7 +7,11 @@ import {UserController} from "./user.controller";
   controllers: [UserController],
   providers: [
     UserService,
-    UserRepository
+    UserRepository,
   ],
+  exports: [
+    UserService,
+    UserRepository,
+  ]
 })
 export class UserModule {}

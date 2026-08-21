@@ -2,8 +2,6 @@
   "name": "@live-bid/contracts",
   "version": "0.0.1",
   "private": true,
-  "types": "./dist/messages/index.d.ts",
-  "main": "./dist/messages/index.js",
   "files": [
     "dist"
   ],
@@ -12,6 +10,11 @@
       "import": "./dist/schemas/index.js",
       "require": "./dist/schemas/index.js",
       "types": "./dist/schemas/index.d.ts"
+    },
+    "./enums": {
+      "import": "./dist/enums/index.js",
+      "require": "./dist/enums/index.js",
+      "types": "./dist/enums/index.d.ts"
     },
     "./messages": {
       "import": "./dist/messages/index.js",

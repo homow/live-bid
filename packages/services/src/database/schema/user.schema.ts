@@ -1,5 +1,5 @@
-import {UserRoleEnum} from "../../lib";
 import {baseDrizzleTable} from "./common";
+import {UserRoleEnum} from "@live-bid/contracts/enums";
 import {boolean, index, pgEnum, pgTable, varchar} from "drizzle-orm/pg-core";
 
 export const userRoleEnum = pgEnum('user_role', UserRoleEnum);
