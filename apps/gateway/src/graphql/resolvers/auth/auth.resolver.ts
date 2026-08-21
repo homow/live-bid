@@ -5,20 +5,15 @@ import * as AuthOutputs from "./outputs";
 import {ZodPipe} from "@app/gateway/common";
 import {ClientProxy} from "@nestjs/microservices";
 import * as Schemas from "@live-bid/contracts/schemas";
+import {Resolver, Mutation, Args} from "@nestjs/graphql";
 import {AUTH_SERVICE_NAME} from "@live-bid/services/names";
 import * as Messages from "@live-bid/services/graphql-messages";
-import {Resolver, Mutation, Args, Query} from "@nestjs/graphql";
 
 @Resolver()
 export class AuthResolver {
   constructor(
     @Inject(AUTH_SERVICE_NAME) private readonly authClient: ClientProxy
   ) {}
-
-  @Query(() => String)
-  hello() {
-    return "Hello from GraphQL!";
-  }
 
   @Mutation(() => AuthOutputs.RegisterUserOutput)
   register(
