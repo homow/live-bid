@@ -1,5 +1,5 @@
 {
-  "id": "79d72beb-2af8-4fcd-bc54-430700a99822",
+  "id": "a8cdace5-40bf-4036-ae58-35ef80f847c7",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -91,7 +91,17 @@
       "isRLSEnabled": false
     }
   },
-  "enums": {},
+  "enums": {
+    "public.user_role": {
+      "name": "user_role",
+      "schema": "public",
+      "values": [
+        "USER",
+        "ADMIN",
+        "OWNER"
+      ]
+    }
+  },
   "schemas": {},
   "sequences": {},
   "roles": {},
