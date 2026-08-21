@@ -14,33 +14,23 @@
     "build:contracts": "npm run build --workspace=packages/contracts",
     "build:services": "npm run build --workspace=packages/services",
     "build:packages": "npm run build:services && npm run build:contracts",
-
     "build:gateway": "nest build gateway",
     "build:auth": "nest build auth",
     "build:core": "nest build core",
     "build:web": "npm run build --workspace=clients/web",
-
     "build:all": "npm run build:packages && concurrently \"npm:build:gateway\" \"npm:build:core\" \"npm:build:auth\" \"npm:build:web\"",
-
     "dev:contracts": "npm run build --workspace=packages/contracts -- --watch",
     "dev:services": "npm run build --workspace=packages/services -- --watch",
     "dev:packages": "concurrently -n contracts,services -c cyan,yellow \"npm:dev:contracts\" \"npm:dev:services\"",
-
     "dev:gateway": "nest start gateway --watch",
     "dev:auth": "nest start auth --watch",
     "dev:core": "nest start core --watch",
     "dev:web": "npm run dev --workspace=clients/web",
-
     "dev:gateway-auth": "npm run build:packages && concurrently -n pkgs,gateway,auth -c gray,cyan,yellow \"npm:dev:packages\" \"npm:dev:gateway\" \"npm:dev:auth\"",
-
     "dev:gateway-core": "npm run build:packages && concurrently -n pkgs,gateway,core -c gray,cyan,yellow \"npm:dev:packages\" \"npm:dev:gateway\" \"npm:dev:core\"",
-
     "dev:microservices": "npm run build:packages && concurrently -n pkgs,gateway,auth,core -c gray,cyan,yellow,blue \"npm:dev:packages\" \"npm:dev:gateway\"  \"npm:dev:auth\" \"npm:dev:core\"",
-
     "dev:all": "concurrently -n pkgs,gateway,auth,core,web -c gray,cyan,yellow,blue,green \"npm:dev:packages\" \"npm:dev:gateway\" \"npm:dev:auth\" \"npm:dev:core\" \"npm:dev:web\"",
-
     "dev": "npm run build:packages && npm run dev:all",
-
     "db:drop": "npx drizzle-kit drop",
     "db:push": "npx drizzle-kit push",
     "db:studio": "npx drizzle-kit studio",
@@ -78,6 +68,7 @@
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "pg": "^8.23.0",
+    "pino-http": "^11.0.0",
     "pino-pretty": "^13.1.3",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
