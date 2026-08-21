@@ -1,6 +1,7 @@
 import {firstValueFrom} from "rxjs";
 import {Inject} from "@nestjs/common";
 import * as AuthInputs from "./inputs";
+import * as AuthOutputs from "./outputs";
 import {ZodPipe} from "@app/gateway/common";
 import {ClientProxy} from "@nestjs/microservices";
 import * as Schemas from "@live-bid/contracts/schemas";
@@ -19,7 +20,7 @@ export class AuthResolver {
     return "Hello from GraphQL!";
   }
 
-  @Mutation(() => String)
+  @Mutation(() => AuthOutputs.RegisterUserOutput)
   register(
     @Args(
       "input",
@@ -27,7 +28,7 @@ export class AuthResolver {
       new ZodPipe(Schemas.RegisterUserSchema)
     )
     input: Schemas.RegisterUserSchemaType
-  ) {
+  ): Promise<AuthOutputs.RegisterUserOutput> {
     return firstValueFrom(this.authClient.send(Messages.AUTH_MESSAGES.REGISTER, input));
   }
 }
