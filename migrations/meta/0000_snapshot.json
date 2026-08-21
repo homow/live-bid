@@ -1,5 +1,5 @@
 {
-  "id": "a8cdace5-40bf-4036-ae58-35ef80f847c7",
+  "id": "77eaeb57-2132-43ca-90f4-708f65dc33b2",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -67,7 +67,29 @@
           "default": "'USER'"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "users_is_active_role": {
+          "name": "users_is_active_role",
+          "columns": [
+            {
+              "expression": "is_active",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "role",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {

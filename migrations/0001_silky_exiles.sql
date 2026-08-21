@@ -1,1 +1,0 @@
-CREATE INDEX "users_is_active_role_index" ON "users" USING btree ("is_active","role");
