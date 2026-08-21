@@ -2,7 +2,7 @@ import {UserRoleEnum} from "../../lib";
 import {baseDrizzleTable} from "./common";
 import {boolean, pgEnum, pgTable, varchar} from "drizzle-orm/pg-core";
 
-const userRoleEnum = pgEnum('user_role', UserRoleEnum);
+export const userRoleEnum = pgEnum('user_role', UserRoleEnum);
 
 export const user = pgTable("users", {
   ...baseDrizzleTable,
