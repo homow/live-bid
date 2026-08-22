@@ -4,7 +4,8 @@ import {UserPasswordSchema, UsernameSchema} from "../common";
 export const LoginUserSchema = z.object({
   username: UsernameSchema.optional(),
   email: z.email().optional(),
-  password: UserPasswordSchema
+  password: UserPasswordSchema,
+  remember: z.boolean().optional().default(false),
 }).refine(
   data => data.username || data.email,
   {
