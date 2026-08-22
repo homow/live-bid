@@ -26,4 +26,9 @@ export class AuthResolver {
   ): Promise<AuthOutputs.RegisterUserOutput> {
     return firstValueFrom(this.authClient.send(Messages.AUTH_MESSAGES.REGISTER, input));
   }
+
+  @Mutation()
+  login() {
+
+  }
 }
