@@ -1,12 +1,7 @@
 import path from "node:path";
 import "@app/gateway/lib/config/env";
-import type {Request, Response} from "express";
+import type {GraphQLContext} from "@app/gateway/types";
 import {ApolloDriver, ApolloDriverConfig} from "@nestjs/apollo";
-
-interface RequestAndResponse {
-  req: Request;
-  res: Response;
-}
 
 const isProduction: boolean = process.env.NODE_ENV === "production";
 
@@ -23,7 +18,7 @@ export const graphqlConfigs: ApolloDriverConfig = {
     "graphql-ws": true
   },
 
-  context: ({req, res}: RequestAndResponse) => ({req, res}),
+  context: ({req, res}: GraphQLContext) => ({req, res}),
 
   formatError: formattedError => ({
     message: formattedError.message,

@@ -4,10 +4,11 @@ import * as AuthInputs from "./inputs";
 import * as AuthOutputs from "./outputs";
 import {ZodPipe} from "@app/gateway/common";
 import {ClientProxy} from "@nestjs/microservices";
+import type {GraphQLContext} from "@app/gateway/types";
 import * as Schemas from "@live-bid/contracts/schemas";
-import {Resolver, Mutation, Args} from "@nestjs/graphql";
 import {AUTH_SERVICE_NAME} from "@live-bid/services/names";
 import * as Messages from "@live-bid/services/graphql-messages";
+import {Resolver, Mutation, Args, Context} from "@nestjs/graphql";
 
 @Resolver()
 export class AuthResolver {
@@ -27,8 +28,17 @@ export class AuthResolver {
     return firstValueFrom(this.authClient.send(Messages.AUTH_MESSAGES.REGISTER, input));
   }
 
-  @Mutation()
-  login() {
-
+  @Mutation(() => String)
+  login(
+    @Args(
+      "input",
+      {type: () => AuthInputs.LoginUserInput},
+      new ZodPipe(Schemas.LoginUserSchema)
+    )
+    input: Schemas.LoginUserSchemaType,
+    @Context() context: GraphQLContext,
+  ) {
+    console.log(context.res);
+    return "login";
   }
 }
