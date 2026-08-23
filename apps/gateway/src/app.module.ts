@@ -1,9 +1,10 @@
-import {Module} from '@nestjs/common';
 import {LoggerModule} from "nestjs-pino";
 import {ConfigModule} from "@nestjs/config";
+import {ClientInfoMiddleware} from "./common";
 import {GraphQLModule} from "@nestjs/graphql";
 import {ApolloDriverConfig} from "@nestjs/apollo";
 import {loggerConfig} from "@live-bid/services/lib";
+import {MiddlewareConsumer, Module} from '@nestjs/common';
 import {ComplexityCustom, graphqlConfigs} from "@app/gateway/lib";
 import {AppGraphQLModule} from "@app/gateway/graphql/graphql.module";
 
@@ -31,4 +32,8 @@ import {AppGraphQLModule} from "@app/gateway/graphql/graphql.module";
     ComplexityCustom,
   ]
 })
-export class AppModule {}
+export class AppModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(ClientInfoMiddleware).forRoutes("*");
+  }
+}
