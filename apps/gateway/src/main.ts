@@ -1,12 +1,12 @@
+import helmet from "helmet";
+import {Logger} from "nestjs-pino";
 import "@app/gateway/lib/configs/env";
 import {AppModule} from './app.module';
 import {NestFactory} from '@nestjs/core';
-import {Logger} from "nestjs-pino";
-import {catchBootstraps, thenBootstraps} from "@live-bid/services/bootstrap";
-import {NestExpressApplication} from "@nestjs/platform-express";
-import {VersioningType} from "@nestjs/common";
-import helmet from "helmet";
 import cookieParser from "cookie-parser";
+import {VersioningType} from "@nestjs/common";
+import {NestExpressApplication} from "@nestjs/platform-express";
+import {catchBootstraps, thenBootstraps} from "@live-bid/services/bootstrap";
 
 const HOST: string = process.env.HOST || '0.0.0.0';
 const PORT: number = Number(process.env.PORT || 3001);
