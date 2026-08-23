@@ -43,6 +43,7 @@ import {ComplexityCustom, graphqlConfigs, throttlerConfig} from "@app/gateway/li
   ]
 })
 export class AppModule {
+  // noinspection JSUnusedGlobalSymbols
   configure(consumer: MiddlewareConsumer) {
     consumer.apply(ClientInfoMiddleware).forRoutes("*");
   }
