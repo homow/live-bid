@@ -15,6 +15,7 @@ export class ZodPipe<T extends z.ZodTypeAny> implements PipeTransform {
         extensions: {
           errors: this.formatZodError(result.error),
           code: "BAD_REQUEST",
+          statusCode: 400
         }
       });
     }

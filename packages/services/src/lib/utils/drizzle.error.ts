@@ -1,4 +1,4 @@
-import {GraphQLError} from "graphql";
+import {AppException} from "./app.exceptions";
 import type {TablesName} from "../../database";
 
 /**
@@ -71,7 +71,6 @@ function extractPgError(e: unknown): PgErrorLike | null {
 /**
  * Maps PostgreSQL error codes to GraphQL errors with user-friendly messages
  * @param {CheckDrizzleErrorParams} data - Error handling parameters
- * @throws {GraphQLError} Always throws a GraphQL error with appropriate extension
  */
 export function checkDrizzleError(data: CheckDrizzleErrorParams): never {
   const {
@@ -93,13 +92,10 @@ export function checkDrizzleError(data: CheckDrizzleErrorParams): never {
        * Thrown when attempting to insert a duplicate value in a unique column
        */
       case "23505": {
-        throw new GraphQLError(`${mainResource} already exists in database`, {
-          extensions: {
-            code: "CONFLICT",
-            status: 409,
-            field: conflictField,
-            message: `Please change the ${conflictField} and try again`,
-          },
+        throw new AppException({
+          code: "CONFLICT",
+          message: `${mainResource} already exists in database. Please change the ${conflictField} and try again`,
+          statusCode: 409,
         });
       }
 
@@ -111,58 +107,38 @@ export function checkDrizzleError(data: CheckDrizzleErrorParams): never {
       case "23503": {
         // Case: Attempting to delete a resource that has existing relations
         if (restrictForeignKey && restrictResource) {
-          throw new GraphQLError(
-            `Cannot delete ${mainResource} because it has related ${restrictResource} records`,
-            {
-              extensions: {
-                code: "BAD_REQUEST",
-                status: 400,
-                foreignKey: restrictForeignKey,
-                message: `Please remove the ${restrictForeignKey} association first`,
-              },
-            }
-          );
+          throw new AppException({
+            code: "BAD_REQUEST",
+            message: `Cannot delete ${mainResource} because it has related ${restrictResource} records. Please remove the ${restrictForeignKey} association first`,
+            statusCode: 400,
+          });
         }
 
         // Case: Referenced resource does not exist
-        throw new GraphQLError(
-          `${notFoundResource || mainResource} not found or has related records`,
-          {
-            extensions: {
-              code: "NOT_FOUND",
-              status: 404,
-              field: notFoundField || "id",
-              message: `Please check your ${notFoundField || "id"} and try again`,
-            },
-          }
-        );
+        throw new AppException({
+          code: "NOT_FOUND",
+          message: `${notFoundResource || mainResource} not found or has related records. Please check your ${notFoundField || "id"} and try again`,
+          statusCode: 404,
+        });
       }
 
       // 23502: Not-null violation
       // Thrown when attempting to insert a null value into a NOT NULL column
       case "23502": {
-        throw new GraphQLError(
-          `Missing required field on ${mainResource}${pgError.column ? `: ${pgError.column}` : ""}`,
-          {
-            extensions: {
-              code: "BAD_REQUEST",
-              status: 400,
-              field: pgError.column,
-              message: `The field ${pgError.column || "unknown"} cannot be empty`,
-            },
-          }
-        );
+        throw new AppException({
+          code: "BAD_REQUEST",
+          message: `Missing required field on ${mainResource}${pgError.column ? `: ${pgError.column}` : ""}. The field ${pgError.column || "unknown"} cannot be empty`,
+          statusCode: 400,
+        });
       }
 
       // 23514: Check constraint violation
       // Thrown when a check constraint fails (e.g., invalid value range)
       case "23514": {
-        throw new GraphQLError(`Invalid value provided for ${mainResource}`, {
-          extensions: {
-            code: "BAD_REQUEST",
-            status: 400,
-            message: `The value violates the allowed constraints for ${mainResource}`,
-          },
+        throw new AppException({
+          code: "BAD_REQUEST",
+          message: `Invalid value provided for ${mainResource}. The value violates the allowed constraints for ${mainResource}`,
+          statusCode: 400,
         });
       }
     }
@@ -178,11 +154,9 @@ export function checkDrizzleError(data: CheckDrizzleErrorParams): never {
  * @throws {GraphQLError} Always throws a NOT_FOUND GraphQL error
  */
 export function checkNotFound(resource: string): never {
-  throw new GraphQLError(`${resource} not found in database`, {
-    extensions: {
-      code: "NOT_FOUND",
-      status: 404,
-      message: `Please check your ${resource} ID and try again`,
-    },
+  throw new AppException({
+    code: "NOT_FOUND",
+    message: `${resource} not found in database. Please check your ${resource} ID and try again`,
+    statusCode: 404,
   });
 }

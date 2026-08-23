@@ -24,6 +24,7 @@ export const graphqlConfigs: ApolloDriverConfig = {
     message: formattedError.message,
     code: formattedError.extensions?.code,
     reason: formattedError.extensions?.errors,
+    statusCode: formattedError.extensions?.statusCode,
     originalError: formattedError.extensions?.originalError,
   }),
 };
