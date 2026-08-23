@@ -1,6 +1,7 @@
 import {Params} from 'nestjs-pino';
 import * as crypto from "node:crypto";
 import {ACCESS_TOKEN_NAME, REFRESH_TOKEN_NAME} from '../../names';
+import {IncomingMessage} from "node:http";
 
 export const loggerConfig: Params = {
   pinoHttp: {
@@ -70,16 +71,32 @@ export const loggerConfig: Params = {
     // HTTP logging
     // ─────────────────────────────────────────────
     autoLogging: {
-      ignore: (req) =>
-        req.url === '/' ||
-        req.url === '/health' ||
-        req.url === '/graphql',
+      ignore: (req) => {
+        const url = req.url?.split("?")[0];
+
+        return (
+          url === '/api/' ||
+          url === '/api/health' ||
+          url === '/graphql' ||
+          req.method === 'OPTIONS'
+        );
+      }
     },
 
     // ─────────────────────────────────────────────
     // Error serialization
     // ─────────────────────────────────────────────
     serializers: {
+      req: (req: IncomingMessage) => ({
+        id: req.id,
+        method: req.method,
+        url: req.url,
+      }),
+
+      res: (res: { statusCode: number }) => ({
+        statusCode: res.statusCode,
+      }),
+
       err: (err: Error) => ({
         type: err.name,
         message: err.message,
