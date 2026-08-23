@@ -1,9 +1,9 @@
 import {LoggerModule} from "nestjs-pino";
 import {ConfigModule} from "@nestjs/config";
-import {APP_INTERCEPTOR} from "@nestjs/core";
+import {APP_GUARD, APP_INTERCEPTOR} from "@nestjs/core";
 import {GraphQLModule} from "@nestjs/graphql";
 import {ApolloDriverConfig} from "@nestjs/apollo";
-import {ThrottlerModule} from "@nestjs/throttler";
+import {ThrottlerGuard, ThrottlerModule} from "@nestjs/throttler";
 import {loggerConfig} from "@live-bid/services/lib";
 import {MiddlewareConsumer, Module} from '@nestjs/common';
 import {AppGraphQLModule} from "@app/gateway/graphql/graphql.module";
@@ -36,10 +36,11 @@ import {ComplexityCustom, graphqlConfigs, throttlerConfig} from "@app/gateway/li
   providers: [
     ComplexityCustom,
 
-    {
-      provide: APP_INTERCEPTOR,
-      useClass: RpcExceptionInterceptor
-    }
+    // Throttle Guard
+    {provide: APP_GUARD, useClass: ThrottlerGuard},
+
+    // Rpc Exceptions
+    {provide: APP_INTERCEPTOR, useClass: RpcExceptionInterceptor},
   ]
 })
 export class AppModule {
