@@ -2,13 +2,14 @@ import {firstValueFrom} from "rxjs";
 import {Inject} from "@nestjs/common";
 import * as AuthInputs from "./inputs";
 import * as AuthOutputs from "./outputs";
-import {ZodPipe} from "@app/gateway/common";
 import {ClientProxy} from "@nestjs/microservices";
 import type {GraphQLContext} from "@app/gateway/types";
 import * as Schemas from "@live-bid/contracts/schemas";
 import {AUTH_SERVICE_NAME} from "@live-bid/services/names";
 import * as Messages from "@live-bid/services/graphql-messages";
+import {NormalizeClientInfo, ZodPipe} from "@app/gateway/common";
 import {Resolver, Mutation, Args, Context} from "@nestjs/graphql";
+import type {NormalizeClientInfoType} from "@live-bid/services/types";
 
 @Resolver()
 export class AuthResolver {
@@ -37,8 +38,11 @@ export class AuthResolver {
     )
     input: Schemas.LoginUserSchemaType,
     @Context() context: GraphQLContext,
+    @NormalizeClientInfo() clientInfo: NormalizeClientInfoType
   ) {
     console.log(context.res);
+    console.log(input);
+    console.log(clientInfo);
     return "login";
   }
 }

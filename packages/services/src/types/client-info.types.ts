@@ -1,4 +1,4 @@
-export interface NormalizedClientInfo {
+export interface NormalizeClientInfoType {
   ip: string | null;
   browser: string | null;
   os: string | null;

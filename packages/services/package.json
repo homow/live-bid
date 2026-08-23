@@ -42,6 +42,11 @@
       "import": "./dist/lib/index.js",
       "require": "./dist/lib/index.js",
       "types": "./dist/lib/index.d.ts"
+    },
+    "./types": {
+      "import": "./dist/types/index.js",
+      "require": "./dist/types/index.js",
+      "types": "./dist/types/index.d.ts"
     }
   },
   "scripts": {

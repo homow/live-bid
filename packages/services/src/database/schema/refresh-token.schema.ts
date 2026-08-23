@@ -1,6 +1,6 @@
 import {user} from "./user.schema";
 import {baseDrizzleTable} from "./common";
-import type {NormalizedClientInfo} from "../../types";
+import type {NormalizeClientInfoType} from "../../types";
 import {AnyPgColumn, boolean, index, jsonb, pgTable, timestamp, uuid, varchar} from "drizzle-orm/pg-core";
 
 export const refreshToken = pgTable(
@@ -12,7 +12,7 @@ export const refreshToken = pgTable(
     is_revoked: boolean("is_revoked").default(false).notNull(),
     expires_in: timestamp("expires_in", {withTimezone: true}).notNull(),
     replace_by_token_id: uuid("replace_by_token_id").references((): AnyPgColumn => refreshToken.id, {onDelete: "set null"}),
-    client_info: jsonb("client_info").$type<NormalizedClientInfo>(),
+    client_info: jsonb("client_info").$type<NormalizeClientInfoType>(),
   },
   // Indexes
   (table) => [
