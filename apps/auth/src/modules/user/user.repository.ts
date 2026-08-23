@@ -1,3 +1,4 @@
+import {eq, SQL} from "drizzle-orm";
 import {Injectable} from "@nestjs/common";
 import {user} from "@live-bid/services/database";
 import * as Schemas from "@live-bid/contracts/schemas";
@@ -14,6 +15,12 @@ const USER_PUBLIC_COLUMNS = {
   updated_at: user.updated_at,
   display_name: user.display_name,
 };
+
+interface FindOneUserParams {
+  id?: string;
+  email?: string;
+  username?: string;
+}
 
 @Injectable()
 export class UserRepository {
@@ -39,6 +46,20 @@ export class UserRepository {
         mainResource: 'user',
         conflictField: 'email',
       });
+    }
+  }
+
+  findOne({email, username, id}: FindOneUserParams, safe: boolean = true) {
+    let eqUser: SQL<unknown>;
+
+    if (id) {
+      eqUser = eq(user.id, id);
+    } else if (email) {
+      eqUser = eq(user.email, email);
+    } else if (username) {
+      eqUser = eq(user.username, username);
+    } else {
+
     }
   }
 }

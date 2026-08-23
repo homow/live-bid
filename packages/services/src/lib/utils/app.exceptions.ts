@@ -3,7 +3,7 @@ import {RpcException} from '@nestjs/microservices';
 export interface AppErrorPayload {
   code: string;
   message: string;
-  statusCode?: number;
+  statusCode: number;
 }
 
 export class AppException extends RpcException {

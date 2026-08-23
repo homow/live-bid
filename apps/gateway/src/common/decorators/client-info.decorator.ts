@@ -8,8 +8,6 @@ export const NormalizeClientInfo = createParamDecorator(
     const gqlCtx = GqlExecutionContext.create(ctx);
     const req = gqlCtx.getContext<GraphQLContext>().req;
 
-    console.log(req.clientInfo);
-
     return normalizeClientInfo(req.clientInfo);
   }
 );

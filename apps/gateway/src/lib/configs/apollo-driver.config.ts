@@ -1,5 +1,5 @@
 import path from "node:path";
-import "@app/gateway/lib/config/env";
+import "@app/gateway/lib/configs/env";
 import type {GraphQLContext} from "@app/gateway/types";
 import {ApolloDriver, ApolloDriverConfig} from "@nestjs/apollo";
 

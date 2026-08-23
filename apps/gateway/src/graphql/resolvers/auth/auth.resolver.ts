@@ -35,14 +35,10 @@ export class AuthResolver {
       "input",
       {type: () => AuthInputs.LoginUserInput},
       new ZodPipe(Schemas.LoginUserSchema)
-    )
-    input: Schemas.LoginUserSchemaType,
+    ) input: Schemas.LoginUserSchemaType,
     @Context() context: GraphQLContext,
     @NormalizeClientInfo() clientInfo: NormalizeClientInfoType
   ) {
-    console.log(context.res);
-    console.log(input);
-    console.log(clientInfo);
     return "login";
   }
 }

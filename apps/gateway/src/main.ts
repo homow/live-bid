@@ -1,4 +1,4 @@
-import "@app/gateway/lib/config/env";
+import "@app/gateway/lib/configs/env";
 import {AppModule} from './app.module';
 import {NestFactory} from '@nestjs/core';
 import {thenBootstraps, catchBootstraps} from "@live-bid/services/bootstrap";
