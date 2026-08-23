@@ -4,11 +4,11 @@ import {APP_INTERCEPTOR} from "@nestjs/core";
 import {GraphQLModule} from "@nestjs/graphql";
 import {ApolloDriverConfig} from "@nestjs/apollo";
 import {ThrottlerModule} from "@nestjs/throttler";
-import {MiddlewareConsumer, Module} from '@nestjs/common';
-import {ComplexityCustom, graphqlConfigs, throttlerConfig} from "@app/gateway/lib";
-import {ClientInfoMiddleware, RpcExceptionInterceptor} from "./common";
-import {AppGraphQLModule} from "@app/gateway/graphql/graphql.module";
 import {loggerConfig} from "@live-bid/services/lib";
+import {MiddlewareConsumer, Module} from '@nestjs/common';
+import {AppGraphQLModule} from "@app/gateway/graphql/graphql.module";
+import {ClientInfoMiddleware, RpcExceptionInterceptor} from "./common";
+import {ComplexityCustom, graphqlConfigs, throttlerConfig} from "@app/gateway/lib";
 
 @Module({
   imports: [
