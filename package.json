@@ -58,6 +58,7 @@
     "bcrypt": "^6.0.0",
     "dotenv": "^17.4.2",
     "drizzle-orm": "^0.45.2",
+    "geoip-lite": "^2.0.3",
     "graphql": "^16.14.2",
     "graphql-query-complexity": "^2.0.0",
     "graphql-redis-subscriptions": "^2.7.0",
@@ -72,6 +73,7 @@
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
     "socket.io": "^4.8.3",
+    "ua-parser-js": "^2.0.10",
     "uuid": "^14.0.1",
     "zod": "^4.4.3"
   },
@@ -82,6 +84,7 @@
     "@nestjs/schematics": "^11.0.0",
     "@nestjs/testing": "^11.0.1",
     "@types/express": "^5.0.0",
+    "@types/geoip-lite": "^1.4.4",
     "@types/node": "^24.0.0",
     "@types/pg": "^8.23.1",
     "concurrently": "^10.0.4",
