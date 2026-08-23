@@ -1,6 +1,7 @@
 import {LoggerModule} from "nestjs-pino";
 import {ConfigModule} from "@nestjs/config";
 import {GraphQLModule} from "@nestjs/graphql";
+import { AppController } from './app.controller';
 import {ApolloDriverConfig} from "@nestjs/apollo";
 import {ThrottlerModule} from "@nestjs/throttler";
 import {loggerConfig} from "@live-bid/services/lib";
@@ -41,7 +42,8 @@ import {ClientInfoMiddleware, GraphqlThrottleGuard, RpcExceptionInterceptor} fro
 
     // Rpc Exceptions
     {provide: APP_INTERCEPTOR, useClass: RpcExceptionInterceptor},
-  ]
+  ],
+  controllers: [AppController]
 })
 export class AppModule {
   // noinspection JSUnusedGlobalSymbols
