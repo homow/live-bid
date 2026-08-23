@@ -14,16 +14,18 @@ export class AppController {
   @Get()
   getRoot() {
     return {
+      ok: true,
+      ping: "pong",
       message: `Welcome to ${this.appName} API`,
-      ping: "pong"
     };
   }
 
   @Get('health')
   getHealth() {
     return {
-      message: `${this.appName} API is ok`,
+      ok: true,
       ping: "pong",
+      message: `${this.appName} API is ok`,
     };
   }
 }
