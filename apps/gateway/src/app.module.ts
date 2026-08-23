@@ -1,12 +1,13 @@
 import {LoggerModule} from "nestjs-pino";
 import {ConfigModule} from "@nestjs/config";
-import {ClientInfoMiddleware} from "./common";
+import {APP_INTERCEPTOR} from "@nestjs/core";
 import {GraphQLModule} from "@nestjs/graphql";
 import {ApolloDriverConfig} from "@nestjs/apollo";
 import {loggerConfig} from "@live-bid/services/lib";
 import {MiddlewareConsumer, Module} from '@nestjs/common';
 import {ComplexityCustom, graphqlConfigs} from "@app/gateway/lib";
 import {AppGraphQLModule} from "@app/gateway/graphql/graphql.module";
+import {ClientInfoMiddleware, RpcExceptionInterceptor} from "./common";
 
 @Module({
   imports: [
@@ -30,6 +31,11 @@ import {AppGraphQLModule} from "@app/gateway/graphql/graphql.module";
   ],
   providers: [
     ComplexityCustom,
+
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: RpcExceptionInterceptor
+    }
   ]
 })
 export class AppModule {

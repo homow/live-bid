@@ -1,7 +1,6 @@
 import "@app/gateway/lib/config/env";
 import {AppModule} from './app.module';
 import {NestFactory} from '@nestjs/core';
-import {GraphqlFilter} from "@app/gateway/common";
 import {thenBootstraps, catchBootstraps} from "@live-bid/services/bootstrap";
 
 const HOST = process.env.HOST || '0.0.0.0';
@@ -9,9 +8,6 @@ const PORT = Number(process.env.PORT || 3001);
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-
-  app.useGlobalFilters(new GraphqlFilter());
-
   await app.listen(PORT, HOST);
 }
 
