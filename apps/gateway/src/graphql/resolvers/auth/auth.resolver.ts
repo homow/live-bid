@@ -9,7 +9,7 @@ import {NormalizeClientInfo, ZodPipe} from "@app/gateway/common";
 import {Resolver, Mutation, Args, Context} from "@nestjs/graphql";
 import * as GraphqlMessages from "@live-bid/services/graphql-messages";
 import {ACCESS_TOKEN_NAME, AUTH_SERVICE_NAME, REFRESH_TOKEN_NAME} from "@live-bid/services/names";
-import type {LoginRequest, LoginResponse, NormalizeClientInfoType, SafeUser} from "@live-bid/services/types";
+import type {LoginRequest, LoginResponse, NormalizeClientInfoType, RegisterResponse} from "@live-bid/services/types";
 
 @Resolver()
 export class AuthResolver {
@@ -25,8 +25,8 @@ export class AuthResolver {
       new ZodPipe(ZodSchemas.RegisterUserSchema)
     )
     input: ZodSchemas.RegisterUserSchemaType
-  ): Promise<AuthOutputs.RegisterUserOutput> {
-    return firstValueFrom(
+  ) {
+    return firstValueFrom<RegisterResponse>(
       this.authClient.send(
         GraphqlMessages.AUTH_MESSAGES.REGISTER,
         input satisfies ZodSchemas.RegisterUserSchemaType
@@ -43,7 +43,7 @@ export class AuthResolver {
     ) input: ZodSchemas.LoginUserSchemaType,
     @Context() context: GraphQLContext,
     @NormalizeClientInfo() clientInfo: NormalizeClientInfoType
-  ): Promise<SafeUser> {
+  ) {
     const result = await firstValueFrom<LoginResponse>(this.authClient.send(GraphqlMessages.AUTH_MESSAGES.LOGIN, {
       clientInfo,
       userData: input
