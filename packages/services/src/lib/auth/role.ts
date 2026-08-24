@@ -36,7 +36,7 @@ export const ROLE_HIERARCHY = {
 /**
  * Parameters for evaluating role-based access.
  */
-interface IsRoleAccessParam {
+export interface IsRoleAccessParam {
   /**
    * The role of the currently authenticated user.
    * Determines the base access level.
@@ -77,7 +77,13 @@ interface IsRoleAccessParam {
  * // Strict mode: only exact match
  * isRoleAccess({ userRole: UserRoleEnum.ADMIN, requiredRole: UserRoleEnum.USER, strict: true }) // false
  */
-export function isRoleAccess({ userRole, requiredRole, strict = false }: IsRoleAccessParam): boolean {
+export function isRoleAccess(
+  {
+    userRole,
+    requiredRole,
+    strict = false
+  }: IsRoleAccessParam
+): boolean {
   const userRoleHierarchy = ROLE_HIERARCHY[userRole];
   const requiredHierarchy = ROLE_HIERARCHY[requiredRole];
 
