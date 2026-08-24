@@ -4,10 +4,10 @@ import {randomUUID} from "node:crypto";
 import {Injectable} from "@nestjs/common";
 import {AuthRepository} from "./auth.repository";
 import {AppException} from "@live-bid/services/lib";
-import * as ZodSchemas from "@live-bid/contracts/schemas";
 import {compareSecret, hashSecret} from "@app/auth/lib";
-import type {LoginResponse, NormalizeClientInfoType} from "@live-bid/services/types";
+import * as ZodSchemas from "@live-bid/contracts/schemas";
 import {UserRepository} from "@app/auth/modules/user/user.repository";
+import type {LoginResponse, NormalizeClientInfoType} from "@live-bid/services/types";
 
 @Injectable()
 export class AuthService {

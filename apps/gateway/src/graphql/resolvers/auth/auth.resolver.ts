@@ -5,11 +5,11 @@ import * as AuthOutputs from "./outputs";
 import {ClientProxy} from "@nestjs/microservices";
 import type {GraphQLContext} from "@app/gateway/types";
 import * as ZodSchemas from "@live-bid/contracts/schemas";
-import {ACCESS_TOKEN_NAME, AUTH_SERVICE_NAME, REFRESH_TOKEN_NAME} from "@live-bid/services/names";
 import {NormalizeClientInfo, ZodPipe} from "@app/gateway/common";
 import {Resolver, Mutation, Args, Context} from "@nestjs/graphql";
-import type {LoginRequest, LoginResponse, NormalizeClientInfoType} from "@live-bid/services/types";
 import * as GraphqlMessages from "@live-bid/services/graphql-messages";
+import {ACCESS_TOKEN_NAME, AUTH_SERVICE_NAME, REFRESH_TOKEN_NAME} from "@live-bid/services/names";
+import type {LoginRequest, LoginResponse, NormalizeClientInfoType} from "@live-bid/services/types";
 
 @Resolver()
 export class AuthResolver {
