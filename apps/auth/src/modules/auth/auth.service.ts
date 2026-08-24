@@ -4,7 +4,7 @@ import {randomUUID} from "node:crypto";
 import {Injectable} from "@nestjs/common";
 import {AuthRepository} from "./auth.repository";
 import {AppException} from "@live-bid/services/lib";
-import * as Schemas from "@live-bid/contracts/schemas";
+import * as ZodSchemas from "@live-bid/contracts/schemas";
 import {compareSecret, hashSecret} from "@app/auth/lib";
 import {NormalizeClientInfoType} from "@live-bid/services/types";
 import {UserRepository} from "@app/auth/modules/user/user.repository";
@@ -21,7 +21,7 @@ export class AuthService {
   }
 
   /** **Register User** */
-  async register(userData: Schemas.RegisterUserSchemaType) {
+  async register(userData: ZodSchemas.RegisterUserSchemaType) {
     const hashedPassword: string = await hashSecret(userData.password);
 
     const user = await this.userRepository.insertUser({
@@ -37,7 +37,7 @@ export class AuthService {
     return user;
   }
 
-  async login(userData: Schemas.LoginUserSchemaType, clientInfo: NormalizeClientInfoType) {
+  async login(userData: ZodSchemas.LoginUserSchemaType, clientInfo: NormalizeClientInfoType) {
     // Find user in database with password
     const user = await this.userRepository.findOne(
       {

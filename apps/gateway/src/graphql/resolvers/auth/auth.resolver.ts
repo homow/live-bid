@@ -4,12 +4,12 @@ import * as AuthInputs from "./inputs";
 import * as AuthOutputs from "./outputs";
 import {ClientProxy} from "@nestjs/microservices";
 import type {GraphQLContext} from "@app/gateway/types";
-import * as Schemas from "@live-bid/contracts/schemas";
+import * as ZodSchemas from "@live-bid/contracts/schemas";
 import {AUTH_SERVICE_NAME} from "@live-bid/services/names";
-import * as Messages from "@live-bid/services/graphql-messages";
 import {NormalizeClientInfo, ZodPipe} from "@app/gateway/common";
 import {Resolver, Mutation, Args, Context} from "@nestjs/graphql";
-import type {NormalizeClientInfoType} from "@live-bid/services/types";
+import type {LoginRequest, NormalizeClientInfoType} from "@live-bid/services/types";
+import * as GraphqlMessages from "@live-bid/services/graphql-messages";
 
 @Resolver()
 export class AuthResolver {
@@ -22,11 +22,11 @@ export class AuthResolver {
     @Args(
       "input",
       {type: () => AuthInputs.RegisterUserInput},
-      new ZodPipe(Schemas.RegisterUserSchema)
+      new ZodPipe(ZodSchemas.RegisterUserSchema)
     )
-    input: Schemas.RegisterUserSchemaType
+    input: ZodSchemas.RegisterUserSchemaType
   ): Promise<AuthOutputs.RegisterUserOutput> {
-    return firstValueFrom(this.authClient.send(Messages.AUTH_MESSAGES.REGISTER, input));
+    return firstValueFrom(this.authClient.send(GraphqlMessages.AUTH_MESSAGES.REGISTER, input));
   }
 
   @Mutation(() => String)
@@ -34,11 +34,14 @@ export class AuthResolver {
     @Args(
       "input",
       {type: () => AuthInputs.LoginUserInput},
-      new ZodPipe(Schemas.LoginUserSchema)
-    ) input: Schemas.LoginUserSchemaType,
+      new ZodPipe(ZodSchemas.LoginUserSchema)
+    ) input: ZodSchemas.LoginUserSchemaType,
     @Context() context: GraphQLContext,
     @NormalizeClientInfo() clientInfo: NormalizeClientInfoType
   ) {
-    return "login";
+    return firstValueFrom(this.authClient.send(GraphqlMessages.AUTH_MESSAGES.LOGIN, {
+      clientInfo,
+      userData: input
+    } satisfies LoginRequest));
   }
 }
