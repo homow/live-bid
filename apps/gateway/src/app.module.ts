@@ -9,7 +9,7 @@ import {APP_GUARD, APP_INTERCEPTOR} from "@nestjs/core";
 import {MiddlewareConsumer, Module} from '@nestjs/common';
 import {AppGraphQLModule} from "@app/gateway/graphql/graphql.module";
 import {ComplexityCustom, graphqlConfigs, throttlerConfig} from "@app/gateway/lib";
-import {ClientInfoMiddleware, GraphqlThrottleGuard, RpcExceptionInterceptor} from "./common";
+import {AccessTokenGuard, ClientInfoMiddleware, GraphqlThrottleGuard, RpcExceptionInterceptor} from "./common";
 
 @Module({
   imports: [
@@ -42,6 +42,9 @@ import {ClientInfoMiddleware, GraphqlThrottleGuard, RpcExceptionInterceptor} fro
 
     // Rpc Exceptions
     {provide: APP_INTERCEPTOR, useClass: RpcExceptionInterceptor},
+
+    // Access Token Guard
+    {provide: APP_GUARD, useClass: AccessTokenGuard},
   ],
   controllers: [AppController]
 })
