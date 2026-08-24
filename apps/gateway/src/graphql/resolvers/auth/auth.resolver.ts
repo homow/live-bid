@@ -29,7 +29,7 @@ export class AuthResolver {
     return firstValueFrom(this.authClient.send(GraphqlMessages.AUTH_MESSAGES.REGISTER, input));
   }
 
-  @Mutation(() => String)
+  @Mutation(() => AuthOutputs.LoginUserOutput)
   async login(
     @Args(
       "input",
