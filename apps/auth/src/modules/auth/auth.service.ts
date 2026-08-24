@@ -6,11 +6,14 @@ import * as Schemas from "@live-bid/contracts/schemas";
 import {NormalizeClientInfoType} from "@live-bid/services/types";
 import {UserRepository} from "@app/auth/modules/user/user.repository";
 import {AppException} from "@live-bid/services/lib";
+import {AuthUtil} from "./utils";
+import {randomUUID} from "node:crypto";
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly logger: PinoLogger,
+    private readonly authUtil: AuthUtil,
     private readonly authRepository: AuthRepository,
     private readonly userRepository: UserRepository,
   ) {
@@ -60,5 +63,18 @@ export class AuthService {
       code: 'Invalid Credentials',
       message: "Invalid user credentials",
     });
+
+    const tokens = this.authUtil.getTokens(
+      {
+        sub: user.id,
+        role: user.role,
+        jti: randomUUID() + Date.now(),
+        display_name: user.display_name,
+      },
+      userData.remember
+    );
+
+    const {hashedRefreshToken, refreshToken, accessToken, expires_at} = tokens;
+
   }
 }
