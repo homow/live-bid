@@ -1,2 +1,3 @@
+export * from "./auth";
 export * from "./express";
-export * from "./client-info.types";
+export * from "./gateway";
