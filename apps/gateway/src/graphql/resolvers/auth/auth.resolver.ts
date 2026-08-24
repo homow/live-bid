@@ -44,10 +44,15 @@ export class AuthResolver {
     @Context() context: GraphQLContext,
     @NormalizeClientInfo() clientInfo: NormalizeClientInfoType
   ) {
-    const result = await firstValueFrom<LoginResponse>(this.authClient.send(GraphqlMessages.AUTH_MESSAGES.LOGIN, {
-      clientInfo,
-      userData: input
-    } satisfies LoginRequest));
+    const result = await firstValueFrom<LoginResponse>(
+      this.authClient.send(
+        GraphqlMessages.AUTH_MESSAGES.LOGIN,
+        {
+          clientInfo,
+          userData: input
+        } satisfies LoginRequest
+      )
+    );
 
     const {res} = context;
     const {user, accessToken, refreshToken, accessOptions, refreshOptions} = result;
