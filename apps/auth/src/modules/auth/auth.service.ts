@@ -58,11 +58,15 @@ export class AuthService {
     const isValidPassword = await compareSecret(userData.password, user.password);
 
     // Throw exception if password is invalid
-    if (!isValidPassword) throw new AppException({
-      statusCode: 401,
-      code: 'Invalid Credentials',
-      message: "Invalid user credentials",
-    });
+    if (!isValidPassword) {
+      this.logger.warn({id: user.id}, 'Login failed: invalid credentials');
+
+      throw new AppException({
+        statusCode: 401,
+        code: 'Invalid Credentials',
+        message: "Invalid user credentials",
+      });
+    }
 
     const tokens = this.authUtil.getTokens(
       {
@@ -83,5 +87,13 @@ export class AuthService {
       replace_by_token_id: null,
       token_hash: hashedRefreshToken,
     });
+
+    this.logger.info({userId: user.id}, 'User logged in');
+
+    return {
+      user,
+      accessToken,
+      refreshToken,
+    };
   }
 }
