@@ -1,4 +1,4 @@
-import {AuthUtil} from "./utils";
+import {TokenUtil} from "./utils";
 import {PinoLogger} from "nestjs-pino";
 import {randomUUID} from "node:crypto";
 import {Injectable} from "@nestjs/common";
@@ -6,14 +6,14 @@ import {AuthRepository} from "./auth.repository";
 import {AppException} from "@live-bid/services/lib";
 import * as ZodSchemas from "@live-bid/contracts/schemas";
 import {compareSecret, hashSecret} from "@app/auth/lib";
-import {NormalizeClientInfoType} from "@live-bid/services/types";
+import type {LoginResponse, NormalizeClientInfoType} from "@live-bid/services/types";
 import {UserRepository} from "@app/auth/modules/user/user.repository";
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly logger: PinoLogger,
-    private readonly authUtil: AuthUtil,
+    private readonly tokenUtil: TokenUtil,
     private readonly authRepository: AuthRepository,
     private readonly userRepository: UserRepository,
   ) {
@@ -37,7 +37,7 @@ export class AuthService {
     return user;
   }
 
-  async login(userData: ZodSchemas.LoginUserSchemaType, clientInfo: NormalizeClientInfoType) {
+  async login(userData: ZodSchemas.LoginUserSchemaType, clientInfo: NormalizeClientInfoType): Promise<LoginResponse> {
     // Find user in database with password
     const user = await this.userRepository.findOne(
       {
@@ -68,32 +68,40 @@ export class AuthService {
       });
     }
 
-    const tokens = this.authUtil.getTokens(
+    const {password, ...safeUser} = user;
+    void password;
+
+    const tokens = this.tokenUtil.getTokens(
       {
-        sub: user.id,
-        role: user.role,
+        sub: safeUser.id,
+        role: safeUser.role,
         jti: randomUUID() + Date.now(),
-        display_name: user.display_name,
+        display_name: safeUser.display_name,
       },
       userData.remember
     );
 
     const {hashedRefreshToken, refreshToken, accessToken, expires_at} = tokens;
 
+    const accessOptions = this.tokenUtil.getCookieOptions('access');
+    const refreshOptions = this.tokenUtil.getCookieOptions('refresh', userData.remember);
+
     await this.authRepository.insertRefreshToken({
-      user_id: user.id,
+      user_id: safeUser.id,
       expires_in: expires_at,
       client_info: clientInfo,
       replace_by_token_id: null,
       token_hash: hashedRefreshToken,
     });
 
-    this.logger.info({userId: user.id}, 'User logged in');
+    this.logger.info({userId: safeUser.id}, 'User logged in');
 
     return {
-      user,
       accessToken,
       refreshToken,
+      user: safeUser,
+      accessOptions,
+      refreshOptions
     };
   }
 }

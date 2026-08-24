@@ -7,7 +7,7 @@ import type {AccessTokenPayload} from "@app/auth/types";
 import {generateRandomToken, hashSecretToken} from "@app/auth/lib";
 
 @Injectable()
-export class AuthUtil {
+export class TokenUtil {
   constructor(
     private readonly config: ConfigService,
     private readonly jwtService: JwtService,
