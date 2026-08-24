@@ -35,6 +35,7 @@ export class AuthService {
   }
 
   async login(userData: Schemas.LoginUserSchemaType, clientInfo: NormalizeClientInfoType) {
+    // Find user in database with password
     const user = await this.userRepository.findOne(
       {
         email: userData.email,
@@ -43,14 +44,17 @@ export class AuthService {
       false
     );
 
+    // Throw exception if user doesn't in database
     if (!user) throw new AppException({
       statusCode: 404,
       code: "User not found",
       message: "User does not exist in database, please check phone and try again",
     });
 
+    // Check password
     const isValidPassword = await compareSecret(userData.password, user.password);
 
+    // Throw exception if password is invalid
     if (!isValidPassword) throw new AppException({
       statusCode: 401,
       code: 'Invalid Credentials',
