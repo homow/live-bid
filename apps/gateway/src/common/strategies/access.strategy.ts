@@ -6,8 +6,10 @@ import {PassportStrategy} from "@nestjs/passport";
 import {ACCESS_TOKEN_NAME} from "@live-bid/services/names";
 import type {AccessTokenPayload, UserAccess} from "@live-bid/services/types";
 
+export const ACCESS_STRATEGY_NAME = "jwt-access";
+
 @Injectable()
-export class AccessStrategy extends PassportStrategy(Strategy, "jwt-access") {
+export class AccessStrategy extends PassportStrategy(Strategy, ACCESS_STRATEGY_NAME) {
   constructor(readonly config: ConfigService) {
     const secretOrKey: string = config.get<string>("JWT_SECRET") ?? "JWT_SECRET";
 
