@@ -1,3 +1,4 @@
+import type {UserAccess} from "./auth";
 import type {Lookup} from "geoip-lite";
 import type {IResult} from "ua-parser-js";
 
@@ -10,6 +11,8 @@ declare global {
         geo: Lookup | null;
         lang: string | null;
       };
+
+      user: UserAccess;
     }
   }
 }
