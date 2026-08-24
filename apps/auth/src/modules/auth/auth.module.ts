@@ -1,7 +1,6 @@
 import {TokenUtil} from "./utils";
-import {JwtModule} from "@nestjs/jwt";
 import {Module} from "@nestjs/common";
-import {AccessStrategy} from "./strategy";
+import {JwtModule} from "@nestjs/jwt";
 import {AuthService} from "./auth.service";
 import {PassportModule} from "@nestjs/passport";
 import {AuthRepository} from "./auth.repository";
@@ -19,7 +18,6 @@ import {UserModule} from "@app/auth/modules/user";
     TokenUtil,
     AuthService,
     AuthRepository,
-    AccessStrategy,
   ],
 })
 export class AuthModule {}
