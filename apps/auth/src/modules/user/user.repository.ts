@@ -3,7 +3,7 @@ import {Injectable} from "@nestjs/common";
 import {user} from "@live-bid/services/database";
 import * as Schemas from "@live-bid/contracts/schemas";
 import {UserRoleEnum} from "@live-bid/contracts/enums";
-import {checkDrizzleError} from "@live-bid/services/lib";
+import {AppException, checkDrizzleError} from "@live-bid/services/lib";
 import {DrizzleService} from "@live-bid/services/database";
 
 const USER_PUBLIC_COLUMNS = {
@@ -49,7 +49,7 @@ export class UserRepository {
     }
   }
 
-  findOne({email, username, id}: FindOneUserParams, safe: boolean = true) {
+  async findOne({email, username, id}: FindOneUserParams, safe: boolean = true) {
     let eqUser: SQL<unknown>;
 
     if (id) {
@@ -59,7 +59,43 @@ export class UserRepository {
     } else if (username) {
       eqUser = eq(user.username, username);
     } else {
-
+      throw new AppException({
+        statusCode: 500,
+        code: 'Missing identifier',
+        message: `Either 'phone' or 'id' must be provided to find the user. in ${UserRepository.name}`,
+      });
     }
+
+    const [findUser] = await this.buildUserQuery(eqUser);
+
+    if (!findUser) throw new AppException({
+      statusCode: 404,
+      code: "User not found",
+      message: "User does not exist in database, please check phone and try again",
+    });
+
+    if (safe) {
+      const {password, ...data} = findUser;
+      void password;
+      return data;
+    }
+
+    return findUser;
+  }
+
+  buildUserQuery(whereCondition?: SQL<unknown>) {
+    const query = this.drizzle.db
+      .select({
+        ...USER_PUBLIC_COLUMNS,
+        password: user.password,
+      })
+      .from(user)
+      .groupBy(user.id);
+
+    if (whereCondition) {
+      return query.where(whereCondition);
+    }
+
+    return query;
   }
 }
