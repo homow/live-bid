@@ -1,13 +1,13 @@
+import {AuthUtil} from "./utils";
 import {PinoLogger} from "nestjs-pino";
-import {compareSecret, hashSecret} from "@app/auth/lib";
+import {randomUUID} from "node:crypto";
 import {Injectable} from "@nestjs/common";
 import {AuthRepository} from "./auth.repository";
+import {AppException} from "@live-bid/services/lib";
 import * as Schemas from "@live-bid/contracts/schemas";
+import {compareSecret, hashSecret} from "@app/auth/lib";
 import {NormalizeClientInfoType} from "@live-bid/services/types";
 import {UserRepository} from "@app/auth/modules/user/user.repository";
-import {AppException} from "@live-bid/services/lib";
-import {AuthUtil} from "./utils";
-import {randomUUID} from "node:crypto";
 
 @Injectable()
 export class AuthService {
