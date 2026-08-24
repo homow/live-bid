@@ -26,7 +26,12 @@ export class AuthResolver {
     )
     input: ZodSchemas.RegisterUserSchemaType
   ): Promise<AuthOutputs.RegisterUserOutput> {
-    return firstValueFrom(this.authClient.send(GraphqlMessages.AUTH_MESSAGES.REGISTER, input));
+    return firstValueFrom(
+      this.authClient.send(
+        GraphqlMessages.AUTH_MESSAGES.REGISTER,
+        input satisfies ZodSchemas.RegisterUserSchemaType
+      )
+    );
   }
 
   @Mutation(() => AuthOutputs.LoginUserOutput)
