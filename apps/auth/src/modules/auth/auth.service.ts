@@ -7,7 +7,7 @@ import {AppException} from "@live-bid/services/lib";
 import {compareSecret, hashSecret} from "@app/auth/lib";
 import * as ZodSchemas from "@live-bid/contracts/schemas";
 import {UserRepository} from "@app/auth/modules/user/user.repository";
-import type {LoginResponse, NormalizeClientInfoType} from "@live-bid/services/types";
+import type {LoginResponse, NormalizeClientInfoType, RegisterResponse} from "@live-bid/services/types";
 
 @Injectable()
 export class AuthService {
@@ -21,7 +21,7 @@ export class AuthService {
   }
 
   /** **Register User** */
-  async register(userData: ZodSchemas.RegisterUserSchemaType) {
+  async register(userData: ZodSchemas.RegisterUserSchemaType): Promise<RegisterResponse> {
     const hashedPassword: string = await hashSecret(userData.password);
 
     const user = await this.userRepository.insertUser({

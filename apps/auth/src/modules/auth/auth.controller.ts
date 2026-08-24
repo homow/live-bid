@@ -3,7 +3,7 @@ import {AuthService} from "./auth.service";
 import * as ZodSchemas from "@live-bid/contracts/schemas";
 import {MessagePattern, Payload} from "@nestjs/microservices";
 import * as GraphqlMessages from "@live-bid/services/graphql-messages";
-import type {LoginRequest, LoginResponse} from "@live-bid/services/types";
+import type {LoginRequest, LoginResponse, RegisterResponse} from "@live-bid/services/types";
 
 @Controller()
 export class AuthController {
@@ -12,7 +12,7 @@ export class AuthController {
   @MessagePattern(GraphqlMessages.AUTH_MESSAGES.REGISTER)
   register(
     @Payload() input: ZodSchemas.RegisterUserSchemaType
-  ) {
+  ): Promise<RegisterResponse> {
     return this.authService.register(input);
   }
 
