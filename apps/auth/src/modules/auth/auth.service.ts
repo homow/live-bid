@@ -24,7 +24,7 @@ export class AuthService {
   async register(userData: Schemas.RegisterUserSchemaType) {
     const hashedPassword: string = await hashSecret(userData.password);
 
-    const user = await this.userRepository.createUser({
+    const user = await this.userRepository.insertUser({
       ...userData,
       password: hashedPassword,
     });
@@ -76,5 +76,12 @@ export class AuthService {
 
     const {hashedRefreshToken, refreshToken, accessToken, expires_at} = tokens;
 
+    await this.authRepository.insertRefreshToken({
+      user_id: user.id,
+      expires_in: expires_at,
+      client_info: clientInfo,
+      replace_by_token_id: null,
+      token_hash: hashedRefreshToken,
+    });
   }
 }

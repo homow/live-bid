@@ -28,7 +28,7 @@ interface FindOneUserParams {
 export class UserRepository {
   constructor(private readonly drizzle: DrizzleService) {}
 
-  async createUser({password, email, display_name}: Schemas.RegisterUserSchemaType) {
+  async insertUser({password, email, display_name}: Schemas.RegisterUserSchemaType) {
     const {username, ...othersData} = USER_PUBLIC_COLUMNS;
     void username;
 
