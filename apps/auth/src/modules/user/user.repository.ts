@@ -1,15 +1,17 @@
 import {eq, SQL} from "drizzle-orm";
 import {Injectable} from "@nestjs/common";
-import {user} from "@live-bid/services/database";
 import * as Schemas from "@live-bid/contracts/schemas";
 import {UserRoleEnum} from "@live-bid/contracts/enums";
+import type {SafeUser} from "@live-bid/services/types";
 import {DrizzleService} from "@live-bid/services/database";
+import {type User, user} from "@live-bid/services/database";
 import {AppException, checkDrizzleError} from "@live-bid/services/lib";
 
 const USER_PUBLIC_COLUMNS = {
   id: user.id,
   role: user.role,
   email: user.email,
+  username: user.username,
   is_active: user.is_active,
   created_at: user.created_at,
   updated_at: user.updated_at,
@@ -27,6 +29,9 @@ export class UserRepository {
   constructor(private readonly drizzle: DrizzleService) {}
 
   async createUser({password, email, display_name}: Schemas.RegisterUserSchemaType) {
+    const {username, ...othersData} = USER_PUBLIC_COLUMNS;
+    void username;
+
     try {
       const [result] = await this.drizzle.db
         .insert(user)
@@ -37,7 +42,7 @@ export class UserRepository {
           is_active: true,
           role: UserRoleEnum.USER,
         })
-        .returning(USER_PUBLIC_COLUMNS);
+        .returning(othersData);
 
       return result;
     } catch (e) {
@@ -49,7 +54,24 @@ export class UserRepository {
     }
   }
 
-  async findOne({email, username, id}: FindOneUserParams, safe: boolean = true) {
+  /**
+   * **Overload 1: When safe is true, returns SafeUser (without password)**
+   */
+  // noinspection JSUnusedGlobalSymbols
+  async findOne(
+    params: FindOneUserParams,
+    safe?: true
+  ): Promise<User | null>;
+
+  /**
+   * **Overload 2: When safe is false, returns full User (with password)**
+   */
+  async findOne(
+    params: FindOneUserParams,
+    safe?: false
+  ): Promise<User | null>;
+
+  async findOne({email, username, id}: FindOneUserParams, safe: boolean = true): Promise<SafeUser | User | null> {
     let eqUser: SQL<unknown>;
 
     if (id) {
@@ -68,27 +90,20 @@ export class UserRepository {
 
     const [findUser] = await this.buildUserQuery(eqUser);
 
-    if (!findUser) throw new AppException({
-      statusCode: 404,
-      code: "User not found",
-      message: "User does not exist in database, please check phone and try again",
-    });
+    if (!findUser) return null;
 
     if (safe) {
       const {password, ...data} = findUser;
       void password;
-      return data;
+      return data satisfies SafeUser;
     }
 
-    return findUser;
+    return findUser satisfies User;
   }
 
   buildUserQuery(whereCondition?: SQL<unknown>) {
     const query = this.drizzle.db
-      .select({
-        ...USER_PUBLIC_COLUMNS,
-        password: user.password,
-      })
+      .select()
       .from(user)
       .groupBy(user.id);
 
