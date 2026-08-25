@@ -47,6 +47,11 @@
       "import": "./dist/types/index.js",
       "require": "./dist/types/index.js",
       "types": "./dist/types/index.d.ts"
+    },
+    "./cache": {
+      "import": "./dist/cache/index.js",
+      "require": "./dist/cache/index.js",
+      "types": "./dist/cache/index.d.ts"
     }
   },
   "scripts": {
