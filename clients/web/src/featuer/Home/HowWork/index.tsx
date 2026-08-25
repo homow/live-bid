@@ -4,7 +4,7 @@ const HowWork = () => {
   return (
     <>
       <Moredetail />
-      <div>
+      <div className="mb-6">
         <Link href="/How-to-Work">
           <div className="mt-10 text-center">
             <button className="text-sm font-semibold text-indigo-400 transition-colors hover:text-indigo-300">
