@@ -5,6 +5,7 @@ import { AppController } from './app.controller';
 import {ApolloDriverConfig} from "@nestjs/apollo";
 import {ThrottlerModule} from "@nestjs/throttler";
 import {loggerConfig} from "@live-bid/services/lib";
+import {CacheModule} from "@live-bid/services/cache";
 import {APP_GUARD, APP_INTERCEPTOR} from "@nestjs/core";
 import {MiddlewareConsumer, Module} from '@nestjs/common';
 import {AppGraphQLModule} from "@app/gateway/graphql/graphql.module";
@@ -30,6 +31,9 @@ import {AccessTokenGuard, ClientInfoMiddleware, GraphqlThrottleGuard, RoleGuard,
 
     // Throttle Config for Limits
     ThrottlerModule.forRoot(throttlerConfig),
+
+    // Cache Module
+    CacheModule,
 
     // App GraphQL Module
     AppGraphQLModule,
