@@ -1,7 +1,7 @@
 import {LoggerModule} from "nestjs-pino";
 import {ConfigModule} from "@nestjs/config";
 import {GraphQLModule} from "@nestjs/graphql";
-import { AppController } from './app.controller';
+import {AppController} from './app.controller';
 import {ApolloDriverConfig} from "@nestjs/apollo";
 import {ThrottlerModule} from "@nestjs/throttler";
 import {loggerConfig} from "@live-bid/services/lib";
@@ -10,7 +10,7 @@ import {APP_GUARD, APP_INTERCEPTOR} from "@nestjs/core";
 import {MiddlewareConsumer, Module} from '@nestjs/common';
 import {AppGraphQLModule} from "@app/gateway/graphql/graphql.module";
 import {ComplexityCustom, graphqlConfigs, throttlerConfig} from "@app/gateway/lib";
-import {AccessTokenGuard, ClientInfoMiddleware, GraphqlThrottleGuard, RoleGuard, RpcExceptionInterceptor} from "./common";
+import {AccessTokenGuard, CacheableInterceptor, CacheEvictInterceptor, ClientInfoMiddleware, GraphqlThrottleGuard, RoleGuard, RpcExceptionInterceptor} from "./common";
 
 @Module({
   imports: [
@@ -51,7 +51,11 @@ import {AccessTokenGuard, ClientInfoMiddleware, GraphqlThrottleGuard, RoleGuard,
     {provide: APP_GUARD, useClass: AccessTokenGuard},
 
     // Role Guard
-    {provide: APP_GUARD, useClass: RoleGuard}
+    {provide: APP_GUARD, useClass: RoleGuard},
+
+    // Cacheable and Cache-Evict Interceptors
+    {provide: APP_INTERCEPTOR, useClass: CacheableInterceptor},
+    {provide: APP_INTERCEPTOR, useClass: CacheEvictInterceptor},
   ],
   controllers: [AppController]
 })
