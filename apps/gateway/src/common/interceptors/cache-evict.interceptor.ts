@@ -1,10 +1,11 @@
 import type {Request} from "express";
 import {Reflector} from "@nestjs/core";
 import {mergeMap, Observable} from "rxjs";
-import {CallHandler, ExecutionContext, Injectable, InternalServerErrorException, NestInterceptor} from "@nestjs/common";
+import {AppException} from "@live-bid/services/lib";
+import {getRequestResponse} from "@app/gateway/lib";
 import {CacheService, RedisKey} from "@live-bid/services/cache";
 import {CACHE_EVICT_KEY, CacheEvictDecorator} from "@app/gateway/common";
-import {getRequestResponse} from "@app/gateway/lib";
+import {CallHandler, ExecutionContext, Injectable, NestInterceptor} from "@nestjs/common";
 
 type CacheEvictInterceptorDeleteType = "delete" | "deletePrefix";
 
@@ -23,9 +24,10 @@ export class CacheEvictInterceptor implements NestInterceptor {
         await this.cache.deletePrefix(key);
       }
     } catch (e) {
-      throw new InternalServerErrorException({
+      throw new AppException({
+        statusCode: 500,
+        code: (e as Error).name ?? 'error in deleting cache',
         message: (e as Error).message || 'error in cache-evict.interceptor while deleting a cache key',
-        error: (e as Error).name ?? 'error in deleting cache',
       });
     }
   }

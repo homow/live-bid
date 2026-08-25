@@ -1,9 +1,10 @@
 import {Reflector} from "@nestjs/core";
 import {Observable, from, mergeMap} from "rxjs";
-import {CallHandler, ExecutionContext, Injectable, InternalServerErrorException, NestInterceptor} from "@nestjs/common";
-import {CACHEABLE_KEY, CacheableDecoratorType} from "@app/gateway/common";
-import {CacheService, RedisKey} from "@live-bid/services/cache";
+import {AppException} from "@live-bid/services/lib";
 import {getRequestResponse} from "@app/gateway/lib";
+import {CacheService, RedisKey} from "@live-bid/services/cache";
+import {CACHEABLE_KEY, CacheableDecoratorType} from "@app/gateway/common";
+import {CallHandler, ExecutionContext, Injectable, NestInterceptor} from "@nestjs/common";
 
 @Injectable()
 export class CacheableInterceptor<T> implements NestInterceptor {
@@ -40,9 +41,10 @@ export class CacheableInterceptor<T> implements NestInterceptor {
       // exist cached
       if (cacheValue !== null) return from([cacheValue]);
     } catch (e) {
-      throw new InternalServerErrorException({
+      throw new AppException({
+        statusCode: 500,
+        code: (e as Error).name ?? 'error in getting cache',
         message: (e as Error).message ?? (e as Error).cause ?? 'error in cacheable.interceptor',
-        error: (e as Error).name ?? 'error in getting cache',
       });
     }
 
@@ -53,9 +55,10 @@ export class CacheableInterceptor<T> implements NestInterceptor {
           // set value with key
           await this.cache.set(key, data, cacheableKey.ttl);
         } catch (e) {
-          throw new InternalServerErrorException({
+          throw new AppException({
+            statusCode: 500,
+            code: (e as Error).name ?? 'error in setting cache',
             message: (e as Error).message ?? (e as Error).cause ?? 'error in cacheable.interceptor',
-            error: (e as Error).name ?? 'error in setting cache',
           });
         }
 
