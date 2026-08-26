@@ -1,12 +1,12 @@
-import {CanActivate, type ExecutionContext, Inject, Injectable} from "@nestjs/common";
-import {getRequestResponse} from "@app/gateway/lib";
-import type {RefreshRequest, RefreshTokenPayload, ValidateRefreshRequest} from "@live-bid/services/types";
-import {AppException} from "@live-bid/services/lib";
-import {hashSecretToken} from "@app/auth/lib";
-import {AUTH_PATTERNS} from '@live-bid/services/messages';
-import {ClientProxy, MessagePattern} from "@nestjs/microservices";
-import {AUTH_SERVICE_NAME} from "@live-bid/services/names";
 import {firstValueFrom} from "rxjs";
+import {hashSecretToken} from "@app/auth/lib";
+import {ClientProxy} from "@nestjs/microservices";
+import {AppException} from "@live-bid/services/lib";
+import {getRequestResponse} from "@app/gateway/lib";
+import {AUTH_PATTERNS} from '@live-bid/services/messages';
+import {AUTH_SERVICE_NAME} from "@live-bid/services/names";
+import {CanActivate, type ExecutionContext, Inject, Injectable} from "@nestjs/common";
+import type {RefreshRequest, RefreshTokenPayload, ValidateRefreshRequest} from "@live-bid/services/types";
 
 @Injectable()
 export class RefreshGuard implements CanActivate {
