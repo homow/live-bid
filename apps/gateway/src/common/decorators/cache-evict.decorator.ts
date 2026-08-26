@@ -1,0 +1,45 @@
+import {SetMetadata} from "@nestjs/common";
+import type {ParamCacheKeyType} from "@live-bid/services/cache";
+
+export const CACHE_EVICT_KEY = "CACHE_EVICT_KEY";
+
+type CacheEvictDecoratorForce = Omit<ParamCacheKeyType, "req" | "pagination"> & {
+  prefix?: never;
+  force?: boolean;
+  forcePagination?: boolean;
+  prefixAfterBuildKey?: boolean;
+};
+
+type CacheEvictDecoratorPrefix = Omit<ParamCacheKeyType, "resource" | 'req' | 'pagination'> & {
+  force?: never;
+  prefix?: string;
+};
+
+interface FindPrefix {
+  param: string;
+  extraKeys?: string[];
+  paramKeyReplace?: string;
+  listOrSingle?: "list" | "single";
+}
+
+type CacheEvictDecoratorFindPrefixAndList = Omit<CacheEvictDecoratorPrefix, "prefix"> & {
+  findPrefix: FindPrefix;
+  resource?: ParamCacheKeyType['resource'];
+};
+
+export type CacheEvictDecorator = CacheEvictDecoratorPrefix | CacheEvictDecoratorForce | CacheEvictDecoratorFindPrefixAndList;
+
+/** Build Key Cache for Delete
+ * @example
+ - @CacheEvict({
+ self: false,
+ paramKey: "id",
+ resource: "users"
+ })
+
+ * @return
+ * ["app:users:id"]
+ * */
+export function CacheEvict(params: CacheEvictDecorator) {
+  return SetMetadata(CACHE_EVICT_KEY, params);
+}
