@@ -1,5 +1,4 @@
 import {eq} from "drizzle-orm";
-import {PinoLogger} from "nestjs-pino";
 import {Injectable} from "@nestjs/common";
 import type {RefreshTokenInsert} from "@app/auth/types";
 import {USER_PUBLIC_COLUMNS} from "../user/user.repository";
