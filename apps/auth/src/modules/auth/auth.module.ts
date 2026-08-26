@@ -1,7 +1,7 @@
-import {TokenUtil} from "./utils";
+import * as Utils from "./utils";
 import {Module} from "@nestjs/common";
 import {JwtModule} from "@nestjs/jwt";
-import {AuthService} from "./auth.service";
+import * as Services from "./services";
 import {PassportModule} from "@nestjs/passport";
 import {AuthRepository} from "./auth.repository";
 import {AuthController} from "./auth.controller";
@@ -13,11 +13,13 @@ import {UserModule} from "@app/auth/modules/user";
     PassportModule,
     JwtModule.register({}),
   ],
-  controllers: [AuthController],
+  controllers: [
+    AuthController
+  ],
   providers: [
-    TokenUtil,
-    AuthService,
     AuthRepository,
+    Utils.TokenUtil,
+    Services.AuthService,
   ],
 })
 export class AuthModule {}

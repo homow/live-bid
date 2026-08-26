@@ -1,8 +1,8 @@
-import {TokenUtil} from "./utils";
+import {TokenUtil} from "../utils";
 import {PinoLogger} from "nestjs-pino";
 import {randomUUID} from "node:crypto";
 import {Injectable} from "@nestjs/common";
-import {AuthRepository} from "./auth.repository";
+import {AuthRepository} from "../auth.repository";
 import {AppException} from "@live-bid/services/lib";
 import {compareSecret, hashSecret} from "@app/auth/lib";
 import * as ZodSchemas from "@live-bid/contracts/schemas";

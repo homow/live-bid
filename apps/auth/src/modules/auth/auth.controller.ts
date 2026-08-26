@@ -1,5 +1,5 @@
 import {Controller} from "@nestjs/common";
-import {AuthService} from "./auth.service";
+import {AuthService} from "./services/auth.service";
 import * as ZodSchemas from "@live-bid/contracts/schemas";
 import {MessagePattern, Payload} from "@nestjs/microservices";
 import * as GraphqlMessages from "@live-bid/services/graphql-messages";
