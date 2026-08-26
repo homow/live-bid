@@ -1,7 +1,9 @@
+import {JwtModule} from "@nestjs/jwt";
 import {LoggerModule} from "nestjs-pino";
 import {ConfigModule} from "@nestjs/config";
 import {GraphQLModule} from "@nestjs/graphql";
 import {AppController} from './app.controller';
+import {PassportModule} from "@nestjs/passport";
 import {ApolloDriverConfig} from "@nestjs/apollo";
 import {ThrottlerModule} from "@nestjs/throttler";
 import {loggerConfig} from "@live-bid/services/lib";
@@ -19,6 +21,9 @@ import {AccessTokenGuard, CacheableInterceptor, CacheEvictInterceptor, ClientInf
       isGlobal: true,
       envFilePath: "apps/gateway/.env",
     }),
+
+    PassportModule,
+    JwtModule.register({}),
 
     // Logger Config
     LoggerModule.forRoot(process.env.NODE_ENV !== "production"
