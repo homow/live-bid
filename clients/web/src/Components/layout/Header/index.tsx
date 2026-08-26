@@ -53,7 +53,12 @@ const Header = () => {
             </li>
 
             <li className="cursor-pointer transition-colors duration-300 hover:text-indigo-400">
-              How It Works?
+              <Link
+                href="/How-to-Work"
+                className="transition-colors duration-300 hover:text-indigo-400"
+              >
+                How It Works?
+              </Link>
             </li>
           </ul>
         </nav>
