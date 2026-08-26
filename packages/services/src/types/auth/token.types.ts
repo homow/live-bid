@@ -1,4 +1,6 @@
-import {UserRoleEnum} from "@live-bid/contracts/enums";
+import type {SafeUser} from "./user.types";
+import type {RefreshToken} from "../../database";
+import type {UserRoleEnum} from "@live-bid/contracts/enums";
 
 /** **AccessToken payload on JWT** */
 export interface AccessTokenPayload {
@@ -8,4 +10,10 @@ export interface AccessTokenPayload {
   jti?: string;
   role: UserRoleEnum;
   display_name?: string;
+}
+
+/** **Refresh Token Payload** */
+export interface RefreshTokenPayload {
+  refreshRecord: Omit<RefreshToken, 'client_info'>;
+  user: SafeUser;
 }
