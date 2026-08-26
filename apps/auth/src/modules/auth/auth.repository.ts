@@ -1,8 +1,9 @@
 import {eq} from "drizzle-orm";
-import {Injectable} from "@nestjs/common";
+import {Inject, Injectable} from "@nestjs/common";
 import type {RefreshTokenInsert} from "@app/auth/types";
 import {USER_PUBLIC_COLUMNS} from "../user/user.repository";
-import {DrizzleService, refreshToken, user} from "@live-bid/services/database";
+import {DrizzleService, refreshToken, User, user} from "@live-bid/services/database";
+import {PinoLogger} from "nestjs-pino";
 
 export const REFRESH_TOKEN_PUBLIC_COLUMNS = {
   id: refreshToken.id,
@@ -18,7 +19,10 @@ export const REFRESH_TOKEN_PUBLIC_COLUMNS = {
 
 @Injectable()
 export class AuthRepository {
-  constructor(private readonly drizzle: DrizzleService) {}
+  constructor(
+    private readonly logger: PinoLogger,
+    private readonly drizzle: DrizzleService,
+  ) {}
 
   insertRefreshToken(data: RefreshTokenInsert) {
     return this.drizzle.db
@@ -54,5 +58,12 @@ export class AuthRepository {
         user.created_at,
         user.display_name,
       );
+  }
+
+  async revokeAllUserTokens(userId: string) {
+    await this.drizzle.db
+      .update(refreshToken)
+      .set({is_revoked: true})
+      .where(eq(refreshToken.user_id, userId));
   }
 }
