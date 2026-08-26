@@ -1,3 +1,4 @@
+import type {Request} from "express";
 import type {SafeUser} from "./user.types";
 import type {RefreshToken} from "../../database";
 import type {UserRoleEnum} from "@live-bid/contracts/enums";
@@ -16,4 +17,8 @@ export interface AccessTokenPayload {
 export interface RefreshTokenPayload {
   refreshRecord: Omit<RefreshToken, 'client_info'>;
   user: SafeUser;
+}
+
+export interface RefreshRequest extends Request {
+  refreshPayload: RefreshTokenPayload;
 }
