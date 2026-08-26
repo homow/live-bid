@@ -2,6 +2,7 @@ import {Reflector} from "@nestjs/core";
 import {Observable, from, mergeMap} from "rxjs";
 import {AppException} from "@live-bid/services/lib";
 import {getRequestResponse} from "@app/gateway/lib";
+import type {AccessRequest} from "@live-bid/services/types";
 import {CacheService, RedisKey} from "@live-bid/services/cache";
 import {CACHEABLE_KEY, CacheableDecoratorType} from "@app/gateway/common";
 import {CallHandler, ExecutionContext, Injectable, NestInterceptor} from "@nestjs/common";
@@ -21,7 +22,7 @@ export class CacheableInterceptor<T> implements NestInterceptor {
 
     if (!cacheableKey) return next.handle();
 
-    const {req} = getRequestResponse(ctx);
+    const {req} = getRequestResponse<AccessRequest>(ctx);
 
     // build key pattern
     const key: string = RedisKey.keyPrefix({

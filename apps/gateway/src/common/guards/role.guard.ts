@@ -4,14 +4,13 @@ import {UserRoleEnum} from "@live-bid/contracts/enums";
 import {AppException, isRoleAccess} from "@live-bid/services/lib";
 import {CanActivate, ExecutionContext, Injectable} from "@nestjs/common";
 import {IS_PUBLIC_KEY, PublicDecoratorParams, ROLE_METADATA, RoleDecoratorParams} from "@app/gateway/common";
+import {AccessRequest} from "@live-bid/services/types";
 
 @Injectable()
 export class RoleGuard implements CanActivate {
   constructor(private readonly reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
-    const {req} = getRequestResponse(context);
-
     const isPublic = this.reflector.getAllAndOverride<PublicDecoratorParams>(IS_PUBLIC_KEY, [
       context.getHandler(),
       context.getClass(),
@@ -19,6 +18,10 @@ export class RoleGuard implements CanActivate {
       makePublicRoleGuard: false,
       makePublicAccessGuard: false,
     };
+
+    console.log("\n\n====================================\n\n");
+    console.log(isPublic);
+    console.log("\n\n====================================\n\n");
 
     if (isPublic.makePublicRoleGuard) return true;
 
@@ -29,6 +32,10 @@ export class RoleGuard implements CanActivate {
       strict: true,
       requiredRole: UserRoleEnum.USER,
     };
+
+    const {req} = getRequestResponse<AccessRequest>(context);
+
+    console.log(req);
 
     const userRole = req.user.role;
 

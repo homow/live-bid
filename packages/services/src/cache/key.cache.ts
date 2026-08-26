@@ -1,9 +1,9 @@
 import {AppException} from "../lib";
-import type {Request} from "express";
 import {TablesName} from "../database";
+import {AccessRequest} from "../types";
 
 export interface ParamCacheKeyType {
-  req: Request;
+  req: AccessRequest;
   resource: TablesName;
   self?: boolean;
   extraKeys?: string[];
