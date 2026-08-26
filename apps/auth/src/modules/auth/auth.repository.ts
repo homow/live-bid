@@ -1,7 +1,20 @@
 import {eq} from "drizzle-orm";
 import {Injectable} from "@nestjs/common";
 import type {RefreshTokenInsert} from "@app/auth/types";
-import {DrizzleService, refreshToken} from "@live-bid/services/database";
+import {USER_PUBLIC_COLUMNS} from "../user/user.repository";
+import {DrizzleService, refreshToken, user} from "@live-bid/services/database";
+
+export const REFRESH_TOKEN_PUBLIC_COLUMNS = {
+  id: refreshToken.id,
+  user_id: refreshToken.user_id,
+  token_hash: refreshToken.token_hash,
+  is_revoked: refreshToken.is_revoked,
+  expires_in: refreshToken.expires_in,
+  created_at: refreshToken.created_at,
+  updated_at: refreshToken.updated_at,
+  remember_me: refreshToken.remember_me,
+  replace_by_token_id: refreshToken.replace_by_token_id,
+};
 
 @Injectable()
 export class AuthRepository {
@@ -15,18 +28,31 @@ export class AuthRepository {
 
   findRefreshRecord(tokenHash: string) {
     return this.drizzle.db
-      .select({
-        id: refreshToken.id,
-        user_id: refreshToken.user_id,
-        token_hash: refreshToken.token_hash,
-        is_revoked: refreshToken.is_revoked,
-        expires_in: refreshToken.expires_in,
-        created_at: refreshToken.created_at,
-        updated_at: refreshToken.updated_at,
-        remember_me: refreshToken.remember_me,
-        replace_by_token_id: refreshToken.replace_by_token_id,
-      })
+      .select(REFRESH_TOKEN_PUBLIC_COLUMNS)
       .from(refreshToken)
       .where(eq(refreshToken.token_hash, tokenHash));
+  }
+
+  findRefreshRecordWithUser(tokenHash: string) {
+    return this.drizzle.db
+      .select({
+        ...REFRESH_TOKEN_PUBLIC_COLUMNS,
+
+        // Public User Record
+        user: USER_PUBLIC_COLUMNS
+      })
+      .from(refreshToken)
+      .where(eq(refreshToken.token_hash, tokenHash))
+      .leftJoin(user, eq(refreshToken.user_id, user.id))
+      .groupBy(
+        refreshToken.id,
+        user.id,
+        user.email,
+        user.username,
+        user.is_active,
+        user.updated_at,
+        user.created_at,
+        user.display_name,
+      );
   }
 }

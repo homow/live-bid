@@ -7,7 +7,7 @@ import {DrizzleService} from "@live-bid/services/database";
 import {type User, user} from "@live-bid/services/database";
 import {AppException, checkDrizzleError} from "@live-bid/services/lib";
 
-const USER_PUBLIC_COLUMNS = {
+export const USER_PUBLIC_COLUMNS = {
   id: user.id,
   role: user.role,
   email: user.email,

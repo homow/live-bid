@@ -8,7 +8,7 @@ import * as ZodSchemas from "@live-bid/contracts/schemas";
 import {UserCacheService} from "@app/auth/modules/user/services";
 import {AppException, throwNotFoundEx} from "@live-bid/services/lib";
 import {UserRepository} from "@app/auth/modules/user/user.repository";
-import type {LoginResponse, NormalizeClientInfoType, RegisterResponse} from "@live-bid/services/types";
+import {LoginResponse, NormalizeClientInfoType, RefreshRequest, RefreshTokenPayload, RegisterResponse, SafeUser} from "@live-bid/services/types";
 
 @Injectable()
 export class AuthService {
@@ -39,6 +39,13 @@ export class AuthService {
     return user;
   }
 
+  /**
+   * **Login user with password and username/email**
+   * @param userData - user data: password - email - username
+   * @param clientInfo - Client info
+   *
+   * @returns LoginResponse
+   *  */
   async login(userData: ZodSchemas.LoginUserSchemaType, clientInfo: NormalizeClientInfoType): Promise<LoginResponse> {
     // Find user in database with password
     const user = await this.userRepository.findOne(
@@ -90,6 +97,7 @@ export class AuthService {
       client_info: clientInfo,
       replace_by_token_id: null,
       token_hash: hashedRefreshToken,
+      remember_me: userData.remember,
     });
 
     this.userCacheService.setCacheUserInfo(safeUser);
@@ -102,5 +110,45 @@ export class AuthService {
       accessOptions,
       refreshOptions
     };
+  }
+
+  async validateRefresh(userId: string) {
+    const userCached = await this.userCacheService.getCachedUserInfo(userId);
+
+    function handleThrowRefresh() {
+      throw new AppException({
+        statusCode: 401,
+        code: 'REFRESH_TOKEN_EXPIRE',
+        message: 'Invalid or expired refresh token',
+      });
+    }
+
+    let tokenRecord: RefreshTokenPayload;
+
+    if (userCached) {
+      const [findToken] = await this.authRepository.findRefreshRecord(userId);
+
+      if (!findToken) handleThrowRefresh();
+
+      tokenRecord = {
+        refreshRecord: findToken,
+        user: userCached
+      };
+    } else {
+      const [findToken] = await this.authRepository.findRefreshRecordWithUser(userId);
+
+      if (!findToken) handleThrowRefresh();
+
+      const {user, ...refreshRecord} = findToken;
+
+      tokenRecord = {
+        refreshRecord,
+        user: user as SafeUser,
+      };
+    }
+
+    if (tokenRecord.refreshRecord.is_revoked) {
+
+    }
   }
 }
