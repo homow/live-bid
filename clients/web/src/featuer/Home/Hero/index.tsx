@@ -3,7 +3,7 @@ import LiveAuctionCard from "../LiveAuctionCard";
 
 const Hero = () => {
   return (
-    <section className="mx-auto flex min-h-[650px] w-full max-w-7xl items-center px-6 py-20">
+    <section className="mx-auto flex min-h-[650px] w-full max-w-7xl items-center px-6 py-20  mt-8">
       <div className="grid w-full items-center gap-16 lg:grid-cols-2">
 
         <div className="max-w-2xl">

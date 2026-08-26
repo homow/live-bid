@@ -24,54 +24,68 @@ const Header = () => {
 
   return (
     <>
-      <header className="mx-auto flex w-full max-w-7xl items-center justify-between px-4 py-5 sm:px-6 lg:px-8">
-        <div className="flex items-center gap-3">
-          <BadgeDollarSign size={26} className="text-indigo-400" />
+      <header
+        className="
+    fixed
+    left-0
+    right-0
+    top-0
+    z-30
+    border-b
+    border-slate-800/60
+    bg-[#151923]
+    md:bg-[#151923]/90
+    md:backdrop-blur-md
+  "
+      >
+        <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-4 py-5 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-3">
+            <BadgeDollarSign size={26} className="text-indigo-400" />
 
-          <span className="h-5 w-px bg-slate-700" />
+            <span className="h-5 w-px bg-slate-700" />
 
-          <p className="text-sm font-medium text-indigo-400">Live Bid</p>
-        </div>
+            <p className="text-sm font-medium text-indigo-400">Live Bid</p>
+          </div>
 
-        <nav className="hidden md:block">
-          <ul className="flex items-center gap-8 text-sm font-medium">
-            <li>
-              <Link
-                href="/"
-                className="transition-colors duration-300 hover:text-indigo-400"
-              >
-                Home
-              </Link>
-            </li>
+          <nav className="hidden md:block">
+            <ul className="flex items-center gap-8 text-sm font-medium">
+              <li>
+                <Link
+                  href="/"
+                  className="transition-colors duration-300 hover:text-indigo-400"
+                >
+                  Home
+                </Link>
+              </li>
 
-            <li className="cursor-pointer transition-colors duration-300 hover:text-indigo-400">
-              Auctions
-            </li>
+              <li className="cursor-pointer transition-colors duration-300 hover:text-indigo-400">
+                Auctions
+              </li>
 
-            <li className="cursor-pointer transition-colors duration-300 hover:text-indigo-400">
-              Winners
-            </li>
+              <li className="cursor-pointer transition-colors duration-300 hover:text-indigo-400">
+                Winners
+              </li>
 
-            <li className="cursor-pointer transition-colors duration-300 hover:text-indigo-400">
-              <Link
-                href="/How-to-Work"
-                className="transition-colors duration-300 hover:text-indigo-400"
-              >
-                How It Works?
-              </Link>
-            </li>
-          </ul>
-        </nav>
+              <li className="cursor-pointer transition-colors duration-300 hover:text-indigo-400">
+                <Link
+                  href="/How-to-Work"
+                  className="transition-colors duration-300 hover:text-indigo-400"
+                >
+                  How It Works?
+                </Link>
+              </li>
+            </ul>
+          </nav>
 
-        <div className="hidden md:block">
-          <Button>Sign In</Button>
-        </div>
+          <div className="hidden md:block">
+            <Button>Sign In</Button>
+          </div>
 
-        <button
-          type="button"
-          aria-label="Open menu"
-          onClick={() => setIsMenuOpen(true)}
-          className="
+          <button
+            type="button"
+            aria-label="Open menu"
+            onClick={() => setIsMenuOpen(true)}
+            className="
             flex
             h-10
             w-10
@@ -89,21 +103,20 @@ const Header = () => {
             hover:text-indigo-400
             md:hidden
           "
-        >
-          <Menu size={22} />
-        </button>
-      </header>
+          >
+            <Menu size={22} />
+          </button>
 
-      <AnimatePresence>
-        {isMenuOpen && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.25 }}
-              onClick={closeMenu}
-              className="
+          <AnimatePresence>
+            {isMenuOpen && (
+              <>
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.25 }}
+                  onClick={closeMenu}
+                  className="
                 fixed
                 inset-0
                 z-40
@@ -111,18 +124,18 @@ const Header = () => {
                 backdrop-blur-sm
                 md:hidden
               "
-            />
+                />
 
-            <motion.aside
-              initial={{ x: "100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "100%" }}
-              transition={{
-                type: "spring",
-                stiffness: 300,
-                damping: 30,
-              }}
-              className="
+                <motion.aside
+                  initial={{ x: "100%" }}
+                  animate={{ x: 0 }}
+                  exit={{ x: "100%" }}
+                  transition={{
+                    type: "spring",
+                    stiffness: 300,
+                    damping: 30,
+                  }}
+                  className="
                 fixed
                 right-0
                 top-0
@@ -140,21 +153,21 @@ const Header = () => {
                 shadow-2xl
                 md:hidden
               "
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <BadgeDollarSign size={24} className="text-indigo-400" />
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <BadgeDollarSign size={24} className="text-indigo-400" />
 
-                  <span className="text-sm font-semibold text-white">
-                    Live Bid
-                  </span>
-                </div>
+                      <span className="text-sm font-semibold text-white">
+                        Live Bid
+                      </span>
+                    </div>
 
-                <button
-                  type="button"
-                  aria-label="Close menu"
-                  onClick={closeMenu}
-                  className="
+                    <button
+                      type="button"
+                      aria-label="Close menu"
+                      onClick={closeMenu}
+                      className="
                     flex
                     h-10
                     w-10
@@ -170,74 +183,21 @@ const Header = () => {
                     hover:bg-red-500/10
                     hover:text-red-400
                   "
-                >
-                  <X size={21} />
-                </button>
-              </div>
-
-              <nav className="mt-12">
-                <ul className="space-y-3">
-                  <li>
-                    <Link
-                      href="/"
-                      className="transition-colors duration-300 hover:text-indigo-400"
                     >
-                      <button
-                        onClick={closeMenu}
-                        className="
-                        flex
-                        w-full
-                        items-center
-                        gap-4
-                        rounded-xl
-                        px-4
-                        py-3.5
-                        text-left
-                        text-sm
-                        font-medium
-                        text-slate-300
-                        transition-all
-                        duration-300
-                        hover:bg-indigo-500/10
-                        hover:text-indigo-400
-                      "
-                      >
-                        <Home size={19} />
-                        Home
-                      </button>
-                    </Link>
-                  </li>
-
-                  <li>
-                    <button
-                      onClick={closeMenu}
-                      className="
-                        flex
-                        w-full
-                        items-center
-                        gap-4
-                        rounded-xl
-                        px-4
-                        py-3.5
-                        text-left
-                        text-sm
-                        font-medium
-                        text-slate-300
-                        transition-all
-                        duration-300
-                        hover:bg-indigo-500/10
-                        hover:text-indigo-400
-                      "
-                    >
-                      <Gavel size={19} />
-                      Auctions
+                      <X size={21} />
                     </button>
-                  </li>
+                  </div>
 
-                  <li>
-                    <button
-                      onClick={closeMenu}
-                      className="
+                  <nav className="mt-12">
+                    <ul className="space-y-3">
+                      <li>
+                        <Link
+                          href="/"
+                          className="transition-colors duration-300 hover:text-indigo-400"
+                        >
+                          <button
+                            onClick={closeMenu}
+                            className="
                         flex
                         w-full
                         items-center
@@ -254,20 +214,17 @@ const Header = () => {
                         hover:bg-indigo-500/10
                         hover:text-indigo-400
                       "
-                    >
-                      <Trophy size={19} />
-                      Winners
-                    </button>
-                  </li>
+                          >
+                            <Home size={19} />
+                            Home
+                          </button>
+                        </Link>
+                      </li>
 
-                  <li>
-                    <Link
-                      href="/How-to-Work"
-                      className="transition-colors duration-300 hover:text-indigo-400"
-                    >
-                      <button
-                        onClick={closeMenu}
-                        className="
+                      <li>
+                        <button
+                          onClick={closeMenu}
+                          className="
                         flex
                         w-full
                         items-center
@@ -284,21 +241,79 @@ const Header = () => {
                         hover:bg-indigo-500/10
                         hover:text-indigo-400
                       "
-                      >
-                        <CircleHelp size={19} />
-                        How It Works
-                      </button>
-                    </Link>
-                  </li>
-                </ul>
-              </nav>
-              <div className="mt-auto border-t border-slate-800 pt-6">
-                <Button>Sign In</Button>
-              </div>
-            </motion.aside>
-          </>
-        )}
-      </AnimatePresence>
+                        >
+                          <Gavel size={19} />
+                          Auctions
+                        </button>
+                      </li>
+
+                      <li>
+                        <button
+                          onClick={closeMenu}
+                          className="
+                        flex
+                        w-full
+                        items-center
+                        gap-4
+                        rounded-xl
+                        px-4
+                        py-3.5
+                        text-left
+                        text-sm
+                        font-medium
+                        text-slate-300
+                        transition-all
+                        duration-300
+                        hover:bg-indigo-500/10
+                        hover:text-indigo-400
+                      "
+                        >
+                          <Trophy size={19} />
+                          Winners
+                        </button>
+                      </li>
+
+                      <li>
+                        <Link
+                          href="/How-to-Work"
+                          className="transition-colors duration-300 hover:text-indigo-400"
+                        >
+                          <button
+                            onClick={closeMenu}
+                            className="
+                        flex
+                        w-full
+                        items-center
+                        gap-4
+                        rounded-xl
+                        px-4
+                        py-3.5
+                        text-left
+                        text-sm
+                        font-medium
+                        text-slate-300
+                        transition-all
+                        duration-300
+                        hover:bg-indigo-500/10
+                        hover:text-indigo-400
+                      "
+                          >
+                            <CircleHelp size={19} />
+                            How It Works
+                          </button>
+                        </Link>
+                      </li>
+                    </ul>
+                  </nav>
+                  <div className="mt-auto border-t border-slate-800 pt-6">
+                    <Button>Sign In</Button>
+                  </div>
+                </motion.aside>
+              </>
+            )}
+          </AnimatePresence>
+        </div>
+      </header>
     </>
   );
 };

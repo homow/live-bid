@@ -3,7 +3,7 @@ import Question from "../question";
 
 const LearnMore = () => {
   return (
-    <main className="min-h-screen bg-[#151923] mt-10">
+    <main className="min-h-screen bg-[#151923] mt-25">
       <Moredetail />
 
       <section className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
