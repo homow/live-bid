@@ -5,6 +5,7 @@ import {Injectable} from "@nestjs/common";
 import {AuthRepository} from "../auth.repository";
 import {compareSecret, hashSecret} from "@app/auth/lib";
 import * as ZodSchemas from "@live-bid/contracts/schemas";
+import {UserCacheService} from "@app/auth/modules/user/services";
 import {AppException, throwNotFoundEx} from "@live-bid/services/lib";
 import {UserRepository} from "@app/auth/modules/user/user.repository";
 import type {LoginResponse, NormalizeClientInfoType, RegisterResponse} from "@live-bid/services/types";
@@ -16,6 +17,7 @@ export class AuthService {
     private readonly tokenUtil: TokenUtil,
     private readonly authRepository: AuthRepository,
     private readonly userRepository: UserRepository,
+    private readonly userCacheService: UserCacheService,
   ) {
     this.logger.setContext(AuthService.name);
   }
@@ -90,6 +92,7 @@ export class AuthService {
       token_hash: hashedRefreshToken,
     });
 
+    this.userCacheService.setCacheUserInfo(safeUser);
     this.logger.info({userId: safeUser.id}, 'User logged in');
 
     return {
