@@ -3,9 +3,9 @@ import {PinoLogger} from "nestjs-pino";
 import {randomUUID} from "node:crypto";
 import {Injectable} from "@nestjs/common";
 import {AuthRepository} from "../auth.repository";
-import {AppException} from "@live-bid/services/lib";
 import {compareSecret, hashSecret} from "@app/auth/lib";
 import * as ZodSchemas from "@live-bid/contracts/schemas";
+import {AppException, throwNotFoundEx} from "@live-bid/services/lib";
 import {UserRepository} from "@app/auth/modules/user/user.repository";
 import type {LoginResponse, NormalizeClientInfoType, RegisterResponse} from "@live-bid/services/types";
 
@@ -48,11 +48,7 @@ export class AuthService {
     );
 
     // Throw exception if user doesn't in database
-    if (!user) throw new AppException({
-      statusCode: 404,
-      code: "User not found",
-      message: "User does not exist in database, please check phone and try again",
-    });
+    if (!user) throw throwNotFoundEx('User');
 
     // Check password
     const isValidPassword = await compareSecret(userData.password, user.password);
