@@ -1,4 +1,3 @@
-import {JwtModule} from "@nestjs/jwt";
 import {LoggerModule} from "nestjs-pino";
 import {ConfigModule} from "@nestjs/config";
 import {GraphQLModule} from "@nestjs/graphql";
@@ -23,7 +22,6 @@ import {AccessTokenGuard, CacheableInterceptor, CacheEvictInterceptor, ClientInf
     }),
 
     PassportModule,
-    JwtModule.register({}),
 
     // Logger Config
     LoggerModule.forRoot(process.env.NODE_ENV !== "production"
