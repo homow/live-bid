@@ -2,8 +2,8 @@ import {PinoLogger} from "nestjs-pino";
 import {Injectable} from "@nestjs/common";
 import {RedisKey} from "@live-bid/services/cache";
 import {UserRepository} from "../user.repository";
+import {CacheService} from "@live-bid/services/cache";
 import type {SafeUser} from "@live-bid/services/types";
-import {CacheService} from "@live-bid/services/cache/cache.service";
 import {ONE_HOUR_MS, throwNotFoundEx} from "@live-bid/services/lib";
 
 /**
