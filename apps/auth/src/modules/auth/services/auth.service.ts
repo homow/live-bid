@@ -8,7 +8,7 @@ import * as ZodSchemas from "@live-bid/contracts/schemas";
 import {UserCacheService} from "@app/auth/modules/user/services";
 import {AppException, throwNotFoundEx} from "@live-bid/services/lib";
 import {UserRepository} from "@app/auth/modules/user/user.repository";
-import {LoginResponse, NormalizeClientInfoType, RefreshRequest, RefreshTokenPayload, RegisterResponse, SafeUser} from "@live-bid/services/types";
+import type {LoginResponse, NormalizeClientInfoType, RefreshTokenPayload, RegisterResponse, SafeUser, ValidateRefreshRequest} from "@live-bid/services/types";
 
 @Injectable()
 export class AuthService {
@@ -100,7 +100,7 @@ export class AuthService {
       remember_me: userData.remember,
     });
 
-    this.userCacheService.setCacheUserInfo(safeUser);
+    void this.userCacheService.setCacheUserInfo(safeUser);
     this.logger.info({userId: safeUser.id}, 'User logged in');
 
     return {
@@ -112,7 +112,7 @@ export class AuthService {
     };
   }
 
-  async validateRefresh(userId: string) {
+  async validateRefresh({userId, tokenHash}: ValidateRefreshRequest): Promise<RefreshTokenPayload> {
     const userCached = await this.userCacheService.getCachedUserInfo(userId);
 
     function handleThrowRefresh() {
@@ -126,7 +126,7 @@ export class AuthService {
     let tokenRecord: RefreshTokenPayload;
 
     if (userCached) {
-      const [findToken] = await this.authRepository.findRefreshRecord(userId);
+      const [findToken] = await this.authRepository.findRefreshRecord(tokenHash);
 
       if (!findToken) handleThrowRefresh();
 
@@ -135,9 +135,11 @@ export class AuthService {
         user: userCached
       };
     } else {
-      const [findToken] = await this.authRepository.findRefreshRecordWithUser(userId);
+      const [findToken] = await this.authRepository.findRefreshRecordWithUser(tokenHash);
 
       if (!findToken) handleThrowRefresh();
+
+      void this.userCacheService.setCacheUserInfo(findToken.user as SafeUser);
 
       const {user, ...refreshRecord} = findToken;
 
@@ -148,7 +150,17 @@ export class AuthService {
     }
 
     if (tokenRecord.refreshRecord.is_revoked) {
+      void this.authRepository.revokeAllUserTokens(userId).catch((error: Error) => {
+        this.logger.error({userId, error}, 'Failed to revoke all user tokens');
+      });
 
+      throw new AppException({
+        statusCode: 401,
+        code: 'REFRESH_TOKEN_REVOKED',
+        message: 'Refresh token revoked. Please login again.',
+      });
     }
+
+    return tokenRecord;
   }
 }

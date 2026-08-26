@@ -1,9 +1,9 @@
 import {eq} from "drizzle-orm";
-import {Inject, Injectable} from "@nestjs/common";
+import {PinoLogger} from "nestjs-pino";
+import {Injectable} from "@nestjs/common";
 import type {RefreshTokenInsert} from "@app/auth/types";
 import {USER_PUBLIC_COLUMNS} from "../user/user.repository";
-import {DrizzleService, refreshToken, User, user} from "@live-bid/services/database";
-import {PinoLogger} from "nestjs-pino";
+import {DrizzleService, refreshToken, user} from "@live-bid/services/database";
 
 export const REFRESH_TOKEN_PUBLIC_COLUMNS = {
   id: refreshToken.id,

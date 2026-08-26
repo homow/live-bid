@@ -28,7 +28,7 @@ export class AuthResolver {
   ) {
     return firstValueFrom<RegisterResponse>(
       this.authClient.send(
-        ServiceMessages.AUTH_MESSAGES.REGISTER,
+        ServiceMessages.AUTH_PATTERNS.REGISTER,
         input satisfies ZodSchemas.RegisterUserSchemaType
       )
     );
@@ -46,7 +46,7 @@ export class AuthResolver {
   ) {
     const result = await firstValueFrom<LoginResponse>(
       this.authClient.send(
-        ServiceMessages.AUTH_MESSAGES.LOGIN,
+        ServiceMessages.AUTH_PATTERNS.LOGIN,
         {
           clientInfo,
           userData: input
