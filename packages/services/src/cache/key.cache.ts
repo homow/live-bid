@@ -1,6 +1,6 @@
 import {AppException} from "../lib";
 import {TablesName} from "../database";
-import {AccessRequest} from "../types";
+import type {AccessRequest} from "../types";
 
 export interface ParamCacheKeyType {
   req: AccessRequest;

@@ -20,7 +20,6 @@ export const REFRESH_TOKEN_PUBLIC_COLUMNS = {
 @Injectable()
 export class AuthRepository {
   constructor(
-    private readonly logger: PinoLogger,
     private readonly drizzle: DrizzleService,
   ) {}
 
