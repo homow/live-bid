@@ -2,21 +2,21 @@ import {Controller} from "@nestjs/common";
 import {AuthService} from "./services/auth.service";
 import * as ZodSchemas from "@live-bid/contracts/schemas";
 import {MessagePattern, Payload} from "@nestjs/microservices";
-import * as GraphqlMessages from "@live-bid/services/graphql-messages";
+import * as ServiceMessages from "@live-bid/services/messages";
 import type {LoginRequest, LoginResponse, RegisterResponse} from "@live-bid/services/types";
 
 @Controller()
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @MessagePattern(GraphqlMessages.AUTH_MESSAGES.REGISTER)
+  @MessagePattern(ServiceMessages.AUTH_MESSAGES.REGISTER)
   register(
     @Payload() input: ZodSchemas.RegisterUserSchemaType
   ): Promise<RegisterResponse> {
     return this.authService.register(input);
   }
 
-  @MessagePattern(GraphqlMessages.AUTH_MESSAGES.LOGIN)
+  @MessagePattern(ServiceMessages.AUTH_MESSAGES.LOGIN)
   login(
     @Payload() input: LoginRequest,
   ): Promise<LoginResponse> {

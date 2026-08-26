@@ -5,9 +5,9 @@ import * as AuthOutputs from "./outputs";
 import {ClientProxy} from "@nestjs/microservices";
 import type {GraphQLContext} from "@app/gateway/types";
 import * as ZodSchemas from "@live-bid/contracts/schemas";
+import * as ServiceMessages from "@live-bid/services/messages";
 import {NormalizeClientInfo, ZodPipe} from "@app/gateway/common";
 import {Resolver, Mutation, Args, Context} from "@nestjs/graphql";
-import * as GraphqlMessages from "@live-bid/services/graphql-messages";
 import {ACCESS_TOKEN_NAME, AUTH_SERVICE_NAME, REFRESH_TOKEN_NAME} from "@live-bid/services/names";
 import type {LoginRequest, LoginResponse, NormalizeClientInfoType, RegisterResponse} from "@live-bid/services/types";
 
@@ -28,7 +28,7 @@ export class AuthResolver {
   ) {
     return firstValueFrom<RegisterResponse>(
       this.authClient.send(
-        GraphqlMessages.AUTH_MESSAGES.REGISTER,
+        ServiceMessages.AUTH_MESSAGES.REGISTER,
         input satisfies ZodSchemas.RegisterUserSchemaType
       )
     );
@@ -46,7 +46,7 @@ export class AuthResolver {
   ) {
     const result = await firstValueFrom<LoginResponse>(
       this.authClient.send(
-        GraphqlMessages.AUTH_MESSAGES.LOGIN,
+        ServiceMessages.AUTH_MESSAGES.LOGIN,
         {
           clientInfo,
           userData: input

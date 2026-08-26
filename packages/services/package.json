@@ -23,10 +23,10 @@
       "require": "./dist/events/index.js",
       "types": "./dist/events/index.d.ts"
     },
-    "./graphql-messages": {
-      "import": "./dist/graphql-messages/index.js",
-      "require": "./dist/graphql-messages/index.js",
-      "types": "./dist/graphql-messages/index.d.ts"
+    "./messages": {
+      "import": "./dist/messages/index.js",
+      "require": "./dist/messages/index.js",
+      "types": "./dist/messages/index.d.ts"
     },
     "./database": {
       "import": "./dist/database/index.js",
