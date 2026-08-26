@@ -20,7 +20,7 @@ const QuestionComponent = ({ title, text, image }: QuestionComponentProps) => {
   };
 
   return (
-    <div className="w-full px-2 py-2 sm:px-3">
+    <div className="w-full px-2 py-2 sm:px-3 ">
       <div
         className={`
         overflow-hidden
@@ -30,6 +30,7 @@ const QuestionComponent = ({ title, text, image }: QuestionComponentProps) => {
         shadow-sm
         transition-all
         duration-300
+
 
         ${
           showFullText
@@ -50,6 +51,7 @@ const QuestionComponent = ({ title, text, image }: QuestionComponentProps) => {
               transition-transform
               duration-500
               hover:scale-105
+   
             "
             />
           </div>
@@ -69,11 +71,14 @@ const QuestionComponent = ({ title, text, image }: QuestionComponentProps) => {
           px-4
           py-4
          text-left
-          transition-all
-          duration-300
+     
           sm:px-5
           sm:py-5
           lg:px-6
+        text-indigo-400
+        transition-all
+        duration-300
+ 
 
           ${
             showFullText
