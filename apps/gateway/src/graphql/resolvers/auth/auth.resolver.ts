@@ -2,12 +2,13 @@ import {firstValueFrom} from "rxjs";
 import {Inject} from "@nestjs/common";
 import * as AuthInputs from "./inputs";
 import * as AuthOutputs from "./outputs";
+import * as Decorators from "./decorators";
 import {ClientProxy} from "@nestjs/microservices";
 import type {GraphQLContext} from "@app/gateway/types";
 import * as ZodSchemas from "@live-bid/contracts/schemas";
 import * as ServiceMessages from "@live-bid/services/messages";
-import {NormalizeClientInfo, ZodPipe} from "@app/gateway/common";
 import {Resolver, Mutation, Args, Context} from "@nestjs/graphql";
+import {NormalizeClientInfo, ZodPipe} from "@app/gateway/common";
 import {ACCESS_TOKEN_NAME, AUTH_SERVICE_NAME, REFRESH_TOKEN_NAME} from "@live-bid/services/names";
 import type {LoginRequest, LoginResponse, NormalizeClientInfoType, RegisterResponse} from "@live-bid/services/types";
 
@@ -17,6 +18,7 @@ export class AuthResolver {
     @Inject(AUTH_SERVICE_NAME) private readonly authClient: ClientProxy
   ) {}
 
+  @Decorators.RegisterDecorators()
   @Mutation(() => AuthOutputs.RegisterUserOutput)
   register(
     @Args(
