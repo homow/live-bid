@@ -3,7 +3,7 @@ import {CookieOptions} from "express";
 import {JwtService} from "@nestjs/jwt";
 import {Injectable} from "@nestjs/common";
 import {ConfigService} from "@nestjs/config";
-import type {AccessTokenPayload} from "@app/auth/types";
+import type {AccessTokenPayload} from "@live-bid/services/types";
 import {generateRandomToken, hashSecretToken} from "@app/auth/lib";
 
 @Injectable()
