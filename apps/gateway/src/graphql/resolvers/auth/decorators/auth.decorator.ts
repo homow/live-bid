@@ -10,5 +10,6 @@ export const LoginDecorators = () => applyDecorators(
 );
 
 export const RefreshDecorators = () => applyDecorators(
+  Public(),
   UseGuards(RefreshGuard),
 );
