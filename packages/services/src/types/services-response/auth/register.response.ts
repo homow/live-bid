@@ -1,3 +1,3 @@
 import {SafeUser} from "../../auth";
 
-export type RegisterResponse = Omit<SafeUser, 'username'>;
+export type RegisterResponseService = Omit<SafeUser, 'username'>;

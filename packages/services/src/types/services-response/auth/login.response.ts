@@ -1,7 +1,7 @@
 import type {SafeUser} from "../../auth";
 import type {CookieOptions} from "express";
 
-export interface LoginResponse {
+export interface LoginResponseService {
   user: SafeUser;
   accessToken: string;
   refreshToken: string;
