@@ -1,3 +1,4 @@
+import {Module} from '@nestjs/common';
 import {LoggerModule} from "nestjs-pino";
 import {ConfigModule} from "@nestjs/config";
 import {GraphQLModule} from "@nestjs/graphql";
@@ -8,10 +9,9 @@ import {ThrottlerModule} from "@nestjs/throttler";
 import {loggerConfig} from "@live-bid/services/lib";
 import {CacheModule} from "@live-bid/services/cache";
 import {APP_GUARD, APP_INTERCEPTOR} from "@nestjs/core";
-import {MiddlewareConsumer, Module} from '@nestjs/common';
 import {AppGraphQLModule} from "@app/gateway/graphql/graphql.module";
 import {ComplexityCustom, graphqlConfigs, throttlerConfig} from "@app/gateway/lib";
-import {AccessTokenGuard, CacheableInterceptor, CacheEvictInterceptor, ClientInfoMiddleware, GraphqlThrottleGuard, RoleGuard, RpcExceptionInterceptor} from "./common";
+import {AccessTokenGuard, CacheableInterceptor, CacheEvictInterceptor, GraphqlThrottleGuard, RoleGuard, RpcExceptionInterceptor} from "./common";
 
 @Module({
   imports: [
@@ -62,9 +62,4 @@ import {AccessTokenGuard, CacheableInterceptor, CacheEvictInterceptor, ClientInf
   ],
   controllers: [AppController]
 })
-export class AppModule {
-  // noinspection JSUnusedGlobalSymbols
-  configure(consumer: MiddlewareConsumer) {
-    consumer.apply(ClientInfoMiddleware).forRoutes("*");
-  }
-}
+export class AppModule {}
