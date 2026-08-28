@@ -24,9 +24,9 @@ export class AuthController {
   }
 
   @MessagePattern(ServiceMessages.AUTH_PATTERNS.VALIDATE_REFRESH_TOKEN)
-  validateRefreshToken(
+  async validateRefreshToken(
     @Payload() input: ValidateRefreshRequest,
   ) {
-    return this.authService.validateRefresh(input);
+    const result = await this.authService.validateRefresh(input);
   }
 }

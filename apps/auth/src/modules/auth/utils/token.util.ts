@@ -67,14 +67,14 @@ export class TokenUtil {
 
     const accessToken: string = this.generateAccessToken(payload);
 
-    const expires_at: Date = new Date(
+    const expires_in: Date = new Date(
       Date.now() + this.getRefreshDate(remember)
     );
 
     const hashedRefreshToken: string = hashSecretToken(refreshToken);
 
     return {
-      expires_at,
+      expires_in,
       accessToken,
       refreshToken,
       hashedRefreshToken,

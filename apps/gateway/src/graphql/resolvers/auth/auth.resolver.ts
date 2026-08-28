@@ -131,4 +131,11 @@ export class AuthResolver {
 
     return user;
   }
+
+  @Mutation(() => AuthOutputs.LoginUserOutput)
+  refresh(
+    @Context() context: GraphQLContext
+  ) {
+
+  }
 }

@@ -89,7 +89,7 @@ export class AuthService {
       userData.remember
     );
 
-    const {hashedRefreshToken, refreshToken, accessToken, expires_at} = tokens;
+    const {hashedRefreshToken, refreshToken, accessToken, expires_in} = tokens;
 
     // Set access and refresh in cookies
     const accessOptions = this.tokenUtil.getCookieOptions('access');
@@ -97,8 +97,8 @@ export class AuthService {
 
     // Create a session in db
     await this.authRepository.insertRefreshToken({
+      expires_in,
       user_id: safeUser.id,
-      expires_in: expires_at,
       client_info: clientInfo,
       replace_by_token_id: null,
       token_hash: hashedRefreshToken,
@@ -182,5 +182,35 @@ export class AuthService {
     }
 
     return tokenRecord;
+  }
+
+  async refresh(
+    refreshPayload: RefreshTokenPayload,
+    client_info: NormalizeClientInfoType,
+  ) {
+    const user = refreshPayload.user;
+
+    // Generate refresh and access tokens
+    const tokens = this.tokenUtil.getTokens(
+      {
+        sub: user.id,
+        role: user.role,
+        jti: randomUUID() + Date.now(),
+        display_name: user.display_name,
+      },
+      refreshPayload.refreshRecord.remember_me
+    );
+
+    const {hashedRefreshToken, refreshToken, accessToken, expires_in} = tokens;
+
+    // Rotate token(revoke old token and insert new token in db)
+    await this.authRepository.rotateToken(refreshPayload.refreshRecord.id, {
+      expires_in,
+      client_info,
+      user_id: user.id,
+      replace_by_token_id: null,
+      token_hash: hashedRefreshToken,
+      remember_me: refreshPayload.refreshRecord.remember_me,
+    });
   }
 }
