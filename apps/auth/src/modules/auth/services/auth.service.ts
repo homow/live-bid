@@ -8,7 +8,15 @@ import * as ZodSchemas from "@live-bid/contracts/schemas";
 import {UserCacheService} from "@app/auth/modules/user/services";
 import {AppException, throwNotFoundEx} from "@live-bid/services/lib";
 import {UserRepository} from "@app/auth/modules/user/user.repository";
-import type {LoginResponse, NormalizeClientInfoType, RefreshTokenPayload, RegisterResponse, SafeUser, ValidateRefreshRequest} from "@live-bid/services/types";
+import {
+  LoginResponseService,
+  NormalizeClientInfoType,
+  RefreshRequestService,
+  RefreshTokenPayload,
+  RegisterResponseService,
+  SafeUser,
+  ValidateRefreshRequestService
+} from "@live-bid/services/types";
 
 @Injectable()
 export class AuthService {
@@ -23,7 +31,7 @@ export class AuthService {
   }
 
   /** **Register User** */
-  async register(userData: ZodSchemas.RegisterUserSchemaType): Promise<RegisterResponse> {
+  async register(userData: ZodSchemas.RegisterUserSchemaType): Promise<RegisterResponseService> {
     // Hash user password
     const hashedPassword: string = await hashSecret(userData.password);
 
@@ -46,9 +54,9 @@ export class AuthService {
    * @param userData - user data: password - email - username
    * @param clientInfo - Client info
    *
-   * @returns LoginResponse
+   * @returns LoginResponseService
    *  */
-  async login(userData: ZodSchemas.LoginUserSchemaType, clientInfo: NormalizeClientInfoType): Promise<LoginResponse> {
+  async login(userData: ZodSchemas.LoginUserSchemaType, clientInfo: NormalizeClientInfoType): Promise<LoginResponseService> {
     // Find user in database with password
     const user = await this.userRepository.findOne(
       {
@@ -91,7 +99,7 @@ export class AuthService {
 
     const {hashedRefreshToken, refreshToken, accessToken, expires_in} = tokens;
 
-    // Set access and refresh in cookies
+    // Generate access and refresh options
     const accessOptions = this.tokenUtil.getCookieOptions('access');
     const refreshOptions = this.tokenUtil.getCookieOptions('refresh', userData.remember);
 
@@ -121,7 +129,7 @@ export class AuthService {
   /**
    * **Validate refresh token from refresh guard**
    * */
-  async validateRefresh({userId, tokenHash}: ValidateRefreshRequest): Promise<RefreshTokenPayload> {
+  async validateRefresh({userId, tokenHash}: ValidateRefreshRequestService): Promise<RefreshTokenPayload> {
     // Get user from cache if exists.
     const userCached = await this.userCacheService.getCachedUserInfo(userId);
 
@@ -184,11 +192,14 @@ export class AuthService {
     return tokenRecord;
   }
 
-  async refresh(
-    refreshPayload: RefreshTokenPayload,
-    client_info: NormalizeClientInfoType,
-  ) {
+  /**
+   * **Rotate refresh token**
+   *  - Revoke old token
+   *  - Insert new session
+   * */
+  async refresh({refreshPayload, client_info}: RefreshRequestService): Promise<LoginResponseService> {
     const user = refreshPayload.user;
+    const remember_me = refreshPayload.refreshRecord.remember_me;
 
     // Generate refresh and access tokens
     const tokens = this.tokenUtil.getTokens(
@@ -198,7 +209,7 @@ export class AuthService {
         jti: randomUUID() + Date.now(),
         display_name: user.display_name,
       },
-      refreshPayload.refreshRecord.remember_me
+      remember_me
     );
 
     const {hashedRefreshToken, refreshToken, accessToken, expires_in} = tokens;
@@ -207,10 +218,22 @@ export class AuthService {
     await this.authRepository.rotateToken(refreshPayload.refreshRecord.id, {
       expires_in,
       client_info,
+      remember_me,
       user_id: user.id,
       replace_by_token_id: null,
       token_hash: hashedRefreshToken,
-      remember_me: refreshPayload.refreshRecord.remember_me,
     });
+
+    // Generate access and refresh options
+    const accessOptions = this.tokenUtil.getCookieOptions('access');
+    const refreshOptions = this.tokenUtil.getCookieOptions('refresh', remember_me);
+
+    return {
+      user,
+      accessToken,
+      refreshToken,
+      accessOptions,
+      refreshOptions,
+    };
   }
 }
