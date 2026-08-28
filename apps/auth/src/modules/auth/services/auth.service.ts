@@ -24,8 +24,10 @@ export class AuthService {
 
   /** **Register User** */
   async register(userData: ZodSchemas.RegisterUserSchemaType): Promise<RegisterResponse> {
+    // Hash user password
     const hashedPassword: string = await hashSecret(userData.password);
 
+    // Insert user record in db
     const user = await this.userRepository.insertUser({
       ...userData,
       password: hashedPassword,
