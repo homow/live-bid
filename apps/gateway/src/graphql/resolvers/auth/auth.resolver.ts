@@ -36,6 +36,7 @@ export class AuthResolver {
     );
   }
 
+  @Decorators.LoginDecorators()
   @Mutation(() => AuthOutputs.LoginUserOutput)
   async login(
     @Args(

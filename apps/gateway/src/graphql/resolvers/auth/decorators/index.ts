@@ -1,1 +1,1 @@
-export * from "./register.decorator";
+export * from "./auth.decorator";
