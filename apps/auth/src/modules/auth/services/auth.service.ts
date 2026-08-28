@@ -76,6 +76,7 @@ export class AuthService {
     const {password, ...safeUser} = user;
     void password;
 
+    // Generate refresh and access tokens
     const tokens = this.tokenUtil.getTokens(
       {
         sub: safeUser.id,
@@ -88,9 +89,11 @@ export class AuthService {
 
     const {hashedRefreshToken, refreshToken, accessToken, expires_at} = tokens;
 
+    // Set access and refresh in cookies
     const accessOptions = this.tokenUtil.getCookieOptions('access');
     const refreshOptions = this.tokenUtil.getCookieOptions('refresh', userData.remember);
 
+    // Create a session in db
     await this.authRepository.insertRefreshToken({
       user_id: safeUser.id,
       expires_in: expires_at,
@@ -100,6 +103,7 @@ export class AuthService {
       remember_me: userData.remember,
     });
 
+    // Set user cache
     void this.userCacheService.setCacheUserInfo(safeUser);
     this.logger.info({userId: safeUser.id}, 'User logged in');
 
