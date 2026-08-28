@@ -38,7 +38,7 @@ export class AuthController {
   }
 
   @MessagePattern(ServiceMessages.AUTH_PATTERNS.REFRESH)
-  refresh(data: RefreshRequestService) {
+  refresh(data: RefreshRequestService): Promise<LoginResponseService> {
     return this.authService.refresh(data);
   }
 }

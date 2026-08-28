@@ -10,7 +10,14 @@ import * as ServiceMessages from "@live-bid/services/messages";
 import {Resolver, Mutation, Args, Context} from "@nestjs/graphql";
 import {NormalizeClientInfo, ZodPipe} from "@app/gateway/common";
 import {ACCESS_TOKEN_NAME, AUTH_SERVICE_NAME, REFRESH_TOKEN_NAME} from "@live-bid/services/names";
-import type {LoginRequest, LoginResponse, NormalizeClientInfoType, RegisterResponse} from "@live-bid/services/types";
+import type {
+  LoginRequestService,
+  LoginResponseService,
+  NormalizeClientInfoType,
+  RefreshRequest,
+  RefreshRequestService,
+  RegisterResponseService
+} from "@live-bid/services/types";
 
 /**
  * **AuthResolver**
@@ -51,7 +58,7 @@ export class AuthResolver {
    *
    * @param input - Registration data (email, username, password)
    *
-   * @returns RegisterResponse - Contains user info and status
+   * @returns RegisterResponseService - Contains user info and status
    *
    * @example
    * mutation {
@@ -71,7 +78,7 @@ export class AuthResolver {
     )
     input: ZodSchemas.RegisterUserSchemaType
   ) {
-    return firstValueFrom<RegisterResponse>(
+    return firstValueFrom<RegisterResponseService>(
       this.authClient.send(
         ServiceMessages.AUTH_PATTERNS.REGISTER,
         input satisfies ZodSchemas.RegisterUserSchemaType
@@ -86,7 +93,7 @@ export class AuthResolver {
    * @param context - GraphQL context containing the response object
    * @param clientInfo - Client metadata (IP, User-Agent, Geo, Lang)
    *
-   * @returns LoginResponse - User data and sets HTTP-only cookies
+   * @returns LoginResponseService - User data and sets HTTP-only cookies
    *
    * @remarks
    * - Access and refresh tokens are automatically set as HTTP-only cookies
@@ -112,13 +119,13 @@ export class AuthResolver {
     @Context() context: GraphQLContext,
     @NormalizeClientInfo() clientInfo: NormalizeClientInfoType
   ) {
-    const result = await firstValueFrom<LoginResponse>(
+    const result = await firstValueFrom<LoginResponseService>(
       this.authClient.send(
         ServiceMessages.AUTH_PATTERNS.LOGIN,
         {
           clientInfo,
           userData: input
-        } satisfies LoginRequest
+        } satisfies LoginRequestService
       )
     );
 
@@ -132,10 +139,30 @@ export class AuthResolver {
     return user;
   }
 
+  @Decorators.RefreshDecorators()
   @Mutation(() => AuthOutputs.LoginUserOutput)
-  refresh(
-    @Context() context: GraphQLContext
+  async refresh(
+    @Context() context: GraphQLContext<RefreshRequest>,
+    @NormalizeClientInfo() client_info: NormalizeClientInfoType,
   ) {
+    const {res, req} = context;
 
+    const result = await firstValueFrom<LoginResponseService>(
+      this.authClient.send(
+        ServiceMessages.AUTH_PATTERNS.REFRESH,
+        {
+          client_info,
+          refreshPayload: req.refreshPayload
+        } satisfies RefreshRequestService
+      )
+    );
+
+    const {refreshOptions, refreshToken, accessOptions, accessToken, user} = result;
+
+    // Set tokens in cookies
+    res.cookie(ACCESS_TOKEN_NAME, accessToken, accessOptions);
+    res.cookie(REFRESH_TOKEN_NAME, refreshToken, refreshOptions);
+
+    return user;
   }
 }
