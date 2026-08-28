@@ -6,7 +6,7 @@ import {getRequestResponse} from "@app/gateway/lib";
 import {AUTH_PATTERNS} from '@live-bid/services/messages';
 import {AUTH_SERVICE_NAME} from "@live-bid/services/names";
 import {CanActivate, type ExecutionContext, Inject, Injectable} from "@nestjs/common";
-import type {RefreshRequest, RefreshTokenPayload, ValidateRefreshRequest} from "@live-bid/services/types";
+import type {RefreshRequest, RefreshTokenPayload, ValidateRefreshRequestService} from "@live-bid/services/types";
 
 @Injectable()
 export class RefreshGuard implements CanActivate {
@@ -39,7 +39,7 @@ export class RefreshGuard implements CanActivate {
       this.authClient.send(AUTH_PATTERNS.VALIDATE_REFRESH_TOKEN, {
         userId,
         tokenHash: hashed
-      } satisfies ValidateRefreshRequest)
+      } satisfies ValidateRefreshRequestService)
     );
 
     return true;
