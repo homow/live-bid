@@ -1,9 +1,5 @@
 import type {NormalizeClientInfoType} from "@live-bid/services/types";
 
-export function setClientInfo() {
-
-}
-
 export function normalizeClientInfo(input: Express.Request["clientInfo"]): NormalizeClientInfoType {
   const {ip, ua, geo, lang} = input;
 
