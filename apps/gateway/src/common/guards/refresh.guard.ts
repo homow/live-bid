@@ -1,8 +1,8 @@
 import {firstValueFrom} from "rxjs";
 import {hashSecretToken} from "@app/auth/lib";
 import {ClientProxy} from "@nestjs/microservices";
-import {AppException} from "@live-bid/services/lib";
 import {getRequestResponse} from "@app/gateway/lib";
+import {GatewayException} from "@app/gateway/common";
 import {AUTH_PATTERNS} from '@live-bid/services/messages';
 import {AUTH_SERVICE_NAME} from "@live-bid/services/names";
 import {CanActivate, type ExecutionContext, Inject, Injectable} from "@nestjs/common";
@@ -22,15 +22,17 @@ export class RefreshGuard implements CanActivate {
   }
 
   async canActivate(context: ExecutionContext) {
-    const req = getRequestResponse(context).req as RefreshRequest;
+    const req = getRequestResponse<RefreshRequest>(context).req;
 
     const rawToken = RefreshGuard.getTokenFromReq(req);
 
-    if (!rawToken) throw new AppException({
-      statusCode: 401,
-      code: "REFRESH_TOKEN_MISSING",
-      message: "Refresh token missing.",
-    });
+    if (!rawToken) {
+      throw new GatewayException({
+        statusCode: 401,
+        code: "REFRESH_TOKEN_MISSING",
+        message: "Refresh token missing.",
+      });
+    }
 
     const hashed = hashSecretToken(rawToken);
     const userId = rawToken.split(":")[0];
