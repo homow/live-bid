@@ -1,3 +1,12 @@
+import type {
+  RefreshRequest,
+  LoginRequestService,
+  LoginResponseService,
+  RefreshRequestService,
+  RegisterResponseService,
+  NormalizeClientInfoType,
+} from "@live-bid/services/types";
+
 import {firstValueFrom} from "rxjs";
 import {Inject} from "@nestjs/common";
 import * as AuthInputs from "./inputs";
@@ -10,14 +19,6 @@ import * as ServiceMessages from "@live-bid/services/messages";
 import {Resolver, Mutation, Args, Context} from "@nestjs/graphql";
 import {NormalizeClientInfo, ZodPipe} from "@app/gateway/common";
 import {ACCESS_TOKEN_NAME, AUTH_SERVICE_NAME, REFRESH_TOKEN_NAME} from "@live-bid/services/names";
-import type {
-  LoginRequestService,
-  LoginResponseService,
-  NormalizeClientInfoType,
-  RefreshRequest,
-  RefreshRequestService,
-  RegisterResponseService
-} from "@live-bid/services/types";
 
 /**
  * **AuthResolver**
