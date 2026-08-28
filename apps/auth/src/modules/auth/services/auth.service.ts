@@ -112,7 +112,11 @@ export class AuthService {
     };
   }
 
+  /**
+   * **Validate refresh token from refresh guard**
+   * */
   async validateRefresh({userId, tokenHash}: ValidateRefreshRequest): Promise<RefreshTokenPayload> {
+    // Get user from cache if exists.
     const userCached = await this.userCacheService.getCachedUserInfo(userId);
 
     function handleThrowRefresh() {
@@ -125,20 +129,27 @@ export class AuthService {
 
     let tokenRecord: RefreshTokenPayload;
 
+    // If user cache exists
     if (userCached) {
+      // Get session/token from db
       const [findToken] = await this.authRepository.findRefreshRecord(tokenHash);
 
+      // If token not exists, Throw an exception
       if (!findToken) handleThrowRefresh();
 
+      // Else, complete token record object
       tokenRecord = {
         refreshRecord: findToken,
         user: userCached
       };
     } else {
+      // If user cache not exists, find user from db
       const [findToken] = await this.authRepository.findRefreshRecordWithUser(tokenHash);
 
+      // If token not exists, Throw an exception
       if (!findToken) handleThrowRefresh();
 
+      // Cach user
       void this.userCacheService.setCacheUserInfo(findToken.user as SafeUser);
 
       const {user, ...refreshRecord} = findToken;
@@ -149,11 +160,14 @@ export class AuthService {
       };
     }
 
+    // If this token is revoked
     if (tokenRecord.refreshRecord.is_revoked) {
+      // Revoke all user session.
       void this.authRepository.revokeAllUserTokens(userId).catch((error: Error) => {
         this.logger.error({userId, error}, 'Failed to revoke all user tokens');
       });
 
+      // Throw an exception
       throw new AppException({
         statusCode: 401,
         code: 'REFRESH_TOKEN_REVOKED',
