@@ -1,4 +1,5 @@
 import type {
+  SafeUser,
   RefreshRequest,
   LoginRequestService,
   LoginResponseService,
@@ -78,7 +79,7 @@ export class AuthResolver {
       new ZodPipe(ZodSchemas.RegisterUserSchema)
     )
     input: ZodSchemas.RegisterUserSchemaType
-  ) {
+  ): Promise<RegisterResponseService> {
     return firstValueFrom<RegisterResponseService>(
       this.authClient.send(
         ServiceMessages.AUTH_PATTERNS.REGISTER,
@@ -119,7 +120,7 @@ export class AuthResolver {
     ) input: ZodSchemas.LoginUserSchemaType,
     @Context() context: GraphQLContext,
     @NormalizeClientInfo() clientInfo: NormalizeClientInfoType
-  ) {
+  ): Promise<SafeUser> {
     const result = await firstValueFrom<LoginResponseService>(
       this.authClient.send(
         ServiceMessages.AUTH_PATTERNS.LOGIN,
@@ -145,7 +146,7 @@ export class AuthResolver {
   async refresh(
     @Context() context: GraphQLContext<RefreshRequest>,
     @NormalizeClientInfo() client_info: NormalizeClientInfoType,
-  ) {
+  ): Promise<SafeUser> {
     const {res, req} = context;
 
     const result = await firstValueFrom<LoginResponseService>(
