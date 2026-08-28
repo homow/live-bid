@@ -64,4 +64,26 @@ export class AuthRepository {
       .set({is_revoked: true})
       .where(eq(refreshToken.user_id, userId));
   }
+
+  rotateToken(
+    oldTokenId: string,
+    newTokenData: RefreshTokenInsert
+  ) {
+    return this.drizzle.db.transaction(async (tx) => {
+      const [newToken] = await tx
+        .insert(refreshToken)
+        .values(newTokenData)
+        .returning();
+
+      await tx
+        .update(refreshToken)
+        .set({
+          is_revoked: true,
+          replace_by_token_id: newToken.id,
+        })
+        .where(eq(refreshToken.id, oldTokenId));
+
+      return newToken;
+    });
+  }
 }
