@@ -1,9 +1,7 @@
 import {UserRoleEnum} from "@live-bid/contracts/enums";
 
 /**
- * ============================================================
- *  ROLE-BASED ACCESS CONTROL (RBAC) UTILITIES
- * ============================================================
+ *  **ROLE-BASED ACCESS CONTROL (RBAC) UTILITIES**
  *
  * A lightweight hierarchical RBAC system for managing user permissions
  * across the application. This module provides:
@@ -19,9 +17,6 @@ import {UserRoleEnum} from "@live-bid/contracts/enums";
  * @module Roles
  * @see UserRoleEnum
  * @see isRoleAccess
- */
-
-/**
  * Represents the role hierarchy levels.
  *
  * Higher numeric value = greater privilege.
