@@ -1,5 +1,6 @@
 import {AppModule} from './app.module';
 import {NestFactory} from '@nestjs/core';
+import {DbExceptionFilter} from "@live-bid/services/common";
 import {MicroserviceOptions, Transport} from "@nestjs/microservices";
 import {microserviceBootstraps, microserviceCatch} from "@live-bid/services/bootstrap";
 
@@ -20,6 +21,8 @@ async function bootstrap() {
       }
     }
   );
+
+  app.useGlobalFilters(new DbExceptionFilter());
 
   await app.listen();
 }
