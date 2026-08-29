@@ -1,16 +1,26 @@
 import {ArgumentsHost, Catch} from "@nestjs/common";
-import {GqlExceptionFilter} from "@nestjs/graphql";
+import {GqlArgumentsHost, GqlExceptionFilter} from "@nestjs/graphql";
 import {GraphQLError} from "graphql";
+import {getRequestResponse} from "@app/gateway/lib";
 import {AppErrorPayload} from "@live-bid/services/lib";
+import {ACCESS_TOKEN_NAME, REFRESH_TOKEN_NAME} from "@live-bid/services/names";
+import {GraphQLContext} from "@app/gateway/types";
 
 @Catch()
 export class GraphqlExceptionFilter implements GqlExceptionFilter {
-  catch(exception: unknown, _host: ArgumentsHost) {
+  catch(exception: unknown, host: ArgumentsHost) {
     if (exception instanceof GraphQLError) {
       return exception;
     }
 
     const payload = exception as AppErrorPayload;
+
+    if (payload?.meta?.clearAuthCookies) {
+      const gqlHost = GqlArgumentsHost.create(host);
+      const {res} = gqlHost.getContext<GraphQLContext>();
+      res.clearCookie(ACCESS_TOKEN_NAME);
+      res.clearCookie(REFRESH_TOKEN_NAME);
+    }
 
     if (payload?.code && payload?.message) {
       return new GraphQLError(payload.message, {
