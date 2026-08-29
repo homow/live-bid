@@ -5,7 +5,7 @@ import type {
   LoginResponseService,
   RefreshRequestService,
   RegisterResponseService,
-  NormalizeClientInfoType,
+  NormalizeClientInfoType, LogoutRequestService, AccessRequest,
 } from "@live-bid/services/types";
 
 import {firstValueFrom} from "rxjs";
@@ -18,7 +18,7 @@ import type {GraphQLContext} from "@app/gateway/types";
 import * as ZodSchemas from "@live-bid/contracts/schemas";
 import * as ServiceMessages from "@live-bid/services/messages";
 import {Resolver, Mutation, Args, Context} from "@nestjs/graphql";
-import {NormalizeClientInfo, ZodPipe} from "@app/gateway/common";
+import {NormalizeClientInfo, RefreshGuard, ZodPipe} from "@app/gateway/common";
 import {ACCESS_TOKEN_NAME, AUTH_SERVICE_NAME, REFRESH_TOKEN_NAME} from "@live-bid/services/names";
 
 /**
@@ -190,14 +190,25 @@ export class AuthResolver {
     return user;
   }
 
+  @Decorators.LogoutDecorators()
   @Mutation(() => String)
   logout(
     @Context() context: GraphQLContext<RefreshRequest>,
   ) {
-    const {res} = context;
+    const {res, req} = context;
+
+    const rawRefreshTokenId = RefreshGuard.getTokenFromReq(req);
+    const userId = (req as unknown as AccessRequest)?.user?.userId || undefined;
+
+    this.authClient.emit(ServiceMessages.AUTH_PATTERNS.LOGOUT, {
+      userId,
+      rawRefreshTokenId,
+    } satisfies LogoutRequestService);
 
     // Clear Cookies
     res.clearCookie(ACCESS_TOKEN_NAME);
     res.clearCookie(REFRESH_TOKEN_NAME);
+
+    return "User logged out successfully.";
   }
 }

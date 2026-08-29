@@ -13,3 +13,7 @@ export const RefreshDecorators = () => applyDecorators(
   Public(),
   UseGuards(RefreshGuard),
 );
+
+export const LogoutDecorators = () => applyDecorators(
+  Public()
+);
