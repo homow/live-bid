@@ -2,9 +2,10 @@ import type {
   RefreshTokenPayload,
   LoginRequestService,
   LoginResponseService,
+  LogoutRequestService,
   RefreshRequestService,
   RegisterResponseService,
-  ValidateRefreshRequestService
+  ValidateRefreshRequestService,
 } from "@live-bid/services/types";
 
 import {Controller} from "@nestjs/common";
@@ -73,12 +74,22 @@ export class AuthController {
   /**
    * **Rotate refresh token**
    *
-   * @param data - Current refresh payload and updated client info
+   * @param input - Current refresh payload and updated client info
    *
    * @returns New access/refresh tokens with cookie options
    */
   @MessagePattern(ServiceMessages.AUTH_PATTERNS.REFRESH)
-  refresh(data: RefreshRequestService): Promise<LoginResponseService> {
-    return this.authService.refresh(data);
+  refresh(
+    @Payload() input: RefreshRequestService,
+  ): Promise<LoginResponseService> {
+    return this.authService.refresh(input);
+  }
+
+  @MessagePattern(ServiceMessages.AUTH_PATTERNS.LOGOUT)
+  logout(
+    @Payload() input: LogoutRequestService,
+  ) {
+    console.log(input);
+    this.authService.logout(input.rawRefreshTokenId, input.userId);
   }
 }
