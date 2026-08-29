@@ -1,16 +1,17 @@
+import type {
+  RefreshTokenPayload,
+  LoginRequestService,
+  LoginResponseService,
+  RefreshRequestService,
+  RegisterResponseService,
+  ValidateRefreshRequestService
+} from "@live-bid/services/types";
+
 import {Controller} from "@nestjs/common";
 import {AuthService} from "./services/auth.service";
 import * as ZodSchemas from "@live-bid/contracts/schemas";
 import {MessagePattern, Payload} from "@nestjs/microservices";
 import * as ServiceMessages from "@live-bid/services/messages";
-import type {
-  LoginRequestService,
-  LoginResponseService,
-  RefreshRequestService,
-  RefreshTokenPayload,
-  RegisterResponseService,
-  ValidateRefreshRequestService
-} from "@live-bid/services/types";
 
 @Controller()
 export class AuthController {
