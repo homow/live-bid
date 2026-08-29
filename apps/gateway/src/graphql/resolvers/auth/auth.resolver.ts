@@ -189,4 +189,15 @@ export class AuthResolver {
 
     return user;
   }
+
+  @Mutation(() => String)
+  logout(
+    @Context() context: GraphQLContext<RefreshRequest>,
+  ) {
+    const {res} = context;
+
+    // Clear Cookies
+    res.clearCookie(ACCESS_TOKEN_NAME);
+    res.clearCookie(REFRESH_TOKEN_NAME);
+  }
 }
