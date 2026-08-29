@@ -13,7 +13,7 @@ import {PinoLogger} from "nestjs-pino";
 import {randomUUID} from "node:crypto";
 import {Injectable} from "@nestjs/common";
 import {AuthRepository} from "../auth.repository";
-import {compareSecret, hashSecret} from "@app/auth/lib";
+import {compareSecret, hashSecret, hashSecretToken} from "@app/auth/lib";
 import * as ZodSchemas from "@live-bid/contracts/schemas";
 import {UserCacheService} from "@app/auth/modules/user/services";
 import {AppException, throwNotFoundEx} from "@live-bid/services/lib";
@@ -239,5 +239,13 @@ export class AuthService {
       accessOptions,
       refreshOptions,
     };
+  }
+
+  logout(rawRefreshTokenId: string | null, userId?: string) {
+    if (rawRefreshTokenId !== null) {
+      const hashedRefreshToken = hashSecretToken(rawRefreshTokenId);
+      void this.authRepository.revokeToken(hashedRefreshToken);
+      this.logger.info({userId}, 'User logged out');
+    }
   }
 }
