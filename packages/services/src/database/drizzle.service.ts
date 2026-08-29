@@ -1,6 +1,7 @@
 import {Pool} from "pg";
+import {AppException} from "../lib";
 import {drizzle} from "drizzle-orm/node-postgres";
-import {Injectable, OnModuleInit, Logger, OnModuleDestroy, Inject, InternalServerErrorException} from "@nestjs/common";
+import {Injectable, OnModuleInit, Logger, OnModuleDestroy, Inject} from "@nestjs/common";
 
 export const DRIZZLE_SCHEMAS = Symbol("DRIZZLE_SCHEMAS");
 export type DrizzleServiceSchemas = Record<string, unknown>;
@@ -23,7 +24,11 @@ export class DrizzleService implements OnModuleInit, OnModuleDestroy {
     if (!this._db) {
       const connectionString = process.env.DATABASE_URL;
 
-      if (!connectionString) throw new InternalServerErrorException("DATABASE_URL must be provided!");
+      if (!connectionString) throw new AppException({
+        statusCode: 500,
+        code: "DATABASE_URL_NOT_FOUND",
+        message: "DATABASE_URL must be provided!",
+      });
 
       this.client = new Pool({
         connectionString,
