@@ -89,7 +89,6 @@ export class AuthController {
   logout(
     @Payload() input: LogoutRequestService,
   ) {
-    console.log(input);
-    this.authService.logout(input.rawRefreshTokenId, input.userId);
+    this.authService.logout(input.rawRefreshTokenId);
   }
 }

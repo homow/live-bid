@@ -241,11 +241,10 @@ export class AuthService {
     };
   }
 
-  logout(rawRefreshTokenId: string | null, userId?: string) {
+  logout(rawRefreshTokenId: string | null) {
     if (rawRefreshTokenId !== null) {
       const hashedRefreshToken = hashSecretToken(rawRefreshTokenId);
       void this.authRepository.revokeToken(hashedRefreshToken);
-      this.logger.info({userId}, 'User logged out');
     }
   }
 }

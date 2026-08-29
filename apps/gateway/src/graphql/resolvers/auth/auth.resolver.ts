@@ -198,10 +198,8 @@ export class AuthResolver {
     const {res, req} = context;
 
     const rawRefreshTokenId = RefreshGuard.getTokenFromReq(req);
-    const userId = (req as unknown as AccessRequest)?.user?.userId || undefined;
 
     this.authClient.emit(ServiceMessages.AUTH_PATTERNS.LOGOUT, {
-      userId,
       rawRefreshTokenId,
     } satisfies LogoutRequestService);
 
