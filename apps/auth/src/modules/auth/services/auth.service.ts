@@ -241,6 +241,16 @@ export class AuthService {
     };
   }
 
+  /**
+   * **Logout user by revoking their refresh token**
+   *
+   * @param rawRefreshTokenId - Raw refresh token string (optional)
+   *
+   * @remarks
+   * - If token is provided, it is hashed and revoked in the database
+   * - This is a synchronous operation that does not wait for completion
+   * - Browser cookies are cleared separately by the Gateway
+   */
   logout(rawRefreshTokenId: string | null) {
     if (rawRefreshTokenId !== null) {
       const hashedRefreshToken = hashSecretToken(rawRefreshTokenId);

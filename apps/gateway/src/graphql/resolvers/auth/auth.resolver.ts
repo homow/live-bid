@@ -190,6 +190,25 @@ export class AuthResolver {
     return user;
   }
 
+  /**
+   * **Logout user and clear authentication tokens**
+   *
+   * @param context - GraphQL context containing request and response objects
+   *
+   * @returns A success message indicating user has been logged out
+   *
+   * @remarks
+   * - This mutation is public and does not require valid tokens
+   * - Refresh token is revoked in the background via Redis emit
+   * - Both access and refresh cookies are cleared from the client
+   * - The logout operation is performed asynchronously without blocking the response
+   *
+   * @example
+   * mutation {
+   *   logout
+   * }
+   * // Returns: "User logged out successfully."
+   */
   @Decorators.LogoutDecorators()
   @Mutation(() => String)
   logout(

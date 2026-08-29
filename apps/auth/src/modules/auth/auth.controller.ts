@@ -85,6 +85,16 @@ export class AuthController {
     return this.authService.refresh(input);
   }
 
+  /**
+   * **Revoke refresh token on logout**
+   *
+   * @param input - Raw refresh token ID to be revoked
+   *
+   * @remarks
+   * - This is a fire-and-forget handler (void return)
+   * - Token is hashed and marked as revoked in the database
+   * - No response is expected from the client side
+   */
   @MessagePattern(ServiceMessages.AUTH_PATTERNS.LOGOUT)
   logout(
     @Payload() input: LogoutRequestService,
