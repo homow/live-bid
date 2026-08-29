@@ -1,10 +1,9 @@
-import {ArgumentsHost, Catch} from "@nestjs/common";
-import {GqlArgumentsHost, GqlExceptionFilter} from "@nestjs/graphql";
 import {GraphQLError} from "graphql";
-import {getRequestResponse} from "@app/gateway/lib";
-import {AppErrorPayload} from "@live-bid/services/lib";
+import {ArgumentsHost, Catch} from "@nestjs/common";
+import type {GraphQLContext} from "@app/gateway/types";
+import {type AppErrorPayload} from "@live-bid/services/lib";
+import {GqlArgumentsHost, GqlExceptionFilter} from "@nestjs/graphql";
 import {ACCESS_TOKEN_NAME, REFRESH_TOKEN_NAME} from "@live-bid/services/names";
-import {GraphQLContext} from "@app/gateway/types";
 
 @Catch()
 export class GraphqlExceptionFilter implements GqlExceptionFilter {
