@@ -26,6 +26,19 @@ export class RpcExceptionInterceptor<T> implements NestInterceptor {
           }));
         }
 
+        const differentError = err as {
+          error: AppErrorPayload;
+        };
+
+        if (differentError?.error.message && differentError?.error.code) {
+          return throwError(() => new GraphQLError(differentError.error.message, {
+            extensions: {
+              code: differentError.error.code,
+              statusCode: differentError.error.statusCode,
+            }
+          }));
+        }
+
         return throwError(() => new GraphQLError("Internal Server Error", {
           extensions: {
             code: "INTERNAL_SERVER_ERROR",
