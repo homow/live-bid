@@ -86,4 +86,11 @@ export class AuthRepository {
       return newToken;
     });
   }
+
+  async revokeToken(tokenHash: string) {
+    await this.drizzle.db
+      .update(refreshToken)
+      .set({is_revoked: true})
+      .where(eq(refreshToken.token_hash, tokenHash));
+  }
 }
