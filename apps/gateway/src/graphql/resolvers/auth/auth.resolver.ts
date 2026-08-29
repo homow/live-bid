@@ -141,6 +141,28 @@ export class AuthResolver {
     return user;
   }
 
+  /**
+   * **Refresh access and refresh tokens**
+   *
+   * @param context - GraphQL context containing request (with refreshPayload) and response
+   * @param client_info - Updated client metadata (IP, User-Agent, Geo, Lang)
+   *
+   * @returns SafeUser - The authenticated user data
+   *
+   * @remarks
+   * - Requires valid refresh token in cookies (validated by RefreshGuard)
+   * - Old refresh token is revoked and replaced with a new one
+   * - New access and refresh tokens are set as HTTP-only cookies
+   *
+   * @example
+   * mutation {
+   *   refresh {
+   *     id
+   *     email
+   *     role
+   *   }
+   * }
+   */
   @Decorators.RefreshDecorators()
   @Mutation(() => AuthOutputs.LoginUserOutput)
   async refresh(
