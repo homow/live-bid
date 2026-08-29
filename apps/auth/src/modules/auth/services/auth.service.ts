@@ -1,3 +1,13 @@
+import type {
+  SafeUser,
+  RefreshTokenPayload,
+  LoginResponseService,
+  RefreshRequestService,
+  NormalizeClientInfoType,
+  RegisterResponseService,
+  ValidateRefreshRequestService,
+} from "@live-bid/services/types";
+
 import {TokenUtil} from "../utils";
 import {PinoLogger} from "nestjs-pino";
 import {randomUUID} from "node:crypto";
@@ -8,15 +18,6 @@ import * as ZodSchemas from "@live-bid/contracts/schemas";
 import {UserCacheService} from "@app/auth/modules/user/services";
 import {AppException, throwNotFoundEx} from "@live-bid/services/lib";
 import {UserRepository} from "@app/auth/modules/user/user.repository";
-import {
-  LoginResponseService,
-  NormalizeClientInfoType,
-  RefreshRequestService,
-  RefreshTokenPayload,
-  RegisterResponseService,
-  SafeUser,
-  ValidateRefreshRequestService
-} from "@live-bid/services/types";
 
 @Injectable()
 export class AuthService {
@@ -185,7 +186,10 @@ export class AuthService {
       throw new AppException({
         statusCode: 401,
         code: 'REFRESH_TOKEN_REVOKED',
-        message: 'Refresh token revoked. Please login again.',
+        message: 'Your session has been expired or revoked due to a security issue. Please log in again to continue.',
+        meta: {
+          clearAuthCookies: true
+        }
       });
     }
 
