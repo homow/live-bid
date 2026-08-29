@@ -8,10 +8,10 @@ import {ApolloDriverConfig} from "@nestjs/apollo";
 import {ThrottlerModule} from "@nestjs/throttler";
 import {loggerConfig} from "@live-bid/services/lib";
 import {CacheModule} from "@live-bid/services/cache";
-import {APP_GUARD, APP_INTERCEPTOR} from "@nestjs/core";
+import {APP_FILTER, APP_GUARD, APP_INTERCEPTOR} from "@nestjs/core";
 import {AppGraphQLModule} from "@app/gateway/graphql/graphql.module";
 import {ComplexityCustom, graphqlConfigs, throttlerConfig} from "@app/gateway/lib";
-import {AccessTokenGuard, CacheableInterceptor, CacheEvictInterceptor, GraphqlThrottleGuard, RoleGuard, RpcExceptionInterceptor} from "./common";
+import {AccessTokenGuard, CacheableInterceptor, CacheEvictInterceptor, GraphqlThrottleGuard, RoleGuard, GraphqlExceptionFilter} from "./common";
 
 @Module({
   imports: [
@@ -48,7 +48,7 @@ import {AccessTokenGuard, CacheableInterceptor, CacheEvictInterceptor, GraphqlTh
     {provide: APP_GUARD, useClass: GraphqlThrottleGuard},
 
     // Rpc Exceptions
-    {provide: APP_INTERCEPTOR, useClass: RpcExceptionInterceptor},
+    {provide: APP_FILTER, useClass: GraphqlExceptionFilter},
 
     // Access Token Guard
     {provide: APP_GUARD, useClass: AccessTokenGuard},

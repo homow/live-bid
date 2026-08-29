@@ -6,7 +6,8 @@ import {Catch, RpcExceptionFilter, ArgumentsHost} from '@nestjs/common';
 export class DbExceptionFilter implements RpcExceptionFilter {
   catch(e: Error, _host: ArgumentsHost) {
     if (e instanceof AppException) {
-      return throwError(() => e);
+      console.log(e.getError());
+      return throwError(() => e.getError());
     }
 
     const error = e as Error & {
@@ -20,13 +21,13 @@ export class DbExceptionFilter implements RpcExceptionFilter {
         statusCode: 503,
         code: 'DATABASE_UNAVAILABLE',
         message: 'Database unavailable.'
-      }));
+      }).getError());
     }
 
     return throwError(() => new AppException({
       statusCode: 500,
       code: 'DATABASE_ERROR',
       message: 'Unexpected database error.'
-    }));
+    }).getError());
   }
 }
