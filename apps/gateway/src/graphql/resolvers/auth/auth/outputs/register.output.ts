@@ -1,6 +1,6 @@
 import {BaseOutput} from "@app/gateway/lib";
 import {Field, ObjectType} from "@nestjs/graphql";
-import {UserRoleEnum} from "@app/gateway/graphql/enums";
+import {UserRoleEnum} from "@app/gateway/graphql/resolvers/auth/enums";
 
 @ObjectType()
 export class RegisterUserOutput extends BaseOutput {
