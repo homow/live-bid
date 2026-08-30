@@ -3,9 +3,10 @@ import type {
   RefreshRequest,
   LoginRequestService,
   LoginResponseService,
+  LogoutRequestService,
   RefreshRequestService,
   RegisterResponseService,
-  NormalizeClientInfoType, LogoutRequestService, AccessRequest,
+  NormalizeClientInfoType,
 } from "@live-bid/services/types";
 
 import {firstValueFrom} from "rxjs";
