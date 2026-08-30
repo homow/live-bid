@@ -13,11 +13,11 @@ import {PinoLogger} from "nestjs-pino";
 import {randomUUID} from "node:crypto";
 import {Injectable} from "@nestjs/common";
 import {AuthRepository} from "../auth.repository";
-import {compareSecret, hashSecret, hashSecretToken} from "@app/auth/lib";
 import * as ZodSchemas from "@live-bid/contracts/schemas";
 import {UserCacheService} from "@app/auth/modules/user/services";
 import {AppException, throwNotFoundEx} from "@live-bid/services/lib";
 import {UserRepository} from "@app/auth/modules/user/user.repository";
+import {compareSecret, hashSecret, hashSecretToken} from "@app/auth/lib";
 
 @Injectable()
 export class AuthService {
