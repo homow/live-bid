@@ -1,2 +1,2 @@
 # Live Bid
-This a Project for online bid.
+This is a Project for online bid.
