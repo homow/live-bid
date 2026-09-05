@@ -28,11 +28,20 @@
       "@app/gateway/*": [
         "apps/gateway/src/*"
       ],
+      "@app/core/*": [
+        "apps/core/src/*"
+      ],
       "@live-bid/contracts": [
         "packages/contracts/src"
       ],
       "@live-bid/contracts/*": [
         "packages/contracts/src/*"
+      ],
+      "@live-bid/services": [
+        "packages/services/src"
+      ],
+      "@live-bid/services/*": [
+        "packages/services/src/*"
       ]
     }
   }

@@ -1,0 +1,14 @@
+import 'dotenv/config';
+import {defineConfig} from 'drizzle-kit';
+
+// noinspection JSUnusedGlobalSymbols
+export default defineConfig({
+  schema: './packages/services/src/database/schema/index.ts',
+  out: './migrations',
+  dialect: 'postgresql',
+  dbCredentials: {
+    url: process.env.DATABASE_URL!,
+  },
+  strict: true,
+  verbose: true,
+});

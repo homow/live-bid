@@ -1,0 +1,65 @@
+{
+  "name": "@live-bid/services",
+  "version": "0.0.1",
+  "private": true,
+  "types": "./dist/graphql-messages/index.d.ts",
+  "main": "./dist/graphql-messages/index.js",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    "./bootstrap": {
+      "import": "./dist/bootstrap/index.js",
+      "require": "./dist/bootstrap/index.js",
+      "types": "./dist/bootstrap/index.d.ts"
+    },
+    "./names": {
+      "import": "./dist/names/index.js",
+      "require": "./dist/names/index.js",
+      "types": "./dist/names/index.d.ts"
+    },
+    "./events": {
+      "import": "./dist/events/index.js",
+      "require": "./dist/events/index.js",
+      "types": "./dist/events/index.d.ts"
+    },
+    "./messages": {
+      "import": "./dist/messages/index.js",
+      "require": "./dist/messages/index.js",
+      "types": "./dist/messages/index.d.ts"
+    },
+    "./database": {
+      "import": "./dist/database/index.js",
+      "require": "./dist/database/index.js",
+      "types": "./dist/database/index.d.ts"
+    },
+    "./database/schema": {
+      "import": "./dist/database/schema/index.js",
+      "require": "./dist/database/schema/index.js",
+      "types": "./dist/database/schema/index.d.ts"
+    },
+    "./lib": {
+      "import": "./dist/lib/index.js",
+      "require": "./dist/lib/index.js",
+      "types": "./dist/lib/index.d.ts"
+    },
+    "./types": {
+      "import": "./dist/types/index.js",
+      "require": "./dist/types/index.js",
+      "types": "./dist/types/index.d.ts"
+    },
+    "./cache": {
+      "import": "./dist/cache/index.js",
+      "require": "./dist/cache/index.js",
+      "types": "./dist/cache/index.d.ts"
+    },
+    "./common": {
+      "import": "./dist/common/index.js",
+      "require": "./dist/common/index.js",
+      "types": "./dist/common/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  }
+}
