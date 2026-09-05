@@ -1,8 +1,9 @@
 import "@app/auth/lib/config/env";
 import {AppModule} from './app.module';
 import {NestFactory} from '@nestjs/core';
+import {DbExceptionFilter} from "@live-bid/services/common";
 import {MicroserviceOptions, Transport} from "@nestjs/microservices";
-import {catchBootstraps, thenBootstraps} from "@live-bid/contracts/nestjs-bootstraps";
+import {microserviceCatch, microserviceBootstraps} from "@live-bid/services/bootstrap";
 
 const REDS_HOST = process.env.REDS_HOST || "127.0.0.1";
 const REDS_PORT = Number(process.env.REDS_PORT || 6379) || 6379;
@@ -22,14 +23,19 @@ async function bootstrap() {
     },
   );
 
+  app.useGlobalFilters(new DbExceptionFilter());
+
   await app.listen();
 }
 
 bootstrap()
-  .then(() => thenBootstraps({
-    port: "",
-    baseUrl: "",
-    apiVersion: "",
-    swaggerUrl: "",
+  .then(() => microserviceBootstraps({
+    serviceName: "Auth",
+    transport: 'Redis',
+    mode: 'microservice'
   }))
-  .catch(e => catchBootstraps(e as Error));
+  .catch(e => microserviceCatch({
+    transport: "Redis",
+    serviceName: "Auth",
+    error: e as Error,
+  }));
