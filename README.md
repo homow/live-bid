@@ -1,3 +1,3 @@
 # Live Bid
 This is a Project for online bid Server-Side.
-TypeScript - NestJS - Zod
+TypeScript - NestJS - Zod - Drizzle - PostgresQL
