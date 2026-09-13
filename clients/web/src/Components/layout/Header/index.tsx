@@ -12,8 +12,7 @@ import {
   Trophy,
   CircleHelp,
 } from "lucide-react";
-
-import Button from "@/Components/Ui/Button";
+import { Button } from "@/Components/Ui/button/button";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -78,7 +77,7 @@ const Header = () => {
           </nav>
 
           <div className="hidden md:block">
-            <Button>Sign In</Button>
+            <Button >Sign In</Button>
           </div>
 
           <button
