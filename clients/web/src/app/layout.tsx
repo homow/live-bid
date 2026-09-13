@@ -3,6 +3,10 @@ import type { Metadata } from "next";
 import { ReactNode } from "react";
 import Header from "@/Components/layout/Header";
 import Footer from "@/Components/layout/Footer";
+import { Geist } from "next/font/google";
+import { cn } from "@/lib/utils";
+
+const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 export const metadata: Metadata = {
   title: "live bed",
@@ -11,7 +15,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className={` h-full antialiased`}>
+    <html lang="en" className={cn("h-full", "antialiased", "font-sans", geist.variable)}>
       <body>
         <Header />
         <main className="flex-1">{children}</main>

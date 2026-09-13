@@ -1,11 +1,10 @@
-import Button from "@/Components/Ui/Button";
+import { Button } from "@base-ui/react";
 import LiveAuctionCard from "../LiveAuctionCard";
 
 const Hero = () => {
   return (
     <section className="mx-auto flex min-h-[650px] w-full max-w-7xl items-center px-6 py-20  mt-8">
       <div className="grid w-full items-center gap-16 lg:grid-cols-2">
-
         <div className="max-w-2xl">
           <div className="mb-6 flex items-center gap-2">
             <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-red-500" />
@@ -36,7 +35,6 @@ const Hero = () => {
           </p>
         </div>
 
-   
         <LiveAuctionCard />
       </div>
     </section>
