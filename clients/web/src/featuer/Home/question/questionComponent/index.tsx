@@ -1,188 +1,72 @@
 "use client";
 
-import Image from "next/image";
 import { useState } from "react";
 import { Plus } from "lucide-react";
+
+import { Button } from "@/Components/Ui/button/button";
+import { H4, P } from "@/Components/Ui/typography/typography";
 
 type QuestionComponentProps = {
   title: string;
   text?: string;
-  image?: string;
 };
 
-const QuestionComponent = ({ title, text, image }: QuestionComponentProps) => {
+const QuestionComponent = ({ title, text }: QuestionComponentProps) => {
   const [showFullText, setShowFullText] = useState(false);
 
   const toggleAnswer = () => {
-    if (text) {
-      setShowFullText((prev) => !prev);
-    }
+    if (!text) return;
+
+    setShowFullText((prev) => !prev);
   };
 
   return (
-    <div className="w-full px-2 py-2 sm:px-3 ">
+    <div className="w-full px-1 py-1 sm:px-2 sm:py-2">
       <div
-        className={`
-        overflow-hidden
-        rounded-2xl
-        border
-        bg-[var(--card)]
-        shadow-sm
-        transition-all
-        duration-300
-
-
-        ${
-          showFullText
-            ? "border-[var(--primary)] shadow-lg shadow-[var(--primary)]/20"
-            : "border-[var(--border)] hover:border-[var(--primary)]/50 hover:shadow-md"
-        }
-      `}
+        className={`overflow-hidden rounded-2xl border bg-[#1b202c] transition-all duration-300 sm:rounded-3xl ${
+          showFullText ? "border-indigo-500/60" : "border-slate-700/60"
+        }`}
       >
-        {image && (
-          <div className="relative aspect-video w-full overflow-hidden">
-            <Image
-              src={image}
-              alt={title}
-              fill
-              sizes="(max-width: 768px) 100vw, 768px"
-              className="
-              object-cover
-              transition-transform
-              duration-500
-              hover:scale-105
-   
-            "
-            />
-          </div>
-        )}
-
-        <button
+        <Button
           type="button"
           onClick={toggleAnswer}
           disabled={!text}
-          className={`
-          group
-          flex
-          w-full
-          items-center
-          justify-between
-          gap-4
-          px-4
-          py-4
-         text-left
-     
-          sm:px-5
-          sm:py-5
-          lg:px-6
-        text-indigo-400
-        transition-all
-        duration-300
- 
-
-          ${
-            showFullText
-              ? "bg-[var(--muted)]"
-              : "bg-[var(--card)] hover:bg-[var(--muted)]"
-          }
-
-          ${!text ? "cursor-default" : "cursor-pointer"}
-        `}
+          className={`group flex h-auto min-h-14 w-full items-center justify-between gap-3 px-4 py-4 text-left transition-all duration-300 sm:min-h-16 sm:gap-4 sm:px-5 sm:py-5 lg:px-6 ${
+            showFullText ? "bg-[#222838]" : "bg-[#1b202c] hover:bg-[#222838]"
+          }`}
         >
-          <span
-            className={`
-            flex-1
-            text-sm
-            font-bold
-            leading-7
-            transition-colors
-            duration-300
-            sm:text-base
-            md:text-lg
-
-            ${
-              showFullText
-                ? "text-[var(--primary)]"
-                : "text-[var(--foreground)]"
-            }
-          `}
+          <H4
+            className={`min-w-0 flex-1 whitespace-normal break-words text-left leading-6 sm:leading-7 ${
+              showFullText ? "text-indigo-400" : "text-slate-200"
+            }`}
           >
             {title}
-          </span>
+          </H4>
 
           {text && (
             <span
-              className={`
-              flex
-              h-9
-              w-9
-              shrink-0
-              items-center
-              justify-center
-              rounded-full
-              border
-              transition-all
-              duration-300
-              sm:h-10
-              sm:w-10
-
-              ${
+              className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border transition-all duration-300 sm:h-9 sm:w-9 md:h-10 md:w-10 ${
                 showFullText
-                  ? "rotate-45 border-[var(--primary)] bg-[var(--primary)] text-[var(--primary-foreground)]"
-                  : "border-[var(--border)] bg-[var(--muted)] text-[var(--primary)] group-hover:border-[var(--primary)] group-hover:bg-[var(--primary)] group-hover:text-[var(--primary-foreground)]"
-              }
-            `}
+                  ? "rotate-45 border-indigo-500 bg-indigo-500 text-white"
+                  : "border-slate-700 bg-[#222838] text-indigo-400 group-hover:text-white"
+              }`}
             >
-              <Plus size={19} strokeWidth={2} />
+              <Plus size={17} strokeWidth={2} className="sm:size-[19px]" />
             </span>
           )}
-        </button>
+        </Button>
 
         <div
-          className={`
-          grid
-          transition-all
-          duration-500
-          ease-[cubic-bezier(0.4,0,0.2,1)]
-
-          ${
+          className={`grid transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] ${
             showFullText
               ? "grid-rows-[1fr] opacity-100"
               : "grid-rows-[0fr] opacity-0"
-          }
-        `}
+          }`}
         >
           <div className="min-h-0 overflow-hidden">
             {text && (
-              <div
-                className="
-                border-t
-                border-[var(--border)]
-                px-4
-                py-4
-                sm:px-5
-                sm:py-5
-                lg:px-6
-                lg:py-6
-              "
-              >
-                <p
-                  className="
-                  text-justify
-                  text-xs
-                  font-medium
-                  leading-7
-                  text-[var(--muted-foreground)]
-                  transition-colors
-                  duration-300
-                  sm:text-sm
-                  sm:leading-8
-                  md:text-base
-                  md:leading-8
-                "
-                >
-                  {text}
-                </p>
+              <div className="border-t border-slate-700/60 px-4 py-4 sm:px-5 sm:py-5 md:px-6 md:py-6">
+                <P>{text}</P>
               </div>
             )}
           </div>
@@ -191,5 +75,4 @@ const QuestionComponent = ({ title, text, image }: QuestionComponentProps) => {
     </div>
   );
 };
-
 export default QuestionComponent;
