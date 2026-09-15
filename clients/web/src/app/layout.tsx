@@ -1,7 +1,7 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import { ReactNode } from "react";
-import Header from "@/Components/layout/Header";
+import Header from "@/Components/layout/Header/Header";
 import Footer from "@/Components/layout/Footer/Footer";
 import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
