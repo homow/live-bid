@@ -1,6 +1,6 @@
-import { Settings, Heart, Wallet, Trophy } from "lucide-react";
+import { Settings, Heart, Wallet, Trophy, LogOut } from "lucide-react";
 
-export const navigationItems = [
+export const DashboardSlidbar = [
   {
     label: "Settings",
     href: "/dashboard/setting",
