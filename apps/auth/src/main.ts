@@ -3,7 +3,7 @@ import {AppModule} from "./app.module";
 import {NestFactory} from "@nestjs/core";
 import {DbExceptionFilter} from "@live-bid/services/common";
 import {MicroserviceOptions, Transport} from "@nestjs/microservices";
-import {microserviceCatch, microserviceBootstraps,} from "@live-bid/services/bootstrap";
+import {microserviceCatch, microserviceBootstraps} from "@live-bid/services/bootstrap";
 
 const REDIS_HOST = process.env.REDIS_HOST || "127.0.0.1";
 const REDIS_PORT = Number(process.env.REDIS_PORT || 6379) || 6379;
