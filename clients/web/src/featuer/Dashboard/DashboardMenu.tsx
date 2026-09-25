@@ -24,7 +24,7 @@ const DashboardMenu = () => {
         aria-label="Open dashboard menu"
         aria-expanded={isOpen}
         onClick={() => setIsOpen(true)}
-        className="fixed left-6 top-6 z-30"
+        variant="outline"
       >
         <Menu size={22} />
       </Button>
@@ -42,15 +42,15 @@ const DashboardMenu = () => {
             />
 
             <motion.aside
-              initial={{ x: "-100%" }}
+              initial={{ x: "100%" }}
               animate={{ x: 0 }}
-              exit={{ x: "-100%" }}
+              exit={{ x: "100%" }}
               transition={{
                 type: "spring",
                 stiffness: 300,
                 damping: 30,
               }}
-              className="fixed left-0 top-0 z-50 flex h-full w-80 flex-col border-r border-slate-800 bg-[#11151d] px-6 py-6 shadow-2xl"
+              className="fixed right-0 top-0 z-50 flex h-full w-2/3 flex-col border-l border-slate-800 bg-[#11151d] px-6 py-6 shadow-2xl"
             >
               <div className="flex items-center justify-between">
                 <HeaderLogo />
