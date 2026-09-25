@@ -1,17 +1,12 @@
 import "@app/auth/lib/config/env";
-import { AppModule } from "./app.module";
-import { NestFactory } from "@nestjs/core";
-import { MicroserviceOptions, Transport } from "@nestjs/microservices";
-import {
-  microserviceCatch,
-  microserviceBootstraps,
-} from "@live-bid/services/bootstrap";
+import {AppModule} from "./app.module";
+import {NestFactory} from "@nestjs/core";
+import {DbExceptionFilter} from "@live-bid/services/common";
+import {MicroserviceOptions, Transport} from "@nestjs/microservices";
+import {microserviceCatch, microserviceBootstraps,} from "@live-bid/services/bootstrap";
 
-const REDS_HOST = process.env.REDS_HOST || "127.0.0.1";
-const REDS_PORT = Number(process.env.REDS_PORT || 6379) || 6379;
-
-// const REDIS_HOST = process.env.REDIS_HOST || "127.0.0.1";
-// const REDIS_PORT = Number(process.env.REDIS_PORT || 6379) || 6379;
+const REDIS_HOST = process.env.REDIS_HOST || "127.0.0.1";
+const REDIS_PORT = Number(process.env.REDIS_PORT || 6379) || 6379;
 
 async function bootstrap() {
   const app = await NestFactory.createMicroservice<MicroserviceOptions>(
@@ -19,8 +14,8 @@ async function bootstrap() {
     {
       transport: Transport.REDIS,
       options: {
-        host: REDS_HOST,
-        port: REDS_PORT,
+        host: REDIS_HOST,
+        port: REDIS_PORT,
         retryAttempts: 5,
         retryDelay: 1000,
         retryStrategy: () => 1000,
