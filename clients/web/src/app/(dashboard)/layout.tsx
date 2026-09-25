@@ -1,4 +1,4 @@
-import DashboardMenu from "@/featuer/Dashboard/DashboardMenu";
+import DashboardHeader from "@/featuer/Dashboard/DashboardHeader";
 
 export default function DashboardLayout({
   children,
@@ -7,7 +7,7 @@ export default function DashboardLayout({
 }) {
   return (
     <div className="min-h-screen bg-[#151923]">
-      <DashboardMenu />
+      <DashboardHeader />
 
       <main>{children}</main>
     </div>
