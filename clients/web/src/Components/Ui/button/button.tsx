@@ -25,16 +25,16 @@ const buttonVariants = cva(
         link: "border-transparent bg-transparent p-0 text-indigo-400 hover:text-white hover:underline",
       },
 
-      size: {
-        default: "px-5 py-2.5",
-        xs: "px-2.5 py-1.5 text-xs",
-        sm: "px-3 py-2 text-sm",
-        lg: "px-6 py-3 text-base",
-        icon: "size-8",
-        "icon-xs": "size-6",
-        "icon-sm": "size-7",
-        "icon-lg": "size-9",
-      },
+ size: {
+  default: "px-3 py-2",
+  xs: "px-2 py-1",
+  sm: "px-2.5 py-1.5",
+  lg: "px-4 py-2.5",
+  icon: "size-8",
+  "icon-xs": "size-6",
+  "icon-sm": "size-7",
+  "icon-lg": "size-9",
+},
     },
 
     defaultVariants: {
