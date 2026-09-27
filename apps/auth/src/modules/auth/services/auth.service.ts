@@ -31,7 +31,7 @@ export class AuthService {
     this.logger.setContext(AuthService.name);
   }
 
-  /** **Register User** */
+  /** **Register New Users** */
   async register(userData: ZodSchemas.RegisterUserSchemaType): Promise<RegisterResponseService> {
     // Hash user password
     const hashedPassword: string = await hashSecret(userData.password);
