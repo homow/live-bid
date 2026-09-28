@@ -8,6 +8,7 @@ import {AUTH_SERVICE_NAME, CORE_SERVICE_NAME} from "@live-bid/services/names";
   imports: [
     // Client Services
     ClientsModule.registerAsync([
+      // Auth Microservice
       {
         name: AUTH_SERVICE_NAME,
         useFactory: (config: ConfigService) => ({
@@ -22,6 +23,7 @@ import {AUTH_SERVICE_NAME, CORE_SERVICE_NAME} from "@live-bid/services/names";
         }),
         inject: [ConfigService]
       },
+      // Core Microservice
       {
         name: CORE_SERVICE_NAME,
         useFactory: (config: ConfigService) => ({
