@@ -12,41 +12,39 @@ import {
   type RegisterUserSchemaType,
 } from "@live-bid/contracts/schemas";
 
+import { useRegister } from "../../hooks/useRegister";
+
 type RegisterFormProps = {
   onLoginClick: () => void;
+  onSuccess: () => void;
 };
 
-const RegisterForm = ({ onLoginClick }: RegisterFormProps) => {
+const RegisterForm = ({ onLoginClick, onSuccess }: RegisterFormProps) => {
   const {
-    register,
+    register: registerField,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm<RegisterUserSchemaType>({
     resolver: zodResolver(RegisterUserSchema),
   });
 
-  const onRegister = (data: RegisterUserSchemaType) => {
-    console.log("REGISTER DATA:", data);
-  };
-
-  const onRegisterError = (errors: unknown) => {
-    console.log("REGISTER ERRORS:", errors);
-  };
+  const { register, loading } = useRegister(() => {
+    reset();
+    onSuccess();
+  });
 
   return (
     <>
-      <form
-        onSubmit={handleSubmit(onRegister, onRegisterError)}
-        className="flex flex-col gap-4"
-      >
+      <form onSubmit={handleSubmit(register)} className="flex flex-col gap-4">
         <div className="flex flex-col gap-2">
           <label htmlFor="register-name">Display Name</label>
 
           <Input
             id="register-name"
             type="text"
-            placeholder="Niyayesh"
-            {...register("display_name")}
+            placeholder="test"
+            {...registerField("display_name")}
           />
 
           {errors.display_name && (
@@ -63,7 +61,7 @@ const RegisterForm = ({ onLoginClick }: RegisterFormProps) => {
             id="register-email"
             type="email"
             placeholder="test@example.com"
-            {...register("email")}
+            {...registerField("email")}
           />
 
           {errors.email && (
@@ -78,7 +76,7 @@ const RegisterForm = ({ onLoginClick }: RegisterFormProps) => {
             id="register-password"
             type="password"
             placeholder="••••••••"
-            {...register("password")}
+            {...registerField("password")}
           />
 
           {errors.password && (
@@ -86,8 +84,8 @@ const RegisterForm = ({ onLoginClick }: RegisterFormProps) => {
           )}
         </div>
 
-        <Button type="submit" className="w-full">
-          Create Account
+        <Button type="submit" className="w-full" disabled={loading}>
+          {loading ? "Creating..." : "Create Account"}
         </Button>
       </form>
 
