@@ -18,7 +18,7 @@ import {AUTH_SERVICE_NAME, CORE_SERVICE_NAME} from "@live-bid/services/names";
             port: Number(config.get<string>("REDIS_PORT") || 6973),
             retryAttempts: 5,
             retryDelay: 1000,
-            retryStrategy: () => 1000
+            retryStrategy: (): number => 1000
           },
         }),
         inject: [ConfigService]
@@ -33,7 +33,7 @@ import {AUTH_SERVICE_NAME, CORE_SERVICE_NAME} from "@live-bid/services/names";
             port: Number(config.get<string>("REDIS_PORT") || 6973),
             retryAttempts: 5,
             retryDelay: 1000,
-            retryStrategy: () => 1000
+            retryStrategy: (): number => 1000
           },
         }),
         inject: [ConfigService]
