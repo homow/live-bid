@@ -46,7 +46,10 @@ const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
               </DialogDescription>
             </DialogHeader>
 
-            <RegisterForm onLoginClick={() => setMode("login")} />
+            <RegisterForm
+              onLoginClick={() => setMode("login")}
+              onSuccess={() => onOpenChange(false)}
+            />
           </>
         )}
       </DialogContent>
