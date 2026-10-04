@@ -1,7 +1,16 @@
+import {
+  uuid,
+  index,
+  jsonb,
+  varchar,
+  boolean,
+  pgTable,
+  timestamp,
+  AnyPgColumn,
+} from "drizzle-orm/pg-core";
 import {user} from "./user.schema";
 import {baseDrizzleTable} from "./common";
 import type {NormalizeClientInfoType} from "../../types";
-import {AnyPgColumn, boolean, index, jsonb, pgTable, timestamp, uuid, varchar} from "drizzle-orm/pg-core";
 
 export const refreshToken = pgTable(
   "refresh_tokens",
