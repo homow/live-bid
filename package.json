@@ -40,8 +40,10 @@
     "db:sync": "npm run db:generate && npm run db:migrate-dev"
   },
   "dependencies": {
+    "@apollo/client": "^4.3.1",
     "@apollo/server": "^5.5.1",
     "@as-integrations/express5": "^1.1.2",
+    "@hookform/resolvers": "^5.9.1",
     "@nestjs/apollo": "^13.4.4",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.4",
@@ -73,6 +75,7 @@
     "passport-jwt": "^4.0.1",
     "pg": "^8.23.0",
     "pino-http": "^11.0.0",
+    "react-hook-form": "^7.89.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
     "socket.io": "^4.8.3",
@@ -86,6 +89,7 @@
     "@nestjs/cli": "^11.0.0",
     "@nestjs/schematics": "^11.0.0",
     "@nestjs/testing": "^11.0.1",
+    "@tailwindcss/oxide-win32-x64-msvc": "^4.3.3",
     "@types/cookie-parser": "^1.4.10",
     "@types/express": "^5.0.0",
     "@types/geoip-lite": "^1.4.4",
