@@ -103,6 +103,19 @@ function Small({ children, className, ...props }: TypographyProps) {
     </small>
   );
 }
+function Label({ children, className, ...props }: TypographyProps) {
+  return (
+    <label
+      className={cn(
+        "text-sm font-medium text-slate-300",
+        className,
+      )}
+      {...props}
+    >
+      {children}
+    </label>
+  );
+}
 
 function Muted({ children, className, ...props }: TypographyProps) {
   return (
@@ -151,6 +164,7 @@ export {
   H3,
   H4,
   InputErrorMessage,
+  Label,
   Large,
   Lead,
   List,

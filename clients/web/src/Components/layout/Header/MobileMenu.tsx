@@ -5,6 +5,7 @@ import Link from "next/link";
 import { BadgeDollarSign, Menu, X } from "lucide-react";
 
 import { Button } from "@/Components/Ui/button/button";
+
 import { Separator } from "@/Components/Ui/separator";
 import { Span } from "@/Components/Ui/typography/typography";
 
@@ -14,20 +15,26 @@ type MobileMenuProps = {
   isOpen: boolean;
   onClose: () => void;
   onOpen: () => void;
+  onAuthOpen: () => void;
 };
 
-const MobileMenu = ({ isOpen, onClose, onOpen }: MobileMenuProps) => {
+const MobileMenu = ({
+  isOpen,
+  onClose,
+  onOpen,
+  onAuthOpen,
+}: MobileMenuProps) => {
   return (
     <>
-      <button
+      <Button
         type="button"
         aria-label="Open menu"
         aria-expanded={isOpen}
         onClick={onOpen}
-        className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-700 bg-white/5 text-slate-300 transition-all duration-300 hover:border-indigo-500 hover:bg-indigo-500/10 hover:text-indigo-400 md:hidden"
+        className="md:hidden"
       >
         <Menu size={22} />
-      </button>
+      </Button>
 
       <AnimatePresence>
         {isOpen && (
@@ -59,14 +66,14 @@ const MobileMenu = ({ isOpen, onClose, onOpen }: MobileMenuProps) => {
                   <Span>Live Bid</Span>
                 </div>
 
-                <button
+                <Button
                   type="button"
                   aria-label="Close menu"
                   onClick={onClose}
-                  className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-700 text-slate-400 transition-all duration-300 hover:border-red-500/50 hover:bg-red-500/10 hover:text-red-400"
+                  variant="destructive"
                 >
                   <X size={21} />
-                </button>
+                </Button>
               </div>
 
               <Separator className="mt-6 bg-slate-800" />
@@ -93,7 +100,9 @@ const MobileMenu = ({ isOpen, onClose, onOpen }: MobileMenuProps) => {
               </nav>
 
               <div className="mt-auto border-t border-slate-800 pt-6">
-                <Button className="w-full">Sign In</Button>
+                <Button type="button" onClick={onAuthOpen} className="w-full">
+                  Sign In
+                </Button>
               </div>
             </motion.aside>
           </>
