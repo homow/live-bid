@@ -1,6 +1,6 @@
-import ms, {StringValue} from "ms";
 import {CookieOptions} from "express";
 import {JwtService} from "@nestjs/jwt";
+import ms, {type StringValue} from "ms";
 import {Injectable} from "@nestjs/common";
 import {ConfigService} from "@nestjs/config";
 import type {AccessTokenPayload} from "@live-bid/services/types";
