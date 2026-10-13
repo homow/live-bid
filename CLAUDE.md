@@ -25,7 +25,7 @@ and packages/services (drizzle, cache, pino, exceptions, shared types).
 3. packages/services/src/types/services-request/<domain>/   → request type
    packages/services/src/types/services-response/<domain>/  → response type
 4. apps/gateway/src/graphql/resolvers/<domain>/<name>/
-   → inputs/, outputs/, resolver method (use ZodPipe with the contracts schema)
+   → inputs/, outputs/, resolver method (use ZodPipe with the contracts' schema)
 5. apps/<microservice>/src/modules/<domain>/
    → controller (message pattern) → service → repository
 6. Export everything through barrel index.ts files
