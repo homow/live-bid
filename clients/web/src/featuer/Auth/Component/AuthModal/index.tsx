@@ -1,33 +1,59 @@
 "use client";
 
-import { X } from "lucide-react";
-import { ReactNode } from "react";
+import { useState } from "react";
 
-type AuthModalProp = {
-  children: ReactNode;
-  isOpen: boolean;
-  onClose: () => void;
-  title: string;
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/Components/Ui/dialog/dialog";
+
+import LoginForm from "../LoginForm";
+import RegisterForm from "../RegisterForm";
+
+type AuthModalProps = {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 };
 
-const AuthModal = ({ children, isOpen, title, onClose }: AuthModalProp) => {
-  if (!isOpen) return null;
+const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
+  const [mode, setMode] = useState<"login" | "register">("login");
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-      <div className="relative w-full max-w-100 rounded-xl border border-white/30 bg-white/20 p-6 shadow-2xl backdrop-blur-xl">
-        <button
-          onClick={onClose}
-          className="absolute left-4 top-4 rounded-full p-1 transition hover:bg-white/20"
-        >
-          <X size={22} />
-        </button>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        {mode === "login" ? (
+          <>
+            <DialogHeader>
+              <DialogTitle>Sign In</DialogTitle>
 
-        <h2 className="mb-4 text-title-md">{title}</h2>
+              <DialogDescription>
+                Sign in to your Live Bid account.
+              </DialogDescription>
+            </DialogHeader>
 
-        {children}
-      </div>
-    </div>
+            <LoginForm onRegisterClick={() => setMode("register")} />
+          </>
+        ) : (
+          <>
+            <DialogHeader>
+              <DialogTitle>Create Account</DialogTitle>
+
+              <DialogDescription>
+                Create your Live Bid account.
+              </DialogDescription>
+            </DialogHeader>
+
+            <RegisterForm
+              onLoginClick={() => setMode("login")}
+              onSuccess={() => onOpenChange(false)}
+            />
+          </>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 };
 
