@@ -4,3 +4,4 @@
 # Front-End(Client-Side): TypeScript - Next.js - Zod - Shared Packages
 # Microservice and NestJS Monorepo(with NestJs)
 # Dockerfile - Docker Compose - Nginx - Reverse Proxy
+# Nginx 
