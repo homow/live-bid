@@ -1,7 +1,23 @@
-# Live Bid
-# This is a Project for online bid Server-Side And Client-Side(Fullstack).
-# Back-End(Server-Side): TypeScript - NestJS - Zod - Drizzle - PostgresQL - Shared Packages
-# Front-End(Client-Side): TypeScript - Next.js - Zod - Shared Packages
-# Microservice and NestJS Monorepo(with NestJs)
-# Dockerfile - Docker Compose - Nginx - Reverse Proxy
-# Nginx 
+# 🎯 Live Bid
+
+A real-time auction platform where users can create and join live auctions, manage their wallet, and build their profile. Chat functionality per auction is planned for future
+releases.
+
+> ⚠️ **Status:** Early development — features and architecture are still evolving.
+
+---
+
+## 📦 Monorepo Structure
+
+```
+live-bid/
+├── apps/           # Backend microservices (auth, core, gateway)
+├── clients/        # Frontend applications
+│   └── web/        # Next.js web client
+├── packages/       # Shared libraries (contracts, services)
+├── infra/          # Docker & infrastructure
+└── migrations/     # Database migrations
+```
+
+---
+
