@@ -222,3 +222,12 @@ npm run build:all            # build all apps & packages
 - [ ] Live auction creation & bidding (core service)
 - [ ] Per-auction chat (WebSocket)
 - [ ] Admin panel
+
+---
+
+## 🤝 Contributing
+
+1. Fork & clone
+2. Create a branch: `git checkout -b feat/your-feature`
+3. Commit: `git commit -m 'feat: add feature'`
+4. Push & open a PR
