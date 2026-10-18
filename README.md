@@ -14,10 +14,21 @@ live-bid/
 ├── apps/           # Backend microservices (auth, core, gateway)
 ├── clients/        # Frontend applications
 │   └── web/        # Next.js web client
-├── packages/       # Shared libraries (contracts, services)
+├── packages/       # Shared libraries
+│   ├── contracts/  # Shared between client & server (Zod schemas, enums)
+│   └── services/   # Shared between backend services only
 ├── infra/          # Docker & infrastructure
 └── migrations/     # Database migrations
 ```
+
+### 📚 Shared Packages
+
+| Package                 | Used By          | Purpose                                                     |
+|-------------------------|------------------|-------------------------------------------------------------|
+| **@live-bid/contracts** | Client + Server  | Single source of truth: Zod schemas, enums, shared types    |
+| **@live-bid/services**  | Backend services | DB schema (Drizzle), cache, message patterns, service types |
+
+> **Rule of thumb:** Anything the client needs to know (validation rules, enums) lives in `contracts/`. Anything backend-only (DB schema, internal messaging) lives in `services/`.
 
 ---
 
@@ -124,8 +135,8 @@ apps/
 └── core/           # (future) auctions, wallet, chat
 
 packages/
-├── contracts/      # Shared Zod schemas, enums, GraphQL contracts
-└── services/       # DB schema, cache, shared types, utilities
+├── contracts/      # Shared Zod schemas, enums (client + server)
+└── services/       # DB schema, cache, messaging, internal types
 ```
 
 ## 📚 Tech Stack
@@ -212,6 +223,120 @@ npm run build:all            # build all apps & packages
 - **Cookie-based refresh tokens** with JWT access tokens
 - **Client info tracking** (IP, device, geolocation) via custom decorators
 - **Rate limiting** per-operation with `@nestjs/throttler`
+
+## 🔌 Inter-Service Communication
+
+Microservices communicate via **NestJS `ClientProxy`** (transport layer) using message patterns defined in `packages/services/src/messages/`.
+
+```ts
+// packages/services/src/messages/auth.messages.ts
+export const AUTH_PATTERNS = {
+  REGISTER: "auth.register",
+  LOGIN: "auth.login",
+  VALIDATE_REFRESH_TOKEN: "auth.vaildate_refresh_token",
+  REFRESH: "auth.refresh",
+  LOGOUT: "auth.logout",
+} as const;
+```
+
+Service identifiers live in `packages/services/src/names/`:
+
+```ts
+// service.names.ts
+export const CORE_SERVICE_NAME = "CORE_SERVICE";
+export const AUTH_SERVICE_NAME = "AUTH_SERVICE";
+
+// token.names.ts — cookie names used for auth
+export const ACCESS_TOKEN_NAME = "accessToken";
+export const REFRESH_TOKEN_NAME = "refreshToken";
+```
+
+Request/response types shared across services live in `packages/services/src/types/`.
+
+---
+
+## 📖 Development Guidelines
+
+A quick reference for where to place code when adding new features. Following these conventions keeps client and server in sync.
+
+### Adding a New Endpoint (GraphQL)
+
+| Concern                     | Location                                                               |
+|-----------------------------|------------------------------------------------------------------------|
+| **Zod schema** (validation) | `packages/contracts/src/schemas/<domain>/<action>.schema.ts`           |
+| **Enum** (shared values)    | `packages/contracts/src/enums/<name>.enum.ts`                          |
+| **DB table** (Drizzle)      | `packages/services/src/database/schema/<table>.schema.ts`              |
+| **Message pattern**         | `packages/services/src/messages/<service>.messages.ts`                 |
+| **Request/Response types**  | `packages/services/src/types/services-request/` & `services-response/` |
+| **Resolver** (gateway)      | `apps/gateway/src/graphql/resolvers/<domain>/`                         |
+| **Resolver Input/Output**   | `.../resolvers/<domain>/<domain>/inputs/` & `outputs/`                 |
+
+### Example: The Auth Flow
+
+```
+Client mutation
+   ↓
+gateway AuthResolver      ← ZodPipe validates input against contracts schema
+   ↓ (ClientProxy.send)
+auth AuthService          ← business logic + JWT
+   ↓ (Drizzle)
+PostgreSQL
+```
+
+**Contract schema** (`contracts/schemas/auth/login.schema.ts`):
+
+```ts
+export const LoginUserSchema = z.object({
+  username: UsernameSchema.optional(),
+  email: z.email().optional(),
+  password: UserPasswordSchema,
+  remember: z.boolean().optional().default(false),
+}).refine(
+  data => data.username || data.email,
+  {message: "Either username or email is required", path: ["username", "email"]}
+);
+```
+
+**GraphQL Input** (`gateway/.../auth/inputs/login.input.ts`):
+
+```ts
+
+@InputType()
+export class LoginUserInput {
+  @Field(() => String, {nullable: true}) email?: string;
+  @Field(() => String, {nullable: true}) username?: string;
+  @Field(() => String) password: string;
+  @Field(() => Boolean, {nullable: true, defaultValue: false}) remember?: boolean;
+}
+```
+
+> 💡 **Note:** GraphQL `@InputType` classes (in `resolvers/.../inputs/`) differ from Zod schemas. Input types define the GraphQL API surface; Zod schemas enforce runtime
+> validation — both must stay in sync with the contract.
+
+**Database table** (`services/database/schema/user.schema.ts`):
+
+```ts
+export const user = pgTable("users", {
+  ...baseDrizzleTable,   // id, created_at, updated_at
+  password: varchar("password", {length: 255}).notNull(),
+  email: varchar("email").notNull().unique(),
+  username: varchar("username", {length: 255}).unique(),
+  is_active: boolean("is_active").default(true).notNull(),
+  display_name: varchar("display_name", {length: 60}).notNull(),
+  role: userRoleEnum('role').notNull().default(UserRoleEnum.USER),
+});
+```
+
+### Setup Checklist for a New Feature
+
+1. **Contract** — define Zod schema + enum in `packages/contracts`
+2. **DB** — define Drizzle table in `packages/services/src/database/schema/`
+3. **Migration** — run `npm run db:generate` & `npm run db:migrate-dev`
+4. **Message pattern** — add to `packages/services/src/messages/`
+5. **Types** — request/response in `packages/services/src/types/`
+6. **Service** — implement logic in the target microservice (`apps/auth`, `apps/core`)
+7. **Gateway resolver** — expose via GraphQL in `apps/gateway/src/graphql/resolvers/`
+8. **Client** — consume via Apollo in `clients/web`
 
 ---
 
