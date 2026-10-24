@@ -3,6 +3,8 @@
 Detailed documentation for the Live Bid backend: a **NestJS microservices** system with a GraphQL gateway, Redis-based transport, and PostgreSQL (via Drizzle ORM).
 
 > 📖 For the project overview and client documentation, see the [main README](./README.md).
+> 📖 Service-specific docs:
+> [gateway](./apps/gateway/README.md) · [auth](./apps/auth/README.md) · [core](./apps/core/README.md) · [apps overview](./apps/README.md)
 
 ---
 
@@ -739,3 +741,5 @@ client ← SafeUser
 ---
 
 _See the [main README](./README.md) for project overview and client documentation._
+> 📖 Service-specific docs:
+> [gateway](./apps/gateway/README.md) · [auth](./apps/auth/README.md) · [core](./apps/core/README.md) · [apps overview](./apps/README.md)
