@@ -100,6 +100,9 @@ npm run storybook    # http://localhost:6006
 The backend is a **NestJS microservices** architecture composed of three independent services communicating over GraphQL, with Redis for caching/pub-sub and PostgreSQL as the
 primary datastore.
 
+> 📖 For full backend documentation, see [`README.server.md`](./README.server.md).
+> 📖 For the service map, see [`apps/README.md`](./apps/README.md).
+
 ## 🏗️ Architecture
 
 ```
@@ -356,3 +359,8 @@ export const user = pgTable("users", {
 2. Create a branch: `git checkout -b feat/your-feature`
 3. Commit: `git commit -m 'feat: add feature'`
 4. Push & open a PR
+
+---
+
+> 📖 For full backend documentation, see [`README.server.md`](./README.server.md).
+> 📖 For the service map, see [`apps/README.md`](./apps/README.md).
