@@ -113,7 +113,7 @@ The `core` service already imports **all Drizzle schemas** via:
 import * as drizzleSchemas from "@live-bid/services/database/schema";
 ```
 
-Currently the schemas folder contains only:
+Currently, the schemas folder contains only:
 
 | Table            | Owner | Migration                                      |
 |------------------|-------|------------------------------------------------|
