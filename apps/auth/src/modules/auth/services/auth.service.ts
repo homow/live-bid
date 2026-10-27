@@ -84,8 +84,7 @@ export class AuthService {
       });
     }
 
-    const {password, ...safeUser} = user;
-    void password;
+    const {password: _, ...safeUser} = user;
 
     // Generate refresh and access tokens
     const tokens = this.tokenUtil.getTokens(
