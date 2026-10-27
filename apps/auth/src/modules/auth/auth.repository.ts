@@ -1,4 +1,4 @@
-import {eq} from "drizzle-orm";
+import {and, eq} from "drizzle-orm";
 import {Injectable} from "@nestjs/common";
 import type {RefreshTokenInsert} from "@app/auth/types";
 import {USER_PUBLIC_COLUMNS} from "../user/user.repository";
@@ -69,7 +69,7 @@ export class AuthRepository {
     oldTokenId: string,
     newTokenData: RefreshTokenInsert
   ) {
-    return this.drizzle.db.transaction(async (tx) => {
+    return this.drizzle.db.transaction(async tx => {
       const [newToken] = await tx
         .insert(refreshToken)
         .values(newTokenData)
@@ -81,7 +81,10 @@ export class AuthRepository {
           is_revoked: true,
           replace_by_token_id: newToken.id,
         })
-        .where(eq(refreshToken.id, oldTokenId));
+        .where(and(
+          eq(refreshToken.id, oldTokenId),
+          eq(refreshToken.is_revoked, false)
+        ));
 
       return newToken;
     });

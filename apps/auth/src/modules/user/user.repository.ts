@@ -61,7 +61,7 @@ export class UserRepository {
   async findOne(
     params: FindOneUserParams,
     safe?: true
-  ): Promise<User | null>;
+  ): Promise<SafeUser | null>;
 
   /**
    * **Overload 2: When safe is false, returns full User (with password)**
@@ -71,7 +71,14 @@ export class UserRepository {
     safe?: false
   ): Promise<User | null>;
 
-  async findOne({email, username, id}: FindOneUserParams, safe: boolean = true): Promise<SafeUser | User | null> {
+  async findOne(
+    {
+      id,
+      email,
+      username,
+    }: FindOneUserParams,
+    safe: boolean = true,
+  ): Promise<SafeUser | User | null> {
     let eqUser: SQL<unknown>;
 
     if (id) {

@@ -26,13 +26,11 @@ export class RefreshGuard implements CanActivate {
 
     const rawToken = RefreshGuard.getTokenFromReq(req);
 
-    if (!rawToken) {
-      throw new GatewayException({
-        statusCode: 401,
-        code: "REFRESH_TOKEN_MISSING",
-        message: "Refresh token missing.",
-      });
-    }
+    if (!rawToken) throw new GatewayException({
+      statusCode: 401,
+      code: "REFRESH_TOKEN_MISSING",
+      message: "Refresh token missing.",
+    });
 
     const hashed = hashSecretToken(rawToken);
     const userId = rawToken.split(":")[0];
