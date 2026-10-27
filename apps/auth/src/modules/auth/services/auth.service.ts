@@ -14,9 +14,9 @@ import {randomUUID} from "node:crypto";
 import {Injectable} from "@nestjs/common";
 import {AuthRepository} from "../auth.repository";
 import * as ZodSchemas from "@live-bid/contracts/schemas";
-import {UserCacheService} from "@app/auth/modules/user/services";
+import {UsersCacheService} from "@app/auth/modules/users/services";
 import {AppException, throwNotFoundEx} from "@live-bid/services/lib";
-import {UserRepository} from "@app/auth/modules/user/user.repository";
+import {UsersRepository} from "@app/auth/modules/users/users.repository";
 import {compareSecret, hashSecret, hashSecretToken} from "@app/auth/lib";
 
 @Injectable()
@@ -25,8 +25,8 @@ export class AuthService {
     private readonly logger: PinoLogger,
     private readonly tokenUtil: TokenUtil,
     private readonly authRepository: AuthRepository,
-    private readonly userRepository: UserRepository,
-    private readonly userCacheService: UserCacheService,
+    private readonly usersRepository: UsersRepository,
+    private readonly usersCacheService: UsersCacheService,
   ) {
     this.logger.setContext(AuthService.name);
   }
@@ -37,7 +37,7 @@ export class AuthService {
     const hashedPassword: string = await hashSecret(userData.password);
 
     // Insert user record in db
-    const user = await this.userRepository.insertUser({
+    const user = await this.usersRepository.insertUser({
       ...userData,
       password: hashedPassword,
     });
@@ -59,7 +59,7 @@ export class AuthService {
    *  */
   async login(userData: ZodSchemas.LoginUserSchemaType, clientInfo: NormalizeClientInfoType): Promise<LoginResponseService> {
     // Find user in database with password
-    const user = await this.userRepository.findOne(
+    const user = await this.usersRepository.findOne(
       {
         email: userData.email,
         username: userData.username,
@@ -114,7 +114,7 @@ export class AuthService {
     });
 
     // Set user cache
-    void this.userCacheService.setCacheUserInfo(safeUser);
+    void this.usersCacheService.setCacheUserInfo(safeUser);
     this.logger.info({userId: safeUser.id}, 'User logged in');
 
     return {
@@ -131,7 +131,7 @@ export class AuthService {
    * */
   async validateRefresh({userId, tokenHash}: ValidateRefreshRequestService): Promise<RefreshTokenPayload> {
     // Get user from cache if exists.
-    const userCached = await this.userCacheService.getCachedUserInfo(userId);
+    const userCached = await this.usersCacheService.getCachedUserInfo(userId);
 
     function handleThrowRefresh() {
       throw new AppException({
@@ -164,7 +164,7 @@ export class AuthService {
       if (!findToken) handleThrowRefresh();
 
       // Cach user
-      void this.userCacheService.setCacheUserInfo(findToken.user as SafeUser);
+      void this.usersCacheService.setCacheUserInfo(findToken.user as SafeUser);
 
       const {user, ...refreshRecord} = findToken;
 

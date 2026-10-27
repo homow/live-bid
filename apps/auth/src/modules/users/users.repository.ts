@@ -25,7 +25,7 @@ interface FindOneUserParams {
 }
 
 @Injectable()
-export class UserRepository {
+export class UsersRepository {
   constructor(private readonly drizzle: DrizzleService) {}
 
   async insertUser({password, email, display_name}: Schemas.RegisterUserSchemaType) {
@@ -57,7 +57,6 @@ export class UserRepository {
   /**
    * **Overload 1: When safe is true, returns SafeUser (without password)**
    */
-  // noinspection JSUnusedGlobalSymbols
   async findOne(
     params: FindOneUserParams,
     safe?: true
@@ -66,6 +65,7 @@ export class UserRepository {
   /**
    * **Overload 2: When safe is false, returns full User (with password)**
    */
+  // noinspection JSUnusedGlobalSymbols
   async findOne(
     params: FindOneUserParams,
     safe?: false
@@ -91,7 +91,7 @@ export class UserRepository {
       throw new AppException({
         statusCode: 500,
         code: 'Missing identifier',
-        message: `Either 'phone' or 'id' must be provided to find the user. in ${UserRepository.name}`,
+        message: `Either 'phone' or 'id' must be provided to find the user. in ${UsersRepository.name}`,
       });
     }
 

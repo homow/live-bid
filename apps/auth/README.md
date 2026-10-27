@@ -220,7 +220,7 @@ Returns void immediately (no response sent back)
 
 ## 🗄️ Repositories
 
-### `UserRepository` (`modules/user/user.repository.ts`)
+### `UsersRepository` (`modules/user/user.repository.ts`)
 
 | Method                                        | Notes                                                                  |
 |-----------------------------------------------|------------------------------------------------------------------------|
@@ -247,7 +247,7 @@ Returns void immediately (no response sent back)
 
 ---
 
-## ⚡ Caching (`UserCacheService`)
+## ⚡ Caching (`UsersCacheService`)
 
 Cache-aside pattern over Redis, via `@live-bid/services/cache`.
 
@@ -279,9 +279,9 @@ providers: [AuthRepository, TokenUtil, AuthService]
 ```
 
 - `JwtModule.register({})` — options are passed **per call** in `TokenUtil` (from `ConfigService`)
-- Depends on `UserModule`, which exports `UserRepository`, `UserService`, `UserCacheService`
+- Depends on `UsersModule`, which exports `UsersRepository`, `UsersService`, `UsersCacheService`
 
-### `UserModule`
+### `UsersModule`
 
 ```ts
 controllers: [UserController]                 // empty — placeholder
@@ -289,7 +289,7 @@ providers:   [UserRepository, UserService, UserCacheService]
 exports:     [UserRepository, UserService, UserCacheService]
 ```
 
-> 💡 `UserController` and `UserService` are currently empty. They exist as the home for future user-facing operations (profile update, account deletion, etc.). When you add
+> 💡 `UsersController` and `UsersService` are currently empty. They exist as the home for future user-facing operations (profile update, account deletion, etc.). When you add
 > handlers, follow the same `@MessagePattern` + `@Payload` pattern as `AuthController`.
 
 ---
@@ -334,7 +334,7 @@ The gateway's `GraphqlExceptionFilter` catches `RpcException` (which wraps these
 - [x] Register, login, refresh (rotation), logout
 - [x] Client info tracking (IP, device, geo, language)
 - [x] User cache (cache-aside, 1h TTL)
-- [ ] `UserController` / `UserService` — profile update, avatar, account deletion
+- [ ] `UsersController` / `UsersService` — profile update, avatar, account deletion
 - [ ] Password reset flow (email token + TTL)
 - [ ] Email verification on register
 - [ ] Multi-device session management (list/revoke sessions per device)

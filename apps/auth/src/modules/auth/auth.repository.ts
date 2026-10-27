@@ -1,7 +1,7 @@
 import {and, eq} from "drizzle-orm";
 import {Injectable} from "@nestjs/common";
 import type {RefreshTokenInsert} from "@app/auth/types";
-import {USER_PUBLIC_COLUMNS} from "../user/user.repository";
+import {USER_PUBLIC_COLUMNS} from "../users/users.repository";
 import {DrizzleService, refreshToken, user} from "@live-bid/services/database";
 
 export const REFRESH_TOKEN_PUBLIC_COLUMNS = {

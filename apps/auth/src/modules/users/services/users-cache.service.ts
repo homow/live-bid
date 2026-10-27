@@ -1,7 +1,7 @@
 import {PinoLogger} from "nestjs-pino";
 import {Injectable} from "@nestjs/common";
 import {RedisKey} from "@live-bid/services/cache";
-import {UserRepository} from "../user.repository";
+import {UsersRepository} from "../users.repository";
 import {CacheService} from "@live-bid/services/cache";
 import type {SafeUser} from "@live-bid/services/types";
 import {ONE_HOUR_MS, throwNotFoundEx} from "@live-bid/services/lib";
@@ -14,11 +14,11 @@ import {ONE_HOUR_MS, throwNotFoundEx} from "@live-bid/services/lib";
  * - Errors are logged but never thrown — cache is treated as a secondary layer.
  */
 @Injectable()
-export class UserCacheService {
+export class UsersCacheService {
   constructor(
     private readonly logger: PinoLogger,
     private readonly cache: CacheService,
-    private readonly userRepository: UserRepository,
+    private readonly userRepository: UsersRepository,
   ) {}
 
   /**

@@ -29,6 +29,7 @@ import * as drizzleSchemas from "@live-bid/services/database/schema";
 
     // App Modules
     Modules.AuthModule,
+    Modules.UsersModule,
   ],
 })
 export class AppModule {}
