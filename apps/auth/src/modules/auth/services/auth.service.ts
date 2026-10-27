@@ -15,7 +15,7 @@ import {Injectable} from "@nestjs/common";
 import {AuthRepository} from "../auth.repository";
 import * as ZodSchemas from "@live-bid/contracts/schemas";
 import {UsersCacheService} from "@app/auth/modules/users/services";
-import {AppException, throwNotFoundEx} from "@live-bid/services/lib";
+import {AppException, checkNotFound} from "@live-bid/services/lib";
 import {UsersRepository} from "@app/auth/modules/users/users.repository";
 import {compareSecret, hashSecret, hashSecretToken} from "@app/auth/lib";
 
@@ -68,7 +68,7 @@ export class AuthService {
     );
 
     // Throw exception if user doesn't in database
-    if (!user) throw throwNotFoundEx('User');
+    if (!user) checkNotFound('User', 'phone or email');
 
     // Check password
     const isValidPassword = await compareSecret(userData.password, user.password);
