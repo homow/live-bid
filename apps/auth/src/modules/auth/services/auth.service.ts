@@ -178,9 +178,7 @@ export class AuthService {
     // If this token is revoked
     if (tokenRecord.refreshRecord.is_revoked) {
       // Revoke all user session.
-      void this.authRepository.revokeAllUserTokens(userId).catch((error: Error) => {
-        this.logger.error({userId, error}, 'Failed to revoke all user tokens');
-      });
+      await this.authRepository.revokeAllUserTokens(userId);
 
       // Throw an exception
       throw new AppException({
