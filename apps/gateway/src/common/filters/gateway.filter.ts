@@ -1,6 +1,9 @@
 import {GraphQLError} from "graphql";
 import {AppErrorPayload} from "@live-bid/services/lib";
 
+/**
+ * **Gateway Exception**
+ * */
 export class GatewayException extends GraphQLError {
   private readonly code: string;
   private readonly statusCode: number;
