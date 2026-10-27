@@ -1,6 +1,3 @@
-# 🤝 `CONTRIBUTING.md`
-
-```md
 # Contributing to Live Bid
 
 Thanks for contributing to **Live Bid** — a real-time auction platform built by a small team. This document explains how we work: branch naming, commits, pull requests, and code
@@ -14,10 +11,10 @@ conventions.
 
 Live Bid is currently maintained by **two people**:
 
-| Role | Scope |
-| --- | --- |
+| Role                         | Scope                                                |
+|------------------------------|------------------------------------------------------|
 | **Backend & Infrastructure** | `apps/`, `packages/`, `infra/`, database, deployment |
-| **Frontend & Design** | `clients/web/`, Figma designs, UI/UX |
+| **Frontend & Design**        | `clients/web/`, Figma designs, UI/UX                 |
 
 Code review is **not mandatory** — but a second pair of eyes is always welcome, especially for changes in `packages/` (shared contracts) since they affect both client and server.
 
@@ -50,17 +47,18 @@ main ──●────●────●────●────●──
 
 ```
 
-| Type | When to use | Example |
-| --- | --- | --- |
-| `feat` | New feature | `feat/user-profile-page` |
-| `fix` | Bug fix | `fix/login-redirect-loop` |
-| `chore` | Tooling, deps, config | `chore/update-deps` |
-| `docs` | Documentation only | `docs/gateway-readme` |
-| `refactor` | Code restructure (no behavior change) | `refactor/auth-service` |
-| `test` | Adding or fixing tests | `test/auth-login` |
-| `hotfix` | Urgent production fix | `hotfix/token-expiry` |
+| Type       | When to use                           | Example                   |
+|------------|---------------------------------------|---------------------------|
+| `feat`     | New feature                           | `feat/user-profile-page`  |
+| `fix`      | Bug fix                               | `fix/login-redirect-loop` |
+| `chore`    | Tooling, deps, config                 | `chore/update-deps`       |
+| `docs`     | Documentation only                    | `docs/gateway-readme`     |
+| `refactor` | Code restructure (no behavior change) | `refactor/auth-service`   |
+| `test`     | Adding or fixing tests                | `test/auth-login`         |
+| `hotfix`   | Urgent production fix                 | `hotfix/token-expiry`     |
 
 **Rules:**
+
 - Use **lowercase** and **hyphens** (`-`), not underscores
 - Keep it **short** (max 4-5 words)
 - Describe **what**, not **how** (`feat/wallet-page`, not `feat/implement-wallet-with-recharts`)
@@ -96,17 +94,17 @@ test (auth): cover revoked refresh token flow
 
 ### Type reference
 
-| Type | Purpose |
-| --- | --- |
-| `feat` | New feature |
-| `fix` | Bug fix |
-| `chore` | Tooling, deps, config |
-| `docs` | Documentation |
+| Type       | Purpose                                                 |
+|------------|---------------------------------------------------------|
+| `feat`     | New feature                                             |
+| `fix`      | Bug fix                                                 |
+| `chore`    | Tooling, deps, config                                   |
+| `docs`     | Documentation                                           |
 | `refactor` | Code change that neither fixes a bug nor adds a feature |
-| `test` | Adding or fixing tests |
-| `perf` | Performance improvement |
-| `style` | Formatting only (no logic change) |
-| `ci` | CI/CD changes |
+| `test`     | Adding or fixing tests                                  |
+| `perf`     | Performance improvement                                 |
+| `style`    | Formatting only (no logic change)                       |
+| `ci`       | CI/CD changes                                           |
 
 ### Scope (optional but recommended)
 
@@ -175,16 +173,16 @@ Include:
 
 ## 💻 Local Development
 
-Full setup instructions live in the main READMEs:
+Full setup instructions live in the main Readmes:
 
-| Doc | Covers |
-| --- | --- |
-| [`README.md`](./README.md) | Project overview, client setup |
-| [`README.server.md`](./README.server.md) | Backend setup, env vars, database |
-| [`apps/README.md`](./apps/README.md) | Service architecture overview |
-| [`apps/gateway/README.md`](./apps/gateway/README.md) | GraphQL gateway internals |
-| [`apps/auth/README.md`](./apps/auth/README.md) | Auth microservice internals |
-| [`apps/core/README.md`](./apps/core/README.md) | Core microservice (WIP) |
+| Doc                                                  | Covers                            |
+|------------------------------------------------------|-----------------------------------|
+| [`README.md`](./README.md)                           | Project overview, client setup    |
+| [`README.server.md`](./README.server.md)             | Backend setup, env vars, database |
+| [`apps/README.md`](./apps/README.md)                 | Service architecture overview     |
+| [`apps/gateway/README.md`](./apps/gateway/README.md) | GraphQL gateway internals         |
+| [`apps/auth/README.md`](./apps/auth/README.md)       | Auth microservice internals       |
+| [`apps/core/README.md`](./apps/core/README.md)       | Core microservice (WIP)           |
 
 ### Quick start
 
