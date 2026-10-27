@@ -11,8 +11,8 @@ export class UserResolver {
   ) {}
 
   @UsersDecorator.getUsersProfile()
-  @Query(() => String)
-  profile() {
+  @Query(() => String, {name: 'publicProfile'})
+  publicProfile() {
     return 'user profile';
   }
 }
