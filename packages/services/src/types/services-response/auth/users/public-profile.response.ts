@@ -1,9 +1,8 @@
 import type {SafeUser} from "../../../auth";
 
-export type PublicProfileResponseService = Omit<SafeUser,
-  | 'id'
+export type PublicProfileResponseService = Pick<SafeUser,
   | 'role'
-  | 'email'
-  | 'created_at'
-  | 'updated_at'
+  | 'username'
+  | 'is_active'
+  | 'display_name'
 >;

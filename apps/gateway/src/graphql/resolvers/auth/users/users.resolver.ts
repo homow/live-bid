@@ -7,6 +7,7 @@ import {UUIDv7Schema} from "@live-bid/contracts/schemas";
 import {Args, ID, Query, Resolver} from "@nestjs/graphql";
 import {AUTH_SERVICE_NAME} from "@live-bid/services/names";
 import * as ServiceMessages from "@live-bid/services/messages";
+import type {PublicProfileResponseService} from "@live-bid/services/types";
 
 @Resolver()
 export class UserResolver {
@@ -22,7 +23,7 @@ export class UserResolver {
       new ZodPipe(UUIDv7Schema)
     ) userId: string
   ) {
-    const result = await firstValueFrom<string>(
+    const result = await firstValueFrom<PublicProfileResponseService>(
       this.authClient.send(
         ServiceMessages.USERS_PATTERNS.PUBLIC_PROFILE,
         userId
