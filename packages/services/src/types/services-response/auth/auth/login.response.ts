@@ -1,5 +1,5 @@
-import type {SafeUser} from "../../auth";
 import type {CookieOptions} from "express";
+import type {SafeUser} from "../../../auth";
 
 export interface LoginResponseService {
   user: SafeUser;
