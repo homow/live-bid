@@ -4,7 +4,7 @@ import type {ZodFieldError} from "@app/gateway/types";
 import {Injectable, PipeTransform} from '@nestjs/common';
 
 @Injectable()
-export class ZodPipe<T extends z.ZodTypeAny> implements PipeTransform {
+export class ZodPipe<T extends z.ZodType> implements PipeTransform {
   constructor(private readonly schema: T) {}
 
   transform(value: unknown): z.infer<T> {
