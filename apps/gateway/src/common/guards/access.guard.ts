@@ -1,7 +1,6 @@
 import {Reflector} from "@nestjs/core";
 import {AuthGuard} from "@nestjs/passport";
 import {ACCESS_STRATEGY_NAME} from "../strategies";
-import {AppException} from "@live-bid/services/lib";
 import {getRequestResponse} from "@app/gateway/lib";
 import type {UserAccess} from "@live-bid/services/types";
 import {IS_PUBLIC_KEY, PublicDecoratorParams} from "../decorators";
