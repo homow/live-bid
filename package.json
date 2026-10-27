@@ -3,8 +3,8 @@
   "version": "0.0.1",
   "description": "",
   "author": "",
-  "private": true,
-  "license": "MIT",
+  "private": false,
+  "license": "",
   "workspaces": [
     "apps/*",
     "clients/*",
