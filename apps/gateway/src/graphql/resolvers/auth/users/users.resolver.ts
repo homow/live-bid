@@ -92,7 +92,6 @@ export class UserResolver {
    * @returns PrivateProfileOutput - The authenticated user's full profile
    *
    * @remarks
-   * - `userId` is **not** accepted as a client argument; it is derived from the
    *   authenticated session to prevent users from reading other users' private data
    * - Access control is enforced by `UsersDecorator.getMyProfile()`, which requires
    *   a valid authenticated session
