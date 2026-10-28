@@ -1,6 +1,6 @@
 import {Injectable} from "@nestjs/common";
 import {UsersCacheService} from "./users-cache.service";
-import type {PublicProfileResponseService} from "@live-bid/services/types";
+import type {GetProfileResponseService, PublicProfileResponseService} from "@live-bid/services/types";
 
 /**
  * **UsersService**
@@ -70,7 +70,7 @@ export class UsersService {
    * );
    * // => { id, username, display_name, role, email, phone, is_active, created_at }
    */
-  getMyProfile(userId: string) {
+  getMyProfile(userId: string): Promise<GetProfileResponseService> {
     return this.usersCacheService.getOrSetUserCache(userId);
   }
 }

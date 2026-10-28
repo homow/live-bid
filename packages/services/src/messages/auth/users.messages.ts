@@ -1,4 +1,4 @@
 export const USERS_PATTERNS = {
-  GET_PROFILE: "users.get_profile",
+  MY_PROFILE: "users.my_profile",
   PUBLIC_PROFILE: "users.public_profile",
 } as const;

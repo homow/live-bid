@@ -2,7 +2,7 @@ import {UsersService} from "./services";
 import {Controller} from "@nestjs/common";
 import {MessagePattern, Payload} from "@nestjs/microservices";
 import * as ServiceMessages from "@live-bid/services/messages";
-import type {PublicProfileResponseService} from "@live-bid/services/types";
+import type {GetProfileResponseService, PublicProfileResponseService} from "@live-bid/services/types";
 
 /**
  * **UsersController**
@@ -37,5 +37,27 @@ export class UsersController {
     @Payload() userId: string
   ): Promise<PublicProfileResponseService> {
     return this.usersService.getPublicProfile(userId);
+  }
+
+  /**
+   * **Get the authenticated user's private profile**
+   *
+   * Resolves the full profile of the currently authenticated user,
+   * including sensitive fields (email, phone, role, etc.) that are
+   * never exposed through the public profile endpoint.
+   *
+   * @param userId - Authenticated user's UUIDv7 identifier
+   * @returns PrivateProfileResponseService - The mapped private profile
+   *
+   * @remarks
+   * - Thin pass-through to `UsersService.getMyProfile`
+   * - The `userId` is expected to come from the validated JWT/session at the Gateway
+   * - If the user does not exist, the service throws an RPC error (surfaced as `NOT_FOUND`)
+   */
+  @MessagePattern(ServiceMessages.USERS_PATTERNS.MY_PROFILE)
+  getMyProfile(
+    @Payload() userId: string
+  ): Promise<GetProfileResponseService> {
+    return this.usersService.getMyProfile(userId);
   }
 }
