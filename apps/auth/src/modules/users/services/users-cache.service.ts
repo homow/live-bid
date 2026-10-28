@@ -66,7 +66,7 @@ export class UsersCacheService {
     const findUser = await this.userRepository.findOne({id}, true);
 
     // Throw exception if user doesn't in database
-    if (!findUser) checkNotFound('User', 'email or phone');
+    if (!findUser) checkNotFound('User', 'id');
 
     this.setCacheUserInfo(findUser);
 

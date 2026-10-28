@@ -1,12 +1,13 @@
-import {Field} from "@nestjs/graphql";
+import {Field, ObjectType} from "@nestjs/graphql";
 import {UserRoleEnum} from "@live-bid/contracts/enums";
 
+@ObjectType()
 export class PublicProfileOutput {
   @Field(() => String)
   display_name: string;
 
-  @Field(() => String)
-  username: string;
+  @Field(() => String, {nullable: true})
+  username: string | null;
 
   @Field(() => UserRoleEnum)
   role: UserRoleEnum;
