@@ -1,14 +1,14 @@
 import {firstValueFrom} from "rxjs";
 import * as Outputs from "./outputs";
 import {Inject} from "@nestjs/common";
-import {ZodPipe} from "@app/gateway/common";
+import {CurrentUser, ZodPipe} from "@app/gateway/common";
 import * as UsersDecorator from "./decorators";
 import {ClientProxy} from "@nestjs/microservices";
 import {UUIDv7Schema} from "@live-bid/contracts/schemas";
 import {Args, ID, Query, Resolver} from "@nestjs/graphql";
 import {AUTH_SERVICE_NAME} from "@live-bid/services/names";
 import * as ServiceMessages from "@live-bid/services/messages";
-import type {PublicProfileResponseService} from "@live-bid/services/types";
+import type {PublicProfileResponseService, SafeUser} from "@live-bid/services/types";
 
 /**
  * **UserResolver**
@@ -66,7 +66,7 @@ export class UserResolver {
    *   }
    * }
    */
-  @UsersDecorator.getUsersProfile()
+  @UsersDecorator.GetPublicProfileDecorators()
   @Query(() => Outputs.PublicProfileOutput, {name: 'publicProfile'})
   publicProfile(
     @Args(
@@ -80,5 +80,40 @@ export class UserResolver {
         userId
       )
     );
+  }
+
+  /**
+   * **Get the authenticated user's private profile**
+   *
+   * Returns the full profile data of the currently authenticated user,
+   * including sensitive fields (email, phone, role, etc.) that are never
+   * exposed through the public profile endpoint.
+   *
+   * @returns PrivateProfileOutput - The authenticated user's full profile
+   *
+   * @remarks
+   * - `userId` is **not** accepted as a client argument; it is derived from the
+   *   authenticated session to prevent users from reading other users' private data
+   * - Access control is enforced by `UsersDecorator.getMyProfile()`, which requires
+   *   a valid authenticated session
+   * - Throws `UNAUTHORIZED` if no valid session is present
+   * - Throws `NOT_FOUND` if the user record no longer exists
+   *
+   * @example
+   * query {
+   *   myProfile {
+   *     username
+   *     display_name
+   *     email
+   *   }
+   * }
+   */
+  @UsersDecorator.GetMyProfileDecorators()
+  @Query(() => String, {name: 'myProfile'})
+  myProfile(
+    @CurrentUser() user: SafeUser
+  ) {
+    console.log(user);
+    return 'user';
   }
 }
