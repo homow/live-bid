@@ -8,11 +8,11 @@ import {ApolloDriverConfig} from "@nestjs/apollo";
 import {ThrottlerModule} from "@nestjs/throttler";
 import {loggerConfig} from "@live-bid/services/lib";
 import {CacheModule} from "@live-bid/services/cache";
+import {AccessStrategy} from "@app/gateway/common/strategies";
 import {APP_FILTER, APP_GUARD, APP_INTERCEPTOR} from "@nestjs/core";
 import {AppGraphQLModule} from "@app/gateway/graphql/graphql.module";
 import {ComplexityCustom, graphqlConfigs, throttlerConfig} from "@app/gateway/lib";
 import {AccessTokenGuard, CacheableInterceptor, CacheEvictInterceptor, GraphqlThrottleGuard, RoleGuard, GraphqlExceptionFilter} from "./common";
-import {AccessStrategy} from "@app/gateway/common/strategies";
 
 @Module({
   imports: [
