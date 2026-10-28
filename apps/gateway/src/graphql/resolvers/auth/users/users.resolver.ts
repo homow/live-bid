@@ -1,14 +1,14 @@
 import {firstValueFrom} from "rxjs";
 import * as Outputs from "./outputs";
 import {Inject} from "@nestjs/common";
-import {CurrentUser, ZodPipe} from "@app/gateway/common";
 import * as UsersDecorator from "./decorators";
 import {ClientProxy} from "@nestjs/microservices";
 import {UUIDv7Schema} from "@live-bid/contracts/schemas";
+import {CurrentUser, ZodPipe} from "@app/gateway/common";
 import {Args, ID, Query, Resolver} from "@nestjs/graphql";
 import {AUTH_SERVICE_NAME} from "@live-bid/services/names";
 import * as ServiceMessages from "@live-bid/services/messages";
-import type {PublicProfileResponseService, SafeUser} from "@live-bid/services/types";
+import type {GetProfileResponseService, PublicProfileResponseService, UserAccess} from "@live-bid/services/types";
 
 /**
  * **UserResolver**
@@ -108,11 +108,15 @@ export class UserResolver {
    * }
    */
   @UsersDecorator.GetMyProfileDecorators()
-  @Query(() => String, {name: 'myProfile'})
+  @Query(() => Outputs.GetProfileOutput, {name: 'myProfile'})
   myProfile(
-    @CurrentUser() user: SafeUser
-  ) {
-    console.log(user);
-    return 'user';
+    @CurrentUser() user: UserAccess
+  ): Promise<GetProfileResponseService> {
+    return firstValueFrom<GetProfileResponseService>(
+      this.authClient.send(
+        ServiceMessages.USERS_PATTERNS.MY_PROFILE,
+        user.userId
+      )
+    );
   }
 }
