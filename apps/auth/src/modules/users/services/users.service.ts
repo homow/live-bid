@@ -49,4 +49,28 @@ export class UsersService {
       display_name: user.display_name,
     };
   }
+
+  /**
+   * **Get the authenticated user's private profile**
+   *
+   * Loads the user (cache-first, DB on miss) and maps it to the private contract,
+   * including sensitive fields (email, phone, ...) meant only for the owner.
+   *
+   * @param userId - Authenticated user's UUIDv7 identifier
+   * @returns PrivateProfileResponseService - Full profile including private fields
+   *
+   * @remarks
+   * - Cache-aside via `UsersCacheService.getOrSetUserCache`
+   * - Throws `NOT_FOUND` if the user does not exist
+   * - Owner-only access; authorization is enforced at the Gateway
+   *
+   * @example
+   * const profile = await usersService.getMyProfile(
+   *   "01a17af7-648b-71f1-87dd-839d59660730"
+   * );
+   * // => { id, username, display_name, role, email, phone, is_active, created_at }
+   */
+  getMyProfile(userId: string) {
+    return this.usersCacheService.getOrSetUserCache(userId);
+  }
 }
