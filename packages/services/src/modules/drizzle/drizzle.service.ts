@@ -1,5 +1,5 @@
 import {Pool} from "pg";
-import {AppException} from "../lib";
+import {AppException} from "../../lib";
 import {drizzle} from "drizzle-orm/node-postgres";
 import {Injectable, OnModuleInit, Logger, OnModuleDestroy, Inject} from "@nestjs/common";
 

@@ -3,7 +3,7 @@ import {Injectable} from "@nestjs/common";
 import * as Schemas from "@live-bid/contracts/schemas";
 import {UserRoleEnum} from "@live-bid/contracts/enums";
 import type {SafeUser} from "@live-bid/services/types";
-import {DrizzleService} from "@live-bid/services/database";
+import {DrizzleService} from "@live-bid/services/modules";
 import {type User, user} from "@live-bid/services/database";
 import {AppException, checkDrizzleError} from "@live-bid/services/lib";
 
