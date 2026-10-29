@@ -3,7 +3,7 @@ import {LoggerModule} from "nestjs-pino";
 import {ConfigModule} from "@nestjs/config";
 import {loggerConfig} from "@live-bid/services/lib";
 import {CacheModule} from "@live-bid/services/cache";
-import {DrizzleModule} from "@live-bid/services/database";
+import {DrizzleModule} from "@live-bid/services/modules";
 import * as drizzleSchemas from "@live-bid/services/database/schema";
 
 @Module({
