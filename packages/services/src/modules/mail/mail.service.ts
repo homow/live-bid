@@ -27,7 +27,6 @@ export class MailService {
     return this.emailNotification.toLowerCase() === "true";
   }
 
-  //
   signupWelcome(payload: PayloadEventEmail) {
     if (!this.isEmailEnabled()) return;
 
