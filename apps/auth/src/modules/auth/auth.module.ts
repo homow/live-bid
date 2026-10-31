@@ -18,6 +18,7 @@ import {UsersModule} from "@app/auth/modules/users";
     AuthRepository,
     Utils.TokenUtil,
     Services.AuthService,
+    Services.AuthMailService,
   ],
 })
 export class AuthModule {}
