@@ -1,7 +1,7 @@
-import * as ZodSchemas from "@live-bid/contracts/schemas";
 import type {NormalizeClientInfoType} from "../../gateway";
+import type {LoginUserSchemaType} from "@live-bid/contracts/schemas";
 
 export interface LoginRequestService {
   clientInfo: NormalizeClientInfoType;
-  userData: ZodSchemas.LoginUserSchemaType;
+  userData: LoginUserSchemaType;
 }

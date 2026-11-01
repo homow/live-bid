@@ -5,6 +5,7 @@ import type {
   LoginResponseService,
   LogoutRequestService,
   RefreshRequestService,
+  RegisterRequestService,
   RegisterResponseService,
   NormalizeClientInfoType,
 } from "@live-bid/services/types";
@@ -61,6 +62,7 @@ export class AuthResolver {
    *
    * @param input - Registration data (email, username, password)
    *
+   * @param clientInfo - Client Information(IP, Device...)
    * @returns RegisterResponseService - Contains user info and status
    *
    * @example
@@ -77,14 +79,18 @@ export class AuthResolver {
     @Args(
       "input",
       {type: () => AuthInputs.RegisterUserInput},
-      new ZodPipe(ZodSchemas.RegisterUserSchema)
+      new ZodPipe(ZodSchemas.RegisterUserSchema),
     )
-    input: ZodSchemas.RegisterUserSchemaType
+    input: ZodSchemas.RegisterUserSchemaType,
+    @NormalizeClientInfo() clientInfo: NormalizeClientInfoType
   ): Promise<RegisterResponseService> {
     return firstValueFrom<RegisterResponseService>(
       this.authClient.send(
         ServiceMessages.AUTH_PATTERNS.REGISTER,
-        input satisfies ZodSchemas.RegisterUserSchemaType
+        {
+          input,
+          clientInfo,
+        } satisfies RegisterRequestService
       )
     );
   }

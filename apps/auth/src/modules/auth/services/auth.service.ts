@@ -13,17 +13,20 @@ import {PinoLogger} from "nestjs-pino";
 import {randomUUID} from "node:crypto";
 import {Injectable} from "@nestjs/common";
 import {AuthRepository} from "../auth.repository";
+import {AuthMailService} from "./auth-mail.service";
 import * as ZodSchemas from "@live-bid/contracts/schemas";
 import {UsersCacheService} from "@app/auth/modules/users/services";
 import {AppException, checkNotFound} from "@live-bid/services/lib";
 import {UsersRepository} from "@app/auth/modules/users/users.repository";
 import {compareSecret, hashSecret, hashSecretToken} from "@app/auth/lib";
+import {buildEmailHtml} from "@live-bid/services/lib/utils/mail.html";
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly logger: PinoLogger,
     private readonly tokenUtil: TokenUtil,
+    private readonly authMail: AuthMailService,
     private readonly authRepository: AuthRepository,
     private readonly usersRepository: UsersRepository,
     private readonly usersCacheService: UsersCacheService,
@@ -46,6 +49,12 @@ export class AuthService {
       {userId: user.id, display_name: user.display_name},
       "User registered successfully",
     );
+
+    // void this.authMail.signupWelcome({
+    //   html: buildEmailHtml({
+    //     clientInfo:
+    //   });
+    // });
 
     return user;
   }
