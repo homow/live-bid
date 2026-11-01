@@ -2,8 +2,9 @@ import {Injectable} from '@nestjs/common';
 import {ConfigService} from "@nestjs/config";
 import {MailerService} from "@nestjs-modules/mailer";
 
-interface PayloadEventEmail {
+export interface PayloadEventEmail {
   html: string;
+  text?: string;
   email: string;
   force?: boolean;
   subject?: string;
@@ -28,12 +29,14 @@ export class MailService {
     return this.emailNotification.toLowerCase() === "true";
   }
 
+  // Check enabled email and send email
   send({force = true, ...payload}: PayloadEventEmail) {
     if (!force && !this.isEmailEnabled()) return;
 
     return this.mailer.sendMail({
       to: payload.email,
       html: payload.html,
+      text: payload.text,
       from: this.defaultFrom,
       subject: payload.subject,
       replyTo: this.defaultReplay,
