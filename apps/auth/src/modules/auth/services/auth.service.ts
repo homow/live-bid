@@ -17,9 +17,9 @@ import {AuthRepository} from "../auth.repository";
 import {AuthMailService} from "./auth-mail.service";
 import * as ZodSchemas from "@live-bid/contracts/schemas";
 import {UsersCacheService} from "@app/auth/modules/users/services";
+import {AppException, checkNotFound} from "@live-bid/services/lib";
 import {UsersRepository} from "@app/auth/modules/users/users.repository";
 import {compareSecret, hashSecret, hashSecretToken} from "@app/auth/lib";
-import {AppException, checkNotFound, buildEmailHtml} from "@live-bid/services/lib";
 
 @Injectable()
 export class AuthService {
@@ -51,21 +51,13 @@ export class AuthService {
       "User registered successfully",
     );
 
-    const frontendName: string = this.config.get<string>("FRONTEND_NAME") ?? "Live Bid";
     const dashboardLink: string = this.config.get<string>("FRONTEND_DASHBOARD") ?? "http://127.0.0.1:3000/dashboard";
 
-    void this.authMail.signupWelcome(
-      user.email,
-      buildEmailHtml({
-        clientInfo,
-        title: `Welcome to ${frontendName}`,
-        contentName: "welcome",
-        extra: {
-          dashboardLink,
-          titleText: "Welcome to Live Bid",
-          messageText: "Your account has been successfully created.",
-        }
-      }),
+    void this.authMail.authNotification(
+      "register",
+      userData.email,
+      dashboardLink,
+      clientInfo
     );
 
     return user;
@@ -137,6 +129,15 @@ export class AuthService {
     // Set user cache
     void this.usersCacheService.setCacheUserInfo(safeUser);
     this.logger.info({userId: safeUser.id}, 'User logged in');
+
+    const dashboardLink: string = this.config.get<string>("FRONTEND_DASHBOARD") ?? "http://127.0.0.1:3000/dashboard";
+
+    void this.authMail.authNotification(
+      "login",
+      safeUser.email,
+      dashboardLink,
+      clientInfo
+    );
 
     return {
       accessToken,
