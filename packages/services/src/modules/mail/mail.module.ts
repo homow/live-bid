@@ -1,19 +1,19 @@
+import {Module} from "@nestjs/common";
 import {MailService} from "./mail.service";
-import {Global, Module} from "@nestjs/common";
 import {MailerModule} from "@nestjs-modules/mailer";
 import {ConfigModule, ConfigService} from "@nestjs/config";
 
-@Global()
 @Module({})
 export class MailModule {
   // noinspection JSUnusedGlobalSymbols
   static forRoot() {
     return {
+      global: true,
       module: MailModule,
       imports: [
         MailerModule.forRootAsync({
-          imports: [ConfigModule],
           inject: [ConfigService],
+          imports: [ConfigModule],
           useFactory: (config: ConfigService) => ({
             transport: {
               host: config.get<string>("EMAIL_HOST"),

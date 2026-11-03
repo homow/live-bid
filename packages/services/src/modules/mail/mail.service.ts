@@ -1,3 +1,4 @@
+import {PinoLogger} from "nestjs-pino";
 import {Injectable} from '@nestjs/common';
 import {ConfigService} from "@nestjs/config";
 import {MailerService} from "@nestjs-modules/mailer";
@@ -17,6 +18,7 @@ export class MailService {
   private readonly emailNotification: string;
 
   constructor(
+    private readonly logger: PinoLogger,
     private readonly mailer: MailerService,
     private readonly config: ConfigService,
   ) {
@@ -30,16 +32,23 @@ export class MailService {
   }
 
   // Check enabled email and send email
-  send({force = true, ...payload}: PayloadEventEmail) {
+  async send({force = true, ...payload}: PayloadEventEmail) {
     if (!force && !this.isEmailEnabled()) return;
 
-    return this.mailer.sendMail({
-      to: payload.email,
-      html: payload.html,
-      text: payload.text,
-      from: this.defaultFrom,
-      subject: payload.subject,
-      replyTo: this.defaultReplay,
-    });
+    try {
+      return await this.mailer.sendMail({
+        to: payload.email,
+        html: payload.html,
+        text: payload.text,
+        from: this.defaultFrom,
+        subject: payload.subject,
+        replyTo: this.defaultReplay,
+      });
+    } catch (err) {
+      this.logger.error(
+        {err, email: payload.email, subject: payload.subject},
+        "Failed to send email",
+      );
+    }
   }
 }
