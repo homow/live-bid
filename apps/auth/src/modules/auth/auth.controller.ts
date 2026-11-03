@@ -4,13 +4,13 @@ import type {
   LoginResponseService,
   LogoutRequestService,
   RefreshRequestService,
+  RegisterRequestService,
   RegisterResponseService,
   ValidateRefreshRequestService,
 } from "@live-bid/services/types";
 
 import {Controller} from "@nestjs/common";
 import {AuthService} from "./services/auth.service";
-import * as ZodSchemas from "@live-bid/contracts/schemas";
 import {MessagePattern, Payload} from "@nestjs/microservices";
 import * as ServiceMessages from "@live-bid/services/messages";
 
@@ -32,63 +32,63 @@ export class AuthController {
   /**
    * **Register a new user**
    *
-   * @param input - Validated registration data (email, username, password)
    *
    * @returns The created user record without sensitive fields
+   * @param data
    */
   @MessagePattern(ServiceMessages.AUTH_PATTERNS.REGISTER)
   register(
-    @Payload() input: ZodSchemas.RegisterUserSchemaType
+    @Payload() data: RegisterRequestService
   ): Promise<RegisterResponseService> {
-    return this.authService.register(input);
+    return this.authService.register(data.input, data.clientInfo);
   }
 
   /**
    * **Authenticate user and generate tokens**
    *
-   * @param input - Login credentials and client metadata
    *
    * @returns User data + access/refresh tokens with cookie options
+   * @param data
    */
   @MessagePattern(ServiceMessages.AUTH_PATTERNS.LOGIN)
   login(
-    @Payload() input: LoginRequestService,
+    @Payload() data: LoginRequestService,
   ): Promise<LoginResponseService> {
-    return this.authService.login(input.userData, input.clientInfo);
+    return this.authService.login(data.userData, data.clientInfo);
   }
 
   /**
    * **Validate refresh token**
    *
-   * @param input - User ID and hashed refresh token
+   * @param data - User ID and hashed refresh token
    *
    * @returns Validated token record with associated user data
    */
   @MessagePattern(ServiceMessages.AUTH_PATTERNS.VALIDATE_REFRESH_TOKEN)
   validateRefreshToken(
-    @Payload() input: ValidateRefreshRequestService,
+    @Payload() data: ValidateRefreshRequestService,
   ): Promise<RefreshTokenPayload> {
-    return this.authService.validateRefresh(input);
+    return this.authService.validateRefresh(data);
   }
 
   /**
    * **Rotate refresh token**
    *
-   * @param input - Current refresh payload and updated client info
    *
    * @returns New access/refresh tokens with cookie options
+   * @param data
    */
   @MessagePattern(ServiceMessages.AUTH_PATTERNS.REFRESH)
   refresh(
-    @Payload() input: RefreshRequestService,
+    @Payload() data: RefreshRequestService,
   ): Promise<LoginResponseService> {
-    return this.authService.refresh(input);
+    return this.authService.refresh(data);
   }
 
   /**
    * **Revoke refresh token on logout**
    *
-   * @param input - Raw refresh token ID to be revoked
+   * @param data - Raw refresh token ID to be revoked
    *
    * @remarks
    * - This is a fire-and-forget handler (void return)
@@ -97,8 +97,8 @@ export class AuthController {
    */
   @MessagePattern(ServiceMessages.AUTH_PATTERNS.LOGOUT)
   logout(
-    @Payload() input: LogoutRequestService,
+    @Payload() data: LogoutRequestService,
   ) {
-    this.authService.logout(input.rawRefreshTokenId);
+    this.authService.logout(data.rawRefreshTokenId);
   }
 }
