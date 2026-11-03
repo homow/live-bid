@@ -4,4 +4,5 @@ export const AUTH_PATTERNS = {
   VALIDATE_REFRESH_TOKEN: "auth.vaildate_refresh_token",
   REFRESH: "auth.refresh",
   LOGOUT: "auth.logout",
+  changePassword: "auth.change_password",
 } as const;

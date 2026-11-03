@@ -7,7 +7,7 @@ import type {
   RefreshRequestService,
   RegisterRequestService,
   RegisterResponseService,
-  NormalizeClientInfoType, UserAccess, AccessRequest,
+  NormalizeClientInfoType, UserAccess, AccessRequest, ChangePasswordRequestService,
 } from "@live-bid/services/types";
 
 import {firstValueFrom} from "rxjs";
@@ -23,7 +23,6 @@ import {Resolver, Mutation, Args, Context} from "@nestjs/graphql";
 import {CurrentUser, NormalizeClientInfo, RefreshGuard, ZodPipe} from "@app/gateway/common";
 import {ACCESS_TOKEN_NAME, AUTH_SERVICE_NAME, REFRESH_TOKEN_NAME} from "@live-bid/services/names";
 import {ChangePasswordInput} from "./inputs";
-import {ChangePasswordSchema} from "@live-bid/contracts/schemas";
 
 /**
  * **AuthResolver**
@@ -267,9 +266,15 @@ export class AuthResolver {
     @CurrentUser() user: UserAccess,
     @Context() context: GraphQLContext<AccessRequest>
   ) {
-    console.log(user.role);
-    console.log(input);
-    console.log(context.req.user.display_name);
+    firstValueFrom(
+      this.authClient.send(
+        ServiceMessages.AUTH_PATTERNS.changePassword,
+        {
+          ...input,
+          userId: user.userId,
+        } satisfies ChangePasswordRequestService
+      )
+    );
     return user.userId;
   }
 }

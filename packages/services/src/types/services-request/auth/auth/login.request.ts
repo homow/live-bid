@@ -1,4 +1,4 @@
-import type {NormalizeClientInfoType} from "../../gateway";
+import type {NormalizeClientInfoType} from "../../../gateway";
 import type {LoginUserSchemaType} from "@live-bid/contracts/schemas";
 
 export interface LoginRequestService {
