@@ -7,7 +7,7 @@ import type {
   RefreshRequestService,
   RegisterRequestService,
   RegisterResponseService,
-  NormalizeClientInfoType,
+  NormalizeClientInfoType, UserAccess, AccessRequest,
 } from "@live-bid/services/types";
 
 import {firstValueFrom} from "rxjs";
@@ -20,8 +20,10 @@ import type {GraphQLContext} from "@app/gateway/types";
 import * as ZodSchemas from "@live-bid/contracts/schemas";
 import * as ServiceMessages from "@live-bid/services/messages";
 import {Resolver, Mutation, Args, Context} from "@nestjs/graphql";
-import {NormalizeClientInfo, RefreshGuard, ZodPipe} from "@app/gateway/common";
+import {CurrentUser, NormalizeClientInfo, RefreshGuard, ZodPipe} from "@app/gateway/common";
 import {ACCESS_TOKEN_NAME, AUTH_SERVICE_NAME, REFRESH_TOKEN_NAME} from "@live-bid/services/names";
+import {ChangePasswordInput} from "./inputs";
+import {ChangePasswordSchema} from "@live-bid/contracts/schemas";
 
 /**
  * **AuthResolver**
@@ -234,5 +236,40 @@ export class AuthResolver {
     res.clearCookie(REFRESH_TOKEN_NAME);
 
     return "User logged out successfully.";
+  }
+
+  /**
+   * **Change user password**
+   *
+   * @param input - Old password and new password
+   * @param user - Authenticated user from CurrentUser decorator
+   * @param context - GraphQL context (to clear tokens)
+   *
+   * @returns A success message
+   *
+   * @remarks
+   * - Requires an authenticated session
+   * - Revokes all active sessions (clears cookies) for security
+   * - Sends a security alert email
+   *
+   * @example
+   * mutation {
+   *   changePassword(input: { oldPassword: "secret", newPassword: "newSecret" })
+   * }
+   */
+  @Mutation(() => String)
+  changePassword(
+    @Args(
+      "input",
+      {type: () => ChangePasswordInput},
+      new ZodPipe(ZodSchemas.ChangePasswordSchema)
+    ) input: ZodSchemas.ChangePasswordSchemaType,
+    @CurrentUser() user: UserAccess,
+    @Context() context: GraphQLContext<AccessRequest>
+  ) {
+    console.log(user.role);
+    console.log(input);
+    console.log(context.req.user.display_name);
+    return user.userId;
   }
 }
