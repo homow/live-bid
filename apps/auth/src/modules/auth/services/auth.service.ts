@@ -12,20 +12,21 @@ import {TokenUtil} from "../utils";
 import {PinoLogger} from "nestjs-pino";
 import {randomUUID} from "node:crypto";
 import {Injectable} from "@nestjs/common";
+import {ConfigService} from "@nestjs/config";
 import {AuthRepository} from "../auth.repository";
 import {AuthMailService} from "./auth-mail.service";
 import * as ZodSchemas from "@live-bid/contracts/schemas";
 import {UsersCacheService} from "@app/auth/modules/users/services";
-import {AppException, checkNotFound} from "@live-bid/services/lib";
 import {UsersRepository} from "@app/auth/modules/users/users.repository";
 import {compareSecret, hashSecret, hashSecretToken} from "@app/auth/lib";
-import {buildEmailHtml} from "@live-bid/services/lib/utils/mail.html";
+import {AppException, checkNotFound, buildEmailHtml} from "@live-bid/services/lib";
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly logger: PinoLogger,
     private readonly tokenUtil: TokenUtil,
+    private readonly config: ConfigService,
     private readonly authMail: AuthMailService,
     private readonly authRepository: AuthRepository,
     private readonly usersRepository: UsersRepository,
@@ -35,7 +36,7 @@ export class AuthService {
   }
 
   /** **Register New Users** */
-  async register(userData: ZodSchemas.RegisterUserSchemaType): Promise<RegisterResponseService> {
+  async register(userData: ZodSchemas.RegisterUserSchemaType, clientInfo: NormalizeClientInfoType): Promise<RegisterResponseService> {
     // Hash user password
     const hashedPassword: string = await hashSecret(userData.password);
 
@@ -50,11 +51,22 @@ export class AuthService {
       "User registered successfully",
     );
 
-    // void this.authMail.signupWelcome({
-    //   html: buildEmailHtml({
-    //     clientInfo:
-    //   });
-    // });
+    const frontendName: string = this.config.get<string>("FRONTEND_NAME") ?? "Live Bid";
+    const dashboardLink: string = this.config.get<string>("FRONTEND_DASHBOARD") ?? "http://127.0.0.1:3000/dashboard";
+
+    void this.authMail.signupWelcome(
+      user.email,
+      buildEmailHtml({
+        clientInfo,
+        title: `Welcome to ${frontendName}`,
+        contentName: "welcome",
+        extra: {
+          dashboardLink,
+          titleText: "Welcome to Live Bid",
+          messageText: "Your account has been successfully created.",
+        }
+      }),
+    );
 
     return user;
   }

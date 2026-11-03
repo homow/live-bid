@@ -5,12 +5,12 @@ import {MailService, PayloadEventEmail} from "@live-bid/services/modules";
 export class AuthMailService {
   constructor(private readonly mail: MailService) {}
 
-  signupWelcome(payload: PayloadEventEmail) {
+  signupWelcome(email: string, html: string) {
     return this.mail.send({
+      html,
+      email,
       force: false,
-      html: payload.html,
-      email: payload.email,
-      subject: payload.subject,
+      subject: "Sign up Successfully - Live Bid",
     });
   }
 
@@ -19,15 +19,14 @@ export class AuthMailService {
       html,
       email: to,
       text: "Reset Your password with token",
-      subject: "Reset Password - Car Service",
+      subject: "Reset Password - Live Bid",
     });
   }
 
   passwordChanged(payload: PayloadEventEmail) {
     return this.mail.send({
-      html: payload.html,
-      email: payload.email,
-      subject: payload.subject || "Your Password Successfully Changed - Car Service",
+      ...payload,
+      subject: payload.subject || "Your Password Successfully Changed - Live Bid",
     });
   }
 }
