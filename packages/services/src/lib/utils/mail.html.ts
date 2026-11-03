@@ -31,8 +31,8 @@ export function buildEmailHtml(options: BuildEmailOptions): string {
     contentName,
     clientInfo,
     extra = {},
-    siteName = process.env.FRONEND_NAME!,
-    siteUrl = process.env.FRONEND_ADDRESS!,
+    siteName = process.env.FRONTEND_NAME!,
+    siteUrl = process.env.FRONTEND_ADDRESS!,
     contentHtml,
   } = options;
   try {
