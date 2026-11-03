@@ -5,7 +5,7 @@ import type {
   RefreshRequestService,
   NormalizeClientInfoType,
   RegisterResponseService,
-  ValidateRefreshRequestService,
+  ValidateRefreshRequestService, ChangePasswordRequestService,
 } from "@live-bid/services/types";
 
 import {TokenUtil} from "../utils";
@@ -275,5 +275,29 @@ export class AuthService {
       const hashedRefreshToken = hashSecretToken(rawRefreshTokenId);
       void this.authRepository.revokeToken(hashedRefreshToken);
     }
+  }
+
+  async changePassword(data: ChangePasswordRequestService) {
+    const user = await this.usersRepository.findOne({id: data.userId}, false);
+
+    if (!user) checkNotFound('User', 'id');
+
+    const isValidPassword = await compareSecret(data.oldPassword, user.password);
+
+    // Throw exception if old password is invalid
+    if (!isValidPassword) {
+      this.logger.warn(
+        {userId: user.id},
+        'Password change failed: old password does not match'
+      );
+
+      throw new AppException({
+        statusCode: 400,
+        code: 'Invalid Old Password',
+        message: 'The current password you entered is incorrect.',
+      });
+    }
+
+    // TODO: hash new password + update + revoke refresh tokens + send alert email
   }
 }

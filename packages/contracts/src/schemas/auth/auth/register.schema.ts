@@ -1,5 +1,5 @@
 import {z} from "zod";
-import {UserPasswordSchema, UserDisplayNameSchema} from "../common";
+import {UserPasswordSchema, UserDisplayNameSchema} from "../../common";
 
 export const RegisterUserSchema = z.object({
   display_name: UserDisplayNameSchema,

@@ -42,15 +42,6 @@ export class AuthMailService {
     });
   }
 
-  loginSuccess(email: string, html: string) {
-    return this.mail.send({
-      html,
-      email,
-      force: false,
-      subject: "Login Successfully | Live Bid",
-    });
-  }
-
   forgotPassword(to: string, html: string) {
     return this.mail.send({
       html,

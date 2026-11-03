@@ -97,4 +97,11 @@ export class AuthRepository {
       .set({is_revoked: true})
       .where(eq(refreshToken.token_hash, tokenHash));
   }
+
+  async changePassword(userId: string, password: string) {
+    await this.drizzle.db
+      .update(user)
+      .set({password})
+      .where(eq(user.id, userId));
+  }
 }

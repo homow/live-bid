@@ -1,5 +1,7 @@
 import type {
   SafeUser,
+  UserAccess,
+  AccessRequest,
   RefreshRequest,
   LoginRequestService,
   LoginResponseService,
@@ -7,7 +9,8 @@ import type {
   RefreshRequestService,
   RegisterRequestService,
   RegisterResponseService,
-  NormalizeClientInfoType, UserAccess, AccessRequest, ChangePasswordRequestService,
+  NormalizeClientInfoType,
+  ChangePasswordRequestService,
 } from "@live-bid/services/types";
 
 import {firstValueFrom} from "rxjs";
@@ -22,7 +25,6 @@ import * as ServiceMessages from "@live-bid/services/messages";
 import {Resolver, Mutation, Args, Context} from "@nestjs/graphql";
 import {CurrentUser, NormalizeClientInfo, RefreshGuard, ZodPipe} from "@app/gateway/common";
 import {ACCESS_TOKEN_NAME, AUTH_SERVICE_NAME, REFRESH_TOKEN_NAME} from "@live-bid/services/names";
-import {ChangePasswordInput} from "./inputs";
 
 /**
  * **AuthResolver**
@@ -260,21 +262,21 @@ export class AuthResolver {
   changePassword(
     @Args(
       "input",
-      {type: () => ChangePasswordInput},
+      {type: () => AuthInputs.ChangePasswordInput},
       new ZodPipe(ZodSchemas.ChangePasswordSchema)
     ) input: ZodSchemas.ChangePasswordSchemaType,
     @CurrentUser() user: UserAccess,
     @Context() context: GraphQLContext<AccessRequest>
   ) {
-    firstValueFrom(
-      this.authClient.send(
-        ServiceMessages.AUTH_PATTERNS.changePassword,
-        {
-          ...input,
-          userId: user.userId,
-        } satisfies ChangePasswordRequestService
-      )
-    );
+    // firstValueFrom(
+    //   this.authClient.send(
+    //     ServiceMessages.AUTH_PATTERNS.changePassword,
+    //     {
+    //       ...input,
+    //       userId: user.userId,
+    //     } satisfies ChangePasswordRequestService
+    //   )
+    // );
     return user.userId;
   }
 }
