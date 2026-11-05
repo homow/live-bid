@@ -279,11 +279,25 @@ export class AuthService {
     }
   }
 
+  /**
+   * Changes the authenticated user's password.
+   *
+   * Verifies `oldPassword`, hashes `newPassword`, then atomically updates the
+   * hash and revokes all user tokens in a single Drizzle transaction.
+   * A confirmation email is sent (fire-and-forget) after the commit.
+   *
+   * @param data - `{ userId, oldPassword, newPassword, clientInfo }`
+   * @returns Success message asking the user to log in again.
+   * @throws 404 `NotFound` — user does not exist.
+   * @throws 400 `Invalid Old Password` — `oldPassword` mismatch.
+   * @throws 500 — hashing or DB transaction failure.
+   */
   async changePassword(data: ChangePasswordRequestService) {
     const user = await this.usersRepository.findOne({id: data.userId}, false);
 
     if (!user) checkNotFound('User', 'id');
 
+    // Check user password
     const isValidPassword = await compareSecret(data.oldPassword, user.password);
 
     // Throw exception if old password is invalid
@@ -300,15 +314,16 @@ export class AuthService {
       });
     }
 
+    // Hash password
     const hashedPassword = await hashSecret(data.newPassword);
 
-    // TODO: send alert email
+    // Make a drizzle transaction for change and revoke all user sessions
     await this.drizzle.db.transaction(async tx => {
       await this.authRepository.changePassword(user.id, hashedPassword, tx);
       await this.authRepository.revokeAllUserTokens(user.id, tx);
     });
 
-
+    void this.authMail.passwordChangedNotification(user.email, data.clientInfo);
 
     return "Your password changed successfully. Please login again to your account.";
   }
