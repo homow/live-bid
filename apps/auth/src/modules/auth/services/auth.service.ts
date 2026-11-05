@@ -308,6 +308,8 @@ export class AuthService {
       await this.authRepository.revokeAllUserTokens(user.id, tx);
     });
 
+
+
     return "Your password changed successfully. Please login again to your account.";
   }
 }
