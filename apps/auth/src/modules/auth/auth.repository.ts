@@ -4,6 +4,7 @@ import type {RefreshTokenInsert} from "@app/auth/types";
 import {DrizzleService} from "@live-bid/services/modules";
 import {USER_PUBLIC_COLUMNS} from "../users/users.repository";
 import {refreshToken, user} from "@live-bid/services/database";
+import type {DrizzleTransaction} from "@live-bid/services/types";
 
 export const REFRESH_TOKEN_PUBLIC_COLUMNS = {
   id: refreshToken.id,
@@ -59,8 +60,10 @@ export class AuthRepository {
       );
   }
 
-  async revokeAllUserTokens(userId: string) {
-    await this.drizzle.db
+  async revokeAllUserTokens(userId: string, tx?: DrizzleTransaction) {
+    const db = tx ?? this.drizzle.db;
+
+    await db
       .update(refreshToken)
       .set({is_revoked: true})
       .where(eq(refreshToken.user_id, userId));
@@ -91,15 +94,19 @@ export class AuthRepository {
     });
   }
 
-  async revokeToken(tokenHash: string) {
-    await this.drizzle.db
+  async revokeToken(tokenHash: string, tx?: DrizzleTransaction) {
+    const db = tx ?? this.drizzle.db;
+
+    await db
       .update(refreshToken)
       .set({is_revoked: true})
       .where(eq(refreshToken.token_hash, tokenHash));
   }
 
-  async changePassword(userId: string, password: string) {
-    await this.drizzle.db
+  async changePassword(userId: string, password: string, tx?: DrizzleTransaction) {
+    const db = tx ?? this.drizzle.db;
+
+    await db
       .update(user)
       .set({password})
       .where(eq(user.id, userId));

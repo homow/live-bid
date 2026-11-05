@@ -20,6 +20,7 @@ import {UsersCacheService} from "@app/auth/modules/users/services";
 import {AppException, checkNotFound} from "@live-bid/services/lib";
 import {UsersRepository} from "@app/auth/modules/users/users.repository";
 import {compareSecret, hashSecret, hashSecretToken} from "@app/auth/lib";
+import {DrizzleService} from "@live-bid/services/modules";
 
 @Injectable()
 export class AuthService {
@@ -27,6 +28,7 @@ export class AuthService {
     private readonly logger: PinoLogger,
     private readonly tokenUtil: TokenUtil,
     private readonly config: ConfigService,
+    private readonly drizzle: DrizzleService,
     private readonly authMail: AuthMailService,
     private readonly authRepository: AuthRepository,
     private readonly usersRepository: UsersRepository,
@@ -298,6 +300,14 @@ export class AuthService {
       });
     }
 
-    // TODO: hash new password + update + revoke refresh tokens + send alert email
+    const hashedPassword = await hashSecret(data.newPassword);
+
+    // TODO: send alert email
+    await this.drizzle.db.transaction(async tx => {
+      await this.authRepository.changePassword(user.id, hashedPassword, tx);
+      await this.authRepository.revokeAllUserTokens(user.id, tx);
+    });
+
+    return "Your password changed successfully. Please login again to your account.";
   }
 }
