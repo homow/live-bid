@@ -240,43 +240,59 @@ export class AuthResolver {
   }
 
   /**
-   * **Change user password**
+   * **Change the authenticated user's password.**
    *
-   * @param input - Old password and new password
-   * @param user - Authenticated user from CurrentUser decorator
-   * @param context - GraphQL context (to clear tokens)
+   * Forwards the request to the auth microservice, then clears the access and
+   * refresh token cookies so the user must log in again with the new password.
    *
-   * @returns A success message
+   * @param input      - `{ oldPassword, newPassword }` (validated by Zod).
+   * @param user       - Authenticated user injected by `@CurrentUser()`.
+   * @param context    - GraphQL context; `res` is used to clear auth cookies.
+   * @param clientInfo - Normalized client metadata attached to the security email.
+   * @returns Success message from the auth service.
+   *
+   * @throws {GatewayException} 401 — no authenticated session.
+   * @throws {GatewayException} 400 — `oldPassword` mismatch (propagated).
    *
    * @remarks
-   * - Requires an authenticated session
-   * - Revokes all active sessions (clears cookies) for security
-   * - Sends a security alert email
+   * - Requires an authenticated session.
+   * - Revokes **all** refresh tokens server-side and clears both
+   *   `ACCESS_TOKEN` and `REFRESH_TOKEN` cookies client-side.
+   * - Triggers a "password changed" security-alert email.
    *
    * @example
-   * mutation {
-   *   changePassword(input: { oldPassword: "secret", newPassword: "newSecret" })
+   * mutation ChangePassword($input: ChangePasswordInput!) {
+   *   changePassword(input: $input)
    * }
+   * // variables: { "input": { "oldPassword": "old", "newPassword": "new" } }
    */
   @Mutation(() => String)
-  changePassword(
+  async changePassword(
     @Args(
       "input",
       {type: () => AuthInputs.ChangePasswordInput},
       new ZodPipe(ZodSchemas.ChangePasswordSchema)
     ) input: ZodSchemas.ChangePasswordSchemaType,
     @CurrentUser() user: UserAccess,
-    @Context() context: GraphQLContext<AccessRequest>
-  ) {
-    // firstValueFrom(
-    //   this.authClient.send(
-    //     ServiceMessages.AUTH_PATTERNS.changePassword,
-    //     {
-    //       ...input,
-    //       userId: user.userId,
-    //     } satisfies ChangePasswordRequestService
-    //   )
-    // );
-    return user.userId;
+    @Context() context: GraphQLContext<AccessRequest>,
+    @NormalizeClientInfo() clientInfo: NormalizeClientInfoType,
+  ): Promise<string> {
+    const {res} = context;
+
+    const result = await firstValueFrom<string>(
+      this.authClient.send(
+        ServiceMessages.AUTH_PATTERNS.changePassword,
+        {
+          ...input,
+          clientInfo,
+          userId: user.userId,
+        } satisfies ChangePasswordRequestService
+      )
+    );
+
+    res.clearCookie(ACCESS_TOKEN_NAME);
+    res.clearCookie(REFRESH_TOKEN_NAME);
+
+    return result;
   }
 }

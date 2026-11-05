@@ -6,6 +6,7 @@ import type {
   RefreshRequestService,
   RegisterRequestService,
   RegisterResponseService,
+  ChangePasswordRequestService,
   ValidateRefreshRequestService,
 } from "@live-bid/services/types";
 
@@ -100,5 +101,22 @@ export class AuthController {
     @Payload() data: LogoutRequestService,
   ) {
     this.authService.logout(data.rawRefreshTokenId);
+  }
+
+  /**
+   * Microservice handler for `AUTH_PATTERNS.changePassword`.
+   *
+   * Thin transport layer: receives the payload from `AuthClient` and delegates
+   * to `AuthService.changePassword`. All errors (404, 400, 500) propagate
+   * back to the caller unchanged.
+   *
+   * @param data - `{ userId, oldPassword, newPassword, clientInfo }`
+   * @returns Success message asking the user to log in again.
+   */
+  @MessagePattern(ServiceMessages.AUTH_PATTERNS.changePassword)
+  changePassword(
+    @Payload() data: ChangePasswordRequestService,
+  ) {
+    return this.authService.changePassword(data);
   }
 }
