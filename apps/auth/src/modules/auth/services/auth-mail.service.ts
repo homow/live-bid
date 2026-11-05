@@ -74,7 +74,7 @@ export class AuthMailService {
       html: buildEmailHtml({
         clientInfo,
         title: "Password Changed Successfully",
-        contentName: "change-password",
+        contentName: "changed-password",
         extra: {
           loginLink: `${this.FRONTEND_LOGIN_ADDRESS}`,
           resetLink: `${this.FRONTEND_FORGOT_PASSWORD_ADDRESS}`,
