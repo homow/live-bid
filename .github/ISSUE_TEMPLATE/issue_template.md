@@ -1,3 +1,11 @@
+---
+name: Issue
+about: Report a bug, request a feature, or ask a question
+title: ''
+labels: ''
+assignees: ''
+---
+
 ## What's the issue?
 
 <!-- 
