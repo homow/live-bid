@@ -288,9 +288,9 @@ export class AuthService {
    *
    * @param data - `{ userId, oldPassword, newPassword, clientInfo }`
    * @returns Success message asking the user to log in again.
-   * @throws 404 `NotFound` — user does not exist.
-   * @throws 400 `Invalid Old Password` — `oldPassword` mismatch.
-   * @throws 500 — hashing or DB transaction failure.
+   * @throws {AppException} 404 `NotFound` — user does not exist.
+   * @throws {AppException} 400 `Invalid Old Password` — `oldPassword` mismatch.
+   * @throws {AppException} 500 — hashing or DB transaction failure.
    */
   async changePassword(data: ChangePasswordRequestService) {
     const user = await this.usersRepository.findOne({id: data.userId}, false);
