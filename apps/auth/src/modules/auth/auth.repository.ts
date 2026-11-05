@@ -60,6 +60,14 @@ export class AuthRepository {
       );
   }
 
+  /**
+   * Marks **all** refresh tokens of a user as revoked.
+   *
+   * Used after password change/reset to force re-authentication on every device.
+   *
+   * @param userId - Target user ID.
+   * @param tx     - Optional transaction; falls back to `drizzle.db`.
+   */
   async revokeAllUserTokens(userId: string, tx?: DrizzleTransaction) {
     const db = tx ?? this.drizzle.db;
 
@@ -103,6 +111,13 @@ export class AuthRepository {
       .where(eq(refreshToken.token_hash, tokenHash));
   }
 
+  /**
+   * Updates the user's password hash.
+   *
+   * @param userId   - Target user ID.
+   * @param password - Already-hashed password (do **not** pass plaintext).
+   * @param tx       - Optional transaction; falls back to `drizzle.db`.
+   */
   async changePassword(userId: string, password: string, tx?: DrizzleTransaction) {
     const db = tx ?? this.drizzle.db;
 
