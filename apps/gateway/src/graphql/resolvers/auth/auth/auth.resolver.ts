@@ -1,12 +1,16 @@
 import type {
   SafeUser,
+  UserAccess,
+  AccessRequest,
   RefreshRequest,
   LoginRequestService,
   LoginResponseService,
   LogoutRequestService,
   RefreshRequestService,
+  RegisterRequestService,
   RegisterResponseService,
   NormalizeClientInfoType,
+  ChangePasswordRequestService,
 } from "@live-bid/services/types";
 
 import {firstValueFrom} from "rxjs";
@@ -19,7 +23,7 @@ import type {GraphQLContext} from "@app/gateway/types";
 import * as ZodSchemas from "@live-bid/contracts/schemas";
 import * as ServiceMessages from "@live-bid/services/messages";
 import {Resolver, Mutation, Args, Context} from "@nestjs/graphql";
-import {NormalizeClientInfo, RefreshGuard, ZodPipe} from "@app/gateway/common";
+import {CurrentUser, NormalizeClientInfo, RefreshGuard, ZodPipe} from "@app/gateway/common";
 import {ACCESS_TOKEN_NAME, AUTH_SERVICE_NAME, REFRESH_TOKEN_NAME} from "@live-bid/services/names";
 
 /**
@@ -61,6 +65,7 @@ export class AuthResolver {
    *
    * @param input - Registration data (email, username, password)
    *
+   * @param clientInfo - Client Information(IP, Device...)
    * @returns RegisterResponseService - Contains user info and status
    *
    * @example
@@ -77,14 +82,18 @@ export class AuthResolver {
     @Args(
       "input",
       {type: () => AuthInputs.RegisterUserInput},
-      new ZodPipe(ZodSchemas.RegisterUserSchema)
+      new ZodPipe(ZodSchemas.RegisterUserSchema),
     )
-    input: ZodSchemas.RegisterUserSchemaType
+    input: ZodSchemas.RegisterUserSchemaType,
+    @NormalizeClientInfo() clientInfo: NormalizeClientInfoType
   ): Promise<RegisterResponseService> {
     return firstValueFrom<RegisterResponseService>(
       this.authClient.send(
         ServiceMessages.AUTH_PATTERNS.REGISTER,
-        input satisfies ZodSchemas.RegisterUserSchemaType
+        {
+          input,
+          clientInfo,
+        } satisfies RegisterRequestService
       )
     );
   }
@@ -228,5 +237,62 @@ export class AuthResolver {
     res.clearCookie(REFRESH_TOKEN_NAME);
 
     return "User logged out successfully.";
+  }
+
+  /**
+   * **Change the authenticated user's password.**
+   *
+   * Forwards the request to the auth microservice, then clears the access and
+   * refresh token cookies so the user must log in again with the new password.
+   *
+   * @param input      - `{ oldPassword, newPassword }` (validated by Zod).
+   * @param user       - Authenticated user injected by `@CurrentUser()`.
+   * @param context    - GraphQL context; `res` is used to clear auth cookies.
+   * @param clientInfo - Normalized client metadata attached to the security email.
+   * @returns Success message from the auth service.
+   *
+   * @throws {GatewayException} 401 — no authenticated session.
+   * @throws {GatewayException} 400 — `oldPassword` mismatch (propagated).
+   *
+   * @remarks
+   * - Requires an authenticated session.
+   * - Revokes **all** refresh tokens server-side and clears both
+   *   `ACCESS_TOKEN` and `REFRESH_TOKEN` cookies client-side.
+   * - Triggers a "password changed" security-alert email.
+   *
+   * @example
+   * mutation ChangePassword($input: ChangePasswordInput!) {
+   *   changePassword(input: $input)
+   * }
+   * // variables: { "input": { "oldPassword": "old", "newPassword": "new" } }
+   */
+  @Mutation(() => String)
+  async changePassword(
+    @Args(
+      "input",
+      {type: () => AuthInputs.ChangePasswordInput},
+      new ZodPipe(ZodSchemas.ChangePasswordSchema)
+    ) input: ZodSchemas.ChangePasswordSchemaType,
+    @CurrentUser() user: UserAccess,
+    @Context() context: GraphQLContext<AccessRequest>,
+    @NormalizeClientInfo() clientInfo: NormalizeClientInfoType,
+  ): Promise<string> {
+    const {res} = context;
+
+    const result = await firstValueFrom<string>(
+      this.authClient.send(
+        ServiceMessages.AUTH_PATTERNS.changePassword,
+        {
+          ...input,
+          clientInfo,
+          userId: user.userId,
+        } satisfies ChangePasswordRequestService
+      )
+    );
+
+    res.clearCookie(ACCESS_TOKEN_NAME);
+    res.clearCookie(REFRESH_TOKEN_NAME);
+
+    return result;
   }
 }

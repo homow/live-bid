@@ -5,39 +5,45 @@ import type {
   RefreshRequestService,
   NormalizeClientInfoType,
   RegisterResponseService,
-  ValidateRefreshRequestService,
+  ValidateRefreshRequestService, ChangePasswordRequestService,
 } from "@live-bid/services/types";
 
 import {TokenUtil} from "../utils";
 import {PinoLogger} from "nestjs-pino";
 import {randomUUID} from "node:crypto";
 import {Injectable} from "@nestjs/common";
+import {ConfigService} from "@nestjs/config";
 import {AuthRepository} from "../auth.repository";
+import {AuthMailService} from "./auth-mail.service";
 import * as ZodSchemas from "@live-bid/contracts/schemas";
-import {UserCacheService} from "@app/auth/modules/user/services";
-import {AppException, throwNotFoundEx} from "@live-bid/services/lib";
-import {UserRepository} from "@app/auth/modules/user/user.repository";
+import {UsersCacheService} from "@app/auth/modules/users/services";
+import {AppException, checkNotFound} from "@live-bid/services/lib";
+import {UsersRepository} from "@app/auth/modules/users/users.repository";
 import {compareSecret, hashSecret, hashSecretToken} from "@app/auth/lib";
+import {DrizzleService} from "@live-bid/services/modules";
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly logger: PinoLogger,
     private readonly tokenUtil: TokenUtil,
+    private readonly config: ConfigService,
+    private readonly drizzle: DrizzleService,
+    private readonly authMail: AuthMailService,
     private readonly authRepository: AuthRepository,
-    private readonly userRepository: UserRepository,
-    private readonly userCacheService: UserCacheService,
+    private readonly usersRepository: UsersRepository,
+    private readonly usersCacheService: UsersCacheService,
   ) {
     this.logger.setContext(AuthService.name);
   }
 
   /** **Register New Users** */
-  async register(userData: ZodSchemas.RegisterUserSchemaType): Promise<RegisterResponseService> {
+  async register(userData: ZodSchemas.RegisterUserSchemaType, clientInfo: NormalizeClientInfoType): Promise<RegisterResponseService> {
     // Hash user password
     const hashedPassword: string = await hashSecret(userData.password);
 
     // Insert user record in db
-    const user = await this.userRepository.insertUser({
+    const user = await this.usersRepository.insertUser({
       ...userData,
       password: hashedPassword,
     });
@@ -45,6 +51,15 @@ export class AuthService {
     this.logger.info(
       {userId: user.id, display_name: user.display_name},
       "User registered successfully",
+    );
+
+    const dashboardLink: string = this.config.get<string>("FRONTEND_DASHBOARD") ?? "http://127.0.0.1:3000/dashboard";
+
+    void this.authMail.authNotification(
+      "register",
+      userData.email,
+      dashboardLink,
+      clientInfo
     );
 
     return user;
@@ -59,7 +74,7 @@ export class AuthService {
    *  */
   async login(userData: ZodSchemas.LoginUserSchemaType, clientInfo: NormalizeClientInfoType): Promise<LoginResponseService> {
     // Find user in database with password
-    const user = await this.userRepository.findOne(
+    const user = await this.usersRepository.findOne(
       {
         email: userData.email,
         username: userData.username,
@@ -68,7 +83,7 @@ export class AuthService {
     );
 
     // Throw exception if user doesn't in database
-    if (!user) throw throwNotFoundEx('User');
+    if (!user) checkNotFound('User', 'phone or email');
 
     // Check password
     const isValidPassword = await compareSecret(userData.password, user.password);
@@ -114,8 +129,17 @@ export class AuthService {
     });
 
     // Set user cache
-    void this.userCacheService.setCacheUserInfo(safeUser);
+    void this.usersCacheService.setCacheUserInfo(safeUser);
     this.logger.info({userId: safeUser.id}, 'User logged in');
+
+    const dashboardLink: string = this.config.get<string>("FRONTEND_DASHBOARD") ?? "http://127.0.0.1:3000/dashboard";
+
+    void this.authMail.authNotification(
+      "login",
+      safeUser.email,
+      dashboardLink,
+      clientInfo
+    );
 
     return {
       accessToken,
@@ -131,7 +155,7 @@ export class AuthService {
    * */
   async validateRefresh({userId, tokenHash}: ValidateRefreshRequestService): Promise<RefreshTokenPayload> {
     // Get user from cache if exists.
-    const userCached = await this.userCacheService.getCachedUserInfo(userId);
+    const userCached = await this.usersCacheService.getCachedUserInfo(userId);
 
     function handleThrowRefresh() {
       throw new AppException({
@@ -164,7 +188,7 @@ export class AuthService {
       if (!findToken) handleThrowRefresh();
 
       // Cach user
-      void this.userCacheService.setCacheUserInfo(findToken.user as SafeUser);
+      void this.usersCacheService.setCacheUserInfo(findToken.user as SafeUser);
 
       const {user, ...refreshRecord} = findToken;
 
@@ -253,5 +277,54 @@ export class AuthService {
       const hashedRefreshToken = hashSecretToken(rawRefreshTokenId);
       void this.authRepository.revokeToken(hashedRefreshToken);
     }
+  }
+
+  /**
+   * Changes the authenticated user's password.
+   *
+   * Verifies `oldPassword`, hashes `newPassword`, then atomically updates the
+   * hash and revokes all user tokens in a single Drizzle transaction.
+   * A confirmation email is sent (fire-and-forget) after the commit.
+   *
+   * @param data - `{ userId, oldPassword, newPassword, clientInfo }`
+   * @returns Success message asking the user to log in again.
+   * @throws {AppException} 404 `NotFound` — user does not exist.
+   * @throws {AppException} 400 `Invalid Old Password` — `oldPassword` mismatch.
+   * @throws {AppException} 500 — hashing or DB transaction failure.
+   */
+  async changePassword(data: ChangePasswordRequestService) {
+    const user = await this.usersRepository.findOne({id: data.userId}, false);
+
+    if (!user) checkNotFound('User', 'id');
+
+    // Check user password
+    const isValidPassword = await compareSecret(data.oldPassword, user.password);
+
+    // Throw exception if old password is invalid
+    if (!isValidPassword) {
+      this.logger.warn(
+        {userId: user.id},
+        'Password change failed: old password does not match'
+      );
+
+      throw new AppException({
+        statusCode: 400,
+        code: 'Invalid Old Password',
+        message: 'The current password you entered is incorrect.',
+      });
+    }
+
+    // Hash password
+    const hashedPassword = await hashSecret(data.newPassword);
+
+    // Make a drizzle transaction for change and revoke all user sessions
+    await this.drizzle.db.transaction(async tx => {
+      await this.authRepository.changePassword(user.id, hashedPassword, tx);
+      await this.authRepository.revokeAllUserTokens(user.id, tx);
+    });
+
+    void this.authMail.passwordChangedNotification(user.email, data.clientInfo);
+
+    return "Your password changed successfully. Please login again to your account.";
   }
 }

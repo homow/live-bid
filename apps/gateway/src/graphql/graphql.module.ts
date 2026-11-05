@@ -42,6 +42,7 @@ import {AUTH_SERVICE_NAME, CORE_SERVICE_NAME} from "@live-bid/services/names";
   ],
   providers: [
     Resolvers.AuthResolver,
+    Resolvers.UserResolver,
     Resolvers.HealthResolver,
   ],
 })
