@@ -1,8 +1,10 @@
 import {and, eq} from "drizzle-orm";
 import {Injectable} from "@nestjs/common";
 import type {RefreshTokenInsert} from "@app/auth/types";
-import {USER_PUBLIC_COLUMNS} from "../user/user.repository";
-import {DrizzleService, refreshToken, user} from "@live-bid/services/database";
+import {DrizzleService} from "@live-bid/services/modules";
+import {USER_PUBLIC_COLUMNS} from "../users/users.repository";
+import {refreshToken, user} from "@live-bid/services/database";
+import type {DrizzleTransaction} from "@live-bid/services/types";
 
 export const REFRESH_TOKEN_PUBLIC_COLUMNS = {
   id: refreshToken.id,
@@ -58,8 +60,18 @@ export class AuthRepository {
       );
   }
 
-  async revokeAllUserTokens(userId: string) {
-    await this.drizzle.db
+  /**
+   * Marks **all** refresh tokens of a user as revoked.
+   *
+   * Used after password change/reset to force re-authentication on every device.
+   *
+   * @param userId - Target user ID.
+   * @param tx     - Optional transaction; falls back to `drizzle.db`.
+   */
+  async revokeAllUserTokens(userId: string, tx?: DrizzleTransaction) {
+    const db = tx ?? this.drizzle.db;
+
+    await db
       .update(refreshToken)
       .set({is_revoked: true})
       .where(eq(refreshToken.user_id, userId));
@@ -90,10 +102,28 @@ export class AuthRepository {
     });
   }
 
-  async revokeToken(tokenHash: string) {
-    await this.drizzle.db
+  async revokeToken(tokenHash: string, tx?: DrizzleTransaction) {
+    const db = tx ?? this.drizzle.db;
+
+    await db
       .update(refreshToken)
       .set({is_revoked: true})
       .where(eq(refreshToken.token_hash, tokenHash));
+  }
+
+  /**
+   * Updates the user's password hash.
+   *
+   * @param userId   - Target user ID.
+   * @param password - Already-hashed password (do **not** pass plaintext).
+   * @param tx       - Optional transaction; falls back to `drizzle.db`.
+   */
+  async changePassword(userId: string, password: string, tx?: DrizzleTransaction) {
+    const db = tx ?? this.drizzle.db;
+
+    await db
+      .update(user)
+      .set({password})
+      .where(eq(user.id, userId));
   }
 }

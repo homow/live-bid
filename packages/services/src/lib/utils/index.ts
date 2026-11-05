@@ -1,4 +1,4 @@
 export * from "./time";
+export * from "./mail.html";
 export * from "./drizzle.error";
 export * from "./app.exceptions";
-export * from "./exceptions.util";

@@ -6,7 +6,6 @@ import {Catch, RpcExceptionFilter, ArgumentsHost} from '@nestjs/common';
 export class DbExceptionFilter implements RpcExceptionFilter {
   catch(e: Error, _host: ArgumentsHost) {
     if (e instanceof AppException) {
-      console.log(e.getError());
       return throwError(() => e.getError());
     }
 

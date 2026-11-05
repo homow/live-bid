@@ -57,6 +57,11 @@
       "import": "./dist/common/index.js",
       "require": "./dist/common/index.js",
       "types": "./dist/common/index.d.ts"
+    },
+    "./modules": {
+      "import": "./dist/modules/index.js",
+      "require": "./dist/modules/index.js",
+      "types": "./dist/modules/index.d.ts"
     }
   },
   "scripts": {

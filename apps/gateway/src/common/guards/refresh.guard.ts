@@ -1,4 +1,5 @@
 import {firstValueFrom} from "rxjs";
+import type {Request} from "express";
 import {hashSecretToken} from "@app/auth/lib";
 import {ClientProxy} from "@nestjs/microservices";
 import {getRequestResponse} from "@app/gateway/lib";
@@ -14,7 +15,7 @@ export class RefreshGuard implements CanActivate {
     @Inject(AUTH_SERVICE_NAME) private readonly authClient: ClientProxy
   ) {}
 
-  static getTokenFromReq(req: RefreshRequest): string | null {
+  static getTokenFromReq<T extends Request>(req: T): string | null {
     const cookies = req.cookies as { refreshToken?: string };
     const header = req.headers['x-refresh-token'];
 
