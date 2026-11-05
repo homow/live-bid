@@ -1,44 +1,30 @@
-## What changed?
+## What's the issue?
 
-<!-- A short summary. One or two sentences. -->
+<!-- 
+For a bug: what happened? what did you expect?
+For a feature: what do you want and why?
+One or two paragraphs is enough.
+-->
 
 
-## Why?
+## Steps to reproduce
 
-<!-- Link the issue if any: Closes #123 -->
-
-
-## How to test?
-
-<!-- Steps to verify locally. Write "N/A" for docs-only. -->
+<!-- Bug only. For features, write "N/A". -->
 
 1.
 2.
 
 
-## Screenshots
+## Environment
 
-<!-- Required for UI changes. Remove this section otherwise. -->
+<!-- Bug only. Fill in what's relevant, delete the rest. -->
 
-| Before | After |
-|--------|-------|
-|        |       |
-
-
-## Checklist
-
-- [ ] Branch is up to date with `main`
-- [ ] ESLint passes
-- [ ] Types compile (`npm run build:all` or the affected `build:*`)
-- [ ] Tests added/updated (if applicable)
-- [ ] No `.env` or secrets committed
-- [ ] Migration added + committed (if DB changed)
-- [ ] `schema.graphql` updated + committed (if schema changed)
-- [ ] Shared packages changed → other maintainer notified (if `packages/*` touched)
+- **Area:** `gateway` / `auth` / `core` / `web` / `packages` / `db` / `infra`
+- **OS:** 
+- **Node:** 
+- **Browser:** (for client issues)
 
 
-## Breaking changes
+## Additional context
 
-<!-- Describe any DB, API, env, or schema change that could break things. Otherwise write "None". -->
-
-None
+<!-- Logs, screenshots, links, design references. Optional. -->
