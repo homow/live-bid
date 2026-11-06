@@ -19,7 +19,7 @@ import {AuthMailService} from "./auth-mail.service";
 import * as ZodSchemas from "@live-bid/contracts/schemas";
 import {DrizzleService} from "@live-bid/services/modules";
 import {UsersCacheService} from "@app/auth/modules/users/services";
-import {AppException, throwNotFound} from "@live-bid/services/lib";
+import {AppException, ONE_MINUTE_MS, throwNotFound} from "@live-bid/services/lib";
 import {UsersRepository} from "@app/auth/modules/users/users.repository";
 import {compareSecret, hashSecret, hashSecretToken} from "@app/auth/lib";
 
@@ -329,10 +329,44 @@ export class AuthService {
     return "Your password changed successfully. Please login again to your account.";
   }
 
-  async forgotPassword(email: string) {
+  /**
+   * **Initiates the password reset process.**
+   *
+   * @remarks
+   * - This method is **public** and does not require authentication.
+   * - To prevent **email enumeration attacks**, the same success message is returned
+   *   regardless of whether the email exists in the system.
+   * - The reset link contains a single-use token that expires after **15 minutes**.
+   * - Email sending is **fire-and-forget** (non-blocking) to keep the response fast.
+   *
+   * @param email - The user's registered email address.
+   * @param clientInfo - Client metadata (IP, browser, OS, etc.) for the security email.
+   * @returns A generic success message to avoid revealing whether the email exists.
+   *
+   * @example
+   * await this.forgotPassword('user@example.com', clientInfo);
+   * // Returns: "If an account with that email exists, a password reset link has been sent."
+   */
+  async forgotPassword(
+    email: string,
+    clientInfo: NormalizeClientInfoType,
+  ): Promise<string> {
     const user = await this.usersRepository.findOne({email});
 
-    if (!user) throwNotFound('User', 'Email');
+    // Return a generic message even if the user does not exist (security).
+    if (!user) {
+      return "If an account with that email exists, a password reset link has been sent.";
+    }
 
+    const rawToken = await this.tokenUtil.setPwdToken(user.id);
+
+    void this.authMail.forgotPasswordNotification(
+      user.email,
+      rawToken,
+      clientInfo,
+      15, // Token expires after 15 minutes.
+    );
+
+    return "If an account with that email exists, a password reset link has been sent.";
   }
 }
