@@ -154,7 +154,7 @@ export function checkDrizzleError(data: CheckDrizzleErrorParams): never {
  * @param {string} fields - The name of the fields that wasn't found
  * @throws {AppException} Always throws a NOT_FOUND GraphQL error
  */
-export function checkNotFound(resource: string, fields: string): never {
+export function throwNotFound(resource: string, fields: string): never {
   throw new AppException({
     code: "NOT_FOUND",
     message: `${resource} not found in database. Please check your ${fields} and try again`,

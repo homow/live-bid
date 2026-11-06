@@ -19,7 +19,7 @@ import {AuthMailService} from "./auth-mail.service";
 import * as ZodSchemas from "@live-bid/contracts/schemas";
 import {DrizzleService} from "@live-bid/services/modules";
 import {UsersCacheService} from "@app/auth/modules/users/services";
-import {AppException, checkNotFound} from "@live-bid/services/lib";
+import {AppException, throwNotFound} from "@live-bid/services/lib";
 import {UsersRepository} from "@app/auth/modules/users/users.repository";
 import {compareSecret, hashSecret, hashSecretToken} from "@app/auth/lib";
 
@@ -84,7 +84,7 @@ export class AuthService {
     );
 
     // Throw exception if user doesn't in database
-    if (!user) checkNotFound('User', 'phone or email');
+    if (!user) throwNotFound('User', 'phone or email');
 
     // Check password
     const isValidPassword = await compareSecret(userData.password, user.password);
@@ -296,7 +296,7 @@ export class AuthService {
   async changePassword(data: ChangePasswordRequestService) {
     const user = await this.usersRepository.findOne({id: data.userId}, false);
 
-    if (!user) checkNotFound('User', 'id');
+    if (!user) throwNotFound('User', 'id');
 
     // Check user password
     const isValidPassword = await compareSecret(data.oldPassword, user.password);
@@ -327,5 +327,11 @@ export class AuthService {
     void this.authMail.passwordChangedNotification(user.email, data.clientInfo);
 
     return "Your password changed successfully. Please login again to your account.";
+  }
+
+  async forgotPassword(email: string) {
+    const user = await this.usersRepository.findOne({email});
+
+    if (!user) throwNotFound('User', 'Email');
   }
 }

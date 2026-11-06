@@ -4,7 +4,7 @@ import {RedisKey} from "@live-bid/services/cache";
 import {UsersRepository} from "../users.repository";
 import {CacheService} from "@live-bid/services/cache";
 import type {SafeUser} from "@live-bid/services/types";
-import {checkNotFound, ONE_HOUR_MS} from "@live-bid/services/lib";
+import {throwNotFound, ONE_HOUR_MS} from "@live-bid/services/lib";
 
 /**
  * Service responsible for caching user data using Redis.
@@ -74,7 +74,7 @@ export class UsersCacheService {
     const findUser = await this.userRepository.findOne({id}, true);
 
     // Throw exception if user doesn't in database
-    if (!findUser) checkNotFound('User', 'id');
+    if (!findUser) throwNotFound('User', 'id');
 
     this.setCacheUserInfo(findUser);
 
