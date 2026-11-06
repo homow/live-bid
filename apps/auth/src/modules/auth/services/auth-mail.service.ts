@@ -84,4 +84,38 @@ export class AuthMailService {
       }),
     });
   }
+
+  /**
+   * **Send password-reset link email.**
+   *
+   * Called when a user requests to reset their forgotten password.
+   *
+   * @param email - The recipient's email address.
+   * @param resetToken - The raw reset token to embed in the reset link.
+   * @param clientInfo - Normalized client metadata for the email footer.
+   * @param expireMinutes - The token's validity duration (default: 15).
+   */
+  forgotPasswordNotification(
+    email: string,
+    resetToken: string,
+    clientInfo: NormalizeClientInfoType,
+    expireMinutes: number = 15,
+  ) {
+    return this.mail.send({
+      email,
+      force: false,
+      subject: `Reset Your Password - ${this.FRONTEND_NAME}`,
+      html: buildEmailHtml({
+        clientInfo,
+        title: "Reset Your Password",
+        contentName: "forgot-password",
+        extra: {
+          resetLink: `${this.FRONTEND_FORGOT_PASSWORD_ADDRESS}?token=${resetToken}`,
+          expireMinutes: expireMinutes.toString(),
+          titleText: "Reset Your Password",
+          messageText: "We received a request to reset the password for your account.",
+        },
+      }),
+    });
+  }
 }
