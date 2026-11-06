@@ -19,7 +19,7 @@ import {AuthMailService} from "./auth-mail.service";
 import * as ZodSchemas from "@live-bid/contracts/schemas";
 import {DrizzleService} from "@live-bid/services/modules";
 import {UsersCacheService} from "@app/auth/modules/users/services";
-import {AppException, ONE_MINUTE_MS, throwNotFound} from "@live-bid/services/lib";
+import {AppException, throwNotFound} from "@live-bid/services/lib";
 import {UsersRepository} from "@app/auth/modules/users/users.repository";
 import {compareSecret, hashSecret, hashSecretToken} from "@app/auth/lib";
 
@@ -360,12 +360,14 @@ export class AuthService {
 
     const rawToken = await this.tokenUtil.setPwdToken(user.id);
 
-    void this.authMail.forgotPasswordNotification(
-      user.email,
-      rawToken,
-      clientInfo,
-      15, // Token expires after 15 minutes.
-    );
+    if (rawToken) {
+      void this.authMail.forgotPasswordNotification(
+        user.email,
+        rawToken,
+        clientInfo,
+        15, // Token expires after 15 minutes.
+      );
+    }
 
     return "If an account with that email exists, a password reset link has been sent.";
   }

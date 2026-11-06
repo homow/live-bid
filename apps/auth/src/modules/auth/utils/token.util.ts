@@ -88,24 +88,35 @@ export class TokenUtil {
    * Generates a password reset token, hashes it, and caches it in Redis.
    *
    * @remarks
-   * - The raw token is returned to the caller (to be sent via email).
+   * - If a valid (non-expired) reset token already exists for the user,
+   *   a new one is **not** generated. This prevents email spam and abuse.
    * - Only the **hashed** token is stored in Redis for security.
    * - The cache entry expires automatically after 15 minutes (TTL).
    *
    * @param userId - The unique identifier of the user requesting the reset.
-   * @returns The raw (unhashed) token to be included in the reset link.
+   * @returns The raw (unhashed) token if generated, or `null` if a token already exists.
    *
    * @example
    * const rawToken = await this.setPwdToken(user.id);
-   * // rawToken is sent to the user's email.
+   * if (!rawToken) {
+   *   // A reset email was already sent recently; skip sending.
+   * }
    */
-  async setPwdToken(userId: string): Promise<string> {
+  async setPwdToken(userId: string): Promise<string | null> {
+    const key = `pwd_reset:${userId}`;
+
+    // Check if a valid token already exists.
+    const existingTokenHash = await this.cacheService.get<string>(key);
+    if (existingTokenHash) {
+      // A reset link was already sent recently; do not send another one.
+      return null;
+    }
+
     // Generate a raw reset token and its SHA-256 hash.
     const token = generatePasswordResetToken();
     const tokenHash = hashSecretToken(token);
 
     // Cache the hashed token with a 15-minute TTL.
-    const key = `pwd_reset:${userId}`;
     await this.cacheService.set(key, tokenHash, ONE_MINUTE_MS * 15);
 
     // Return the raw token (to be sent via email).
