@@ -7,7 +7,8 @@ import type {
   RegisterRequestService,
   RegisterResponseService,
   ChangePasswordRequestService,
-  ValidateRefreshRequestService, ForgotPasswordRequestService,
+  ForgotPasswordRequestService,
+  ValidateRefreshRequestService,
 } from "@live-bid/services/types";
 
 import {Controller} from "@nestjs/common";
