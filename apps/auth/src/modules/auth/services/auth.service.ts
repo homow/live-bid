@@ -5,7 +5,8 @@ import type {
   RefreshRequestService,
   NormalizeClientInfoType,
   RegisterResponseService,
-  ValidateRefreshRequestService, ChangePasswordRequestService,
+  ChangePasswordRequestService,
+  ValidateRefreshRequestService,
 } from "@live-bid/services/types";
 
 import {TokenUtil} from "../utils";
@@ -16,11 +17,11 @@ import {ConfigService} from "@nestjs/config";
 import {AuthRepository} from "../auth.repository";
 import {AuthMailService} from "./auth-mail.service";
 import * as ZodSchemas from "@live-bid/contracts/schemas";
+import {DrizzleService} from "@live-bid/services/modules";
 import {UsersCacheService} from "@app/auth/modules/users/services";
 import {AppException, checkNotFound} from "@live-bid/services/lib";
 import {UsersRepository} from "@app/auth/modules/users/users.repository";
 import {compareSecret, hashSecret, hashSecretToken} from "@app/auth/lib";
-import {DrizzleService} from "@live-bid/services/modules";
 
 @Injectable()
 export class AuthService {
