@@ -295,4 +295,9 @@ export class AuthResolver {
 
     return result;
   }
+
+  @Mutation(() => String)
+  forgotPassword() {
+    return 'forgot password';
+  }
 }
