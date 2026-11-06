@@ -5,4 +5,5 @@ export const AUTH_PATTERNS = {
   REFRESH: "auth.refresh",
   LOGOUT: "auth.logout",
   changePassword: "auth.change_password",
+  forgotPassword: "auth.forgot_password",
 } as const;

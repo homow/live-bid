@@ -7,7 +7,7 @@ import type {
   RegisterRequestService,
   RegisterResponseService,
   ChangePasswordRequestService,
-  ValidateRefreshRequestService,
+  ValidateRefreshRequestService, ForgotPasswordRequestService,
 } from "@live-bid/services/types";
 
 import {Controller} from "@nestjs/common";
@@ -118,5 +118,21 @@ export class AuthController {
     @Payload() data: ChangePasswordRequestService,
   ) {
     return this.authService.changePassword(data);
+  }
+
+  /**
+   * **Handle forgot-password requests from the API Gateway.**
+   *
+   * Receives a message via the microservice transport layer and delegates
+   * the reset process to `AuthService.forgotPassword`.
+   *
+   * @param data - Contains the user's `email` and normalized `clientInfo`.
+   * @returns A generic success message (prevents email enumeration).
+   */
+  @MessagePattern(ServiceMessages.AUTH_PATTERNS.forgotPassword)
+  forgotPassword(
+    @Payload() data: ForgotPasswordRequestService
+  ) {
+    return this.authService.forgotPassword(data.email, data.clientInfo);
   }
 }
