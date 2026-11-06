@@ -17,3 +17,7 @@ export const RefreshDecorators = () => applyDecorators(
 export const LogoutDecorators = () => applyDecorators(
   Public()
 );
+
+export const ForgotPasswordDecorators = () => applyDecorators(
+  Public()
+);

@@ -296,6 +296,7 @@ export class AuthResolver {
     return result;
   }
 
+  @Decorators.ForgotPasswordDecorators()
   @Mutation(() => String)
   forgotPassword() {
     return 'forgot password';
