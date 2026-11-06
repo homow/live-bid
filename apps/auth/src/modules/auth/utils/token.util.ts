@@ -3,14 +3,17 @@ import {JwtService} from "@nestjs/jwt";
 import ms, {type StringValue} from "ms";
 import {Injectable} from "@nestjs/common";
 import {ConfigService} from "@nestjs/config";
+import {ONE_MINUTE_MS} from "@live-bid/services/lib";
+import {CacheService} from "@live-bid/services/cache";
 import type {AccessTokenPayload} from "@live-bid/services/types";
-import {generateRandomToken, hashSecretToken} from "@app/auth/lib";
+import {generatePasswordResetToken, generateRandomToken, hashSecretToken} from "@app/auth/lib";
 
 @Injectable()
 export class TokenUtil {
   constructor(
     private readonly config: ConfigService,
     private readonly jwtService: JwtService,
+    private readonly cacheService: CacheService,
   ) {}
 
   /** **get same refreshToken options** */
@@ -61,7 +64,7 @@ export class TokenUtil {
   }
 
   /** **Get and return refresh and access** */
-  getTokens(payload: AccessTokenPayload, remember: boolean) {
+  getAccessAndRefreshTokens(payload: AccessTokenPayload, remember: boolean) {
     const randomPart: string = generateRandomToken();
     const refreshToken: string = `${payload.sub}:${randomPart}`;
 
@@ -79,5 +82,33 @@ export class TokenUtil {
       refreshToken,
       hashedRefreshToken,
     };
+  }
+
+  /**
+   * Generates a password reset token, hashes it, and caches it in Redis.
+   *
+   * @remarks
+   * - The raw token is returned to the caller (to be sent via email).
+   * - Only the **hashed** token is stored in Redis for security.
+   * - The cache entry expires automatically after 15 minutes (TTL).
+   *
+   * @param userId - The unique identifier of the user requesting the reset.
+   * @returns The raw (unhashed) token to be included in the reset link.
+   *
+   * @example
+   * const rawToken = await this.setPwdToken(user.id);
+   * // rawToken is sent to the user's email.
+   */
+  async setPwdToken(userId: string): Promise<string> {
+    // Generate a raw reset token and its SHA-256 hash.
+    const token = generatePasswordResetToken();
+    const tokenHash = hashSecretToken(token);
+
+    // Cache the hashed token with a 15-minute TTL.
+    const key = `pwd_reset:${userId}`;
+    await this.cacheService.set(key, tokenHash, ONE_MINUTE_MS * 15);
+
+    // Return the raw token (to be sent via email).
+    return token;
   }
 }

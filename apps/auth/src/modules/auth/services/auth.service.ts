@@ -103,7 +103,7 @@ export class AuthService {
     const {password: _, ...safeUser} = user;
 
     // Generate refresh and access tokens
-    const tokens = this.tokenUtil.getTokens(
+    const tokens = this.tokenUtil.getAccessAndRefreshTokens(
       {
         sub: safeUser.id,
         role: safeUser.role,
@@ -228,7 +228,7 @@ export class AuthService {
     const remember_me = refreshPayload.refreshRecord.remember_me;
 
     // Generate refresh and access tokens
-    const tokens = this.tokenUtil.getTokens(
+    const tokens = this.tokenUtil.getAccessAndRefreshTokens(
       {
         sub: user.id,
         role: user.role,
@@ -333,5 +333,6 @@ export class AuthService {
     const user = await this.usersRepository.findOne({email});
 
     if (!user) throwNotFound('User', 'Email');
+
   }
 }
