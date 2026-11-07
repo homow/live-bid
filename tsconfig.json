@@ -44,5 +44,10 @@
         "packages/services/src/*"
       ]
     }
-  }
+  },
+  "exclude": [
+    "node_modules",
+    "clients",
+    "dist"
+  ]
 }
