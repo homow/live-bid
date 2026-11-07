@@ -27,7 +27,8 @@ export function hashSecretToken(value: string): string {
   return createHash('sha256').update(value).digest('hex');
 }
 
-/** generate password reset token (short-lived, 32 bytes) */
-export function generatePasswordResetToken(): string {
-  return randomBytes(32).toString("hex");
+/** **generate password reset token (short-lived, 32 bytes)** */
+export function generatePasswordResetToken(userId: string): string {
+  const token = randomBytes(32).toString("hex");
+  return `${userId}.${token}`;
 }

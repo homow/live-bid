@@ -113,7 +113,7 @@ export class TokenUtil {
     }
 
     // Generate a raw reset token and its SHA-256 hash.
-    const token = generatePasswordResetToken();
+    const token = generatePasswordResetToken(userId);
     const tokenHash = hashSecretToken(token);
 
     // Cache the hashed token with a 15-minute TTL.
