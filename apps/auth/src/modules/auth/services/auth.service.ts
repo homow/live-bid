@@ -351,12 +351,12 @@ export class AuthService {
     email: string,
     clientInfo: NormalizeClientInfoType,
   ): Promise<string> {
+    const genericMessage = "If an account with that email exists, a password reset link has been sent.";
+
     const user = await this.usersRepository.findOne({email});
 
     // Return a generic message even if the user does not exist (security).
-    if (!user) {
-      return "If an account with that email exists, a password reset link has been sent.";
-    }
+    if (!user) return genericMessage;
 
     const rawToken = await this.tokenUtil.setPwdToken(user.id);
 
@@ -369,6 +369,6 @@ export class AuthService {
       );
     }
 
-    return "If an account with that email exists, a password reset link has been sent.";
+    return genericMessage;
   }
 }

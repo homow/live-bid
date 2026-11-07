@@ -10,7 +10,7 @@ import type {
   RegisterRequestService,
   RegisterResponseService,
   NormalizeClientInfoType,
-  ChangePasswordRequestService,
+  ChangePasswordRequestService, ForgotPasswordRequestService,
 } from "@live-bid/services/types";
 
 import {firstValueFrom} from "rxjs";
@@ -298,7 +298,22 @@ export class AuthResolver {
 
   @Decorators.ForgotPasswordDecorators()
   @Mutation(() => String)
-  forgotPassword() {
-    return 'forgot password';
+  forgotPassword(
+    @Args(
+      'email',
+      {type: () => String, name: 'email'},
+      new ZodPipe(ZodSchemas.RegisterUserSchema.shape.email)
+    ) email: string,
+    @NormalizeClientInfo() clientInfo: NormalizeClientInfoType,
+  ) {
+    return firstValueFrom<string>(
+      this.authClient.send(
+        ServiceMessages.AUTH_PATTERNS.forgotPassword,
+        {
+          email,
+          clientInfo,
+        } satisfies ForgotPasswordRequestService
+      )
+    );
   }
 }
