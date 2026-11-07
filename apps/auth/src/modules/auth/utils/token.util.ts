@@ -7,6 +7,7 @@ import {ONE_MINUTE_MS} from "@live-bid/services/lib";
 import {CacheService} from "@live-bid/services/cache";
 import type {AccessTokenPayload} from "@live-bid/services/types";
 import {generatePasswordResetToken, generateRandomToken, hashSecretToken} from "@app/auth/lib";
+import {timingSafeEqual} from "node:crypto";
 
 @Injectable()
 export class TokenUtil {
@@ -121,5 +122,26 @@ export class TokenUtil {
 
     // Return the raw token (to be sent via email).
     return token;
+  }
+
+  async verifyPwdToken(token: string) {
+    // Get user id from token
+    const [userId] = token.split(".");
+
+    if (!userId) return null;
+
+    // Get token hashed in Redis
+    const storedHash = await this.cacheService.get<string>(`pwd_reset:${userId}`);
+    if (!storedHash) return null;
+
+    // Hash raw token
+    const tokenHash = hashSecretToken(token);
+
+    // Buffer tokens
+    const tokenBuffer = Buffer.from(tokenHash, "hex");
+    const storedBuffer = Buffer.from(storedHash, "hex");
+
+    // Validate
+    if (!timingSafeEqual(tokenBuffer, storedBuffer)) return null;
   }
 }
