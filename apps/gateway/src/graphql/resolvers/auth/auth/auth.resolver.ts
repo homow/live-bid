@@ -10,7 +10,8 @@ import type {
   RegisterRequestService,
   RegisterResponseService,
   NormalizeClientInfoType,
-  ChangePasswordRequestService, ForgotPasswordRequestService,
+  ChangePasswordRequestService,
+  ForgotPasswordRequestService,
 } from "@live-bid/services/types";
 
 import {firstValueFrom} from "rxjs";
