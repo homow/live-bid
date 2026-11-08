@@ -2,12 +2,12 @@ import {CookieOptions} from "express";
 import {JwtService} from "@nestjs/jwt";
 import ms, {type StringValue} from "ms";
 import {Injectable} from "@nestjs/common";
+import {timingSafeEqual} from "node:crypto";
 import {ConfigService} from "@nestjs/config";
 import {ONE_MINUTE_MS} from "@live-bid/services/lib";
 import {CacheService} from "@live-bid/services/cache";
 import type {AccessTokenPayload} from "@live-bid/services/types";
 import {generatePasswordResetToken, generateRandomToken, hashSecretToken} from "@app/auth/lib";
-import {timingSafeEqual} from "node:crypto";
 
 @Injectable()
 export class TokenUtil {
