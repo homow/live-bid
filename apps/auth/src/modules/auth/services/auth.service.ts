@@ -1,10 +1,11 @@
-import type {
+import {
   SafeUser,
   RefreshTokenPayload,
   LoginResponseService,
   RefreshRequestService,
   NormalizeClientInfoType,
   RegisterResponseService,
+  ResetPasswordRequestService,
   ChangePasswordRequestService,
   ValidateRefreshRequestService,
 } from "@live-bid/services/types";
@@ -370,5 +371,12 @@ export class AuthService {
     }
 
     return genericMessage;
+  }
+
+  async resetPassword({clientInfo, token}: ResetPasswordRequestService) {
+
+    const user = await this.usersRepository.findOne({});
+
+    if (!user) throwNotFound('User', 'email');
   }
 }
