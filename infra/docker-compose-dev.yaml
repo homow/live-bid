@@ -72,6 +72,7 @@ services:
       - ../apps/gateway/.env
     environment:
       - REDIS_HOST=redis
+      - FRONT_END_URL=http://web:3000
     healthcheck:
       test: [ "CMD", "node", "-e", "fetch('http://127.0.0.1:3001/api/health').then(r => { if (!r.ok) process.exit(1) }).catch(() => process.exit(1))" ]
       interval: 5s
@@ -103,10 +104,11 @@ services:
       - ../apps/auth/.env
     environment:
       - REDIS_HOST=redis
-      - FRONTEND_ADDRESS=client
-      - FRONTEND_DASHBOARD=client/dashboard
-      - FRONTEND_LOGIN_ADDRESS=client/login
-      - FRONTEND_FORGOT_PASSWORD_ADDRESS=client/forgot-password
+      - FRONTEND_ADDRESS=http://web:3000
+      - FRONTEND_DASHBOARD=http://web:3000/dashboard
+      - FRONTEND_LOGIN_ADDRESS=http://web:3000/login
+      - FRONTEND_FORGOT_PASSWORD_ADDRESS=http://web:3000/forgot-password
+      - DATABASE_URL=postgresql://admin:admin@postgres:5432/live_bid
 
 volumes:
   live_bid_postgres_dev_data:
