@@ -45,6 +45,32 @@ services:
       - live_bid_node_modules_volume_dev:/app/node_modules
     command: npm ci
 
+  # Gateway Service
+  gateway:
+    image: node:26-alpine
+    container_name: live-bid-gateway-dev
+    restart: on-failure
+    networks:
+      - live-bid-dev-network
+    working_dir: /app
+    volumes:
+      - ../:/app
+      - live_bid_node_modules_volume_dev:/app/node_modules
+    command: npm run dev:gateway
+    ports:
+      - "3001:3001"
+    depends_on:
+      installer:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file:
+      - ../apps/gateway/.env
+    environment:
+      - REDIS_HOST=redis
+
 volumes:
   live_bid_postgres_dev_data:
   live_bid_redis_dev_data:
