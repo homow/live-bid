@@ -47,6 +47,46 @@ services:
       - live_bid_node_modules_volume_dev:/app/node_modules
     command: npm ci
 
+  # Contracts Package
+  builder-contracts:
+    image: node:26-alpine
+    container_name: live-bid-builder-contracts-dev
+    restart: on-failure
+    working_dir: /app
+    volumes:
+      - ../:/app
+      - live_bid_node_modules_volume_dev:/app/node_modules
+    command: sh -c "rm -f /app/packages/contracts/.built-docker && npm run build:contracts && touch /app/packages/contracts/.built-docker && npm run dev:contracts"
+    depends_on:
+      installer:
+        condition: service_completed_successfully
+    healthcheck:
+      test: [ "CMD-SHELL", "test -f /app/packages/contracts/.built-docker" ]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  # Services Package
+  builder-services:
+    image: node:26-alpine
+    container_name: live-bid-builder-services-dev
+    restart: on-failure
+    working_dir: /app
+    volumes:
+      - ../:/app
+      - live_bid_node_modules_volume_dev:/app/node_modules
+    command: sh -c "rm -f /app/packages/services/.built-docker && npm run build:services && touch /app/packages/services/.built-docker  && npm run dev:services"
+    depends_on:
+      installer:
+        condition: service_completed_successfully
+      builder-contracts:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD-SHELL", "test -f /app/packages/services/.built-docker" ]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
   # Gateway Service
   gateway:
     image: node:26-alpine
@@ -67,6 +107,10 @@ services:
       postgres:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      builder-contracts:
+        condition: service_healthy
+      builder-services:
         condition: service_healthy
     env_file:
       - ../apps/gateway/.env
@@ -100,6 +144,10 @@ services:
         condition: service_healthy
       gateway:
         condition: service_healthy
+      builder-contracts:
+        condition: service_healthy
+      builder-services:
+        condition: service_healthy
     env_file:
       - ../apps/auth/.env
     environment:
@@ -130,6 +178,10 @@ services:
       redis:
         condition: service_healthy
       gateway:
+        condition: service_healthy
+      builder-contracts:
+        condition: service_healthy
+      builder-services:
         condition: service_healthy
     env_file:
       - ../apps/core/.env
