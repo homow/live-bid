@@ -35,9 +35,20 @@ services:
       timeout: 5s
       retries: 5
 
+  # Package Installer
+  installer:
+    image: node:26-alpine
+    container_name: live-bid-package-installer-dev
+    working_dir: /app
+    volumes:
+      - ../:/app
+      - live_bid_node_modules_volume_dev:/app/node_modules
+    command: npm ci
+
 volumes:
   live_bid_postgres_dev_data:
   live_bid_redis_dev_data:
+  live_bid_node_modules_volume_dev:
 
 networks:
   live-bid-dev-network:
