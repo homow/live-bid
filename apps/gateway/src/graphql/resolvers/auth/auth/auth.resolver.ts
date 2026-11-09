@@ -337,4 +337,10 @@ export class AuthResolver {
       )
     );
   }
+
+  @Decorators.ResetPasswordDecorators()
+  @Mutation(() => String)
+  resetPassword() {
+    return 'reset password';
+  }
 }

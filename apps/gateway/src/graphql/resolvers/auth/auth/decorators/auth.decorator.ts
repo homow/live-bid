@@ -21,3 +21,7 @@ export const LogoutDecorators = () => applyDecorators(
 export const ForgotPasswordDecorators = () => applyDecorators(
   Public()
 );
+
+export const ResetPasswordDecorators = () => applyDecorators(
+  Public()
+);
