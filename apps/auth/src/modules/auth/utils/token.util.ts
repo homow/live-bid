@@ -2,7 +2,6 @@ import {CookieOptions} from "express";
 import {JwtService} from "@nestjs/jwt";
 import ms, {type StringValue} from "ms";
 import {Injectable} from "@nestjs/common";
-import {timingSafeEqual} from "node:crypto";
 import {ConfigService} from "@nestjs/config";
 import {ONE_MINUTE_MS} from "@live-bid/services/lib";
 import {CacheService} from "@live-bid/services/cache";
@@ -127,19 +126,27 @@ export class TokenUtil {
     return token;
   }
 
-  async verifyPwdToken(userId: string, token: string) {
-    // Get token hashed in Redis
-    const storedHash = await this.cacheService.get<string>(`pwd_reset:${userId}`);
-    if (!storedHash) return null;
-
-    // Hash raw token
+  /**
+   * Verifies a raw password reset token and returns the associated `userId`.
+   *
+   * @remarks
+   * - The token is hashed (SHA-256) before lookup; the raw token is never stored.
+   * - Returns `null` if the token is invalid, expired, or already used.
+   * - This method does **not** consume (delete) the token; the caller is
+   *   responsible for deleting it after a successful password reset.
+   *
+   * @param token - The raw reset token received from the user (e.g. from the email link).
+   * @returns The `userId` associated with the token, or `null` if invalid/expired.
+   *
+   * @example
+   * const userId = await this.verifyPwdToken(rawToken);
+   * if (!userId) throw new AppException({ ... "Invalid or expired token" });
+   */
+  async verifyPwdToken(token: string): Promise<string | null> {
+    // Hash the raw token with SHA-256 (same as when it was stored).
     const tokenHash = hashSecretToken(token);
 
-    // Buffer tokens
-    const tokenBuffer = Buffer.from(tokenHash, "hex");
-    const storedBuffer = Buffer.from(storedHash, "hex");
-
-    // Validate
-    if (!timingSafeEqual(tokenBuffer, storedBuffer)) return null;
+    // Look up the hashed token in Redis; the value is the associated userId.
+    return this.cacheService.get<string>(`pwd_reset:${tokenHash}`);
   }
 }
