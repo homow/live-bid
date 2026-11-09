@@ -1,4 +1,5 @@
 import z from "zod";
+import {UserPasswordSchema} from "../../common";
 
 export const PasswordResetTokenSchema = z
   .string()
@@ -8,3 +9,10 @@ export const PasswordResetTokenSchema = z
     "Invalid password reset token format"
   )
   .brand<"PasswordResetToken">();
+
+export const ResetPasswordSchema = z.object({
+  token: PasswordResetTokenSchema,
+  newPassword: UserPasswordSchema,
+});
+
+export type ResetPasswordSchema = z.infer<typeof ResetPasswordSchema>;
