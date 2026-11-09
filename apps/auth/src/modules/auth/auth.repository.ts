@@ -1,10 +1,11 @@
-import {and, eq} from "drizzle-orm";
+import {and, eq, SQL} from "drizzle-orm";
 import {Injectable} from "@nestjs/common";
-import type {RefreshTokenInsert} from "@app/auth/types";
+import {AppException} from "@live-bid/services/lib";
 import {DrizzleService} from "@live-bid/services/modules";
 import {USER_PUBLIC_COLUMNS} from "../users/users.repository";
 import {refreshToken, user} from "@live-bid/services/database";
 import type {DrizzleTransaction} from "@live-bid/services/types";
+import type {ChangePasswordRepositoryParams, RefreshTokenInsert} from "@app/auth/types";
 
 export const REFRESH_TOKEN_PUBLIC_COLUMNS = {
   id: refreshToken.id,
@@ -114,16 +115,33 @@ export class AuthRepository {
   /**
    * Updates the user's password hash.
    *
-   * @param userId   - Target user ID.
-   * @param password - Already-hashed password (do **not** pass plaintext).
-   * @param tx       - Optional transaction; falls back to `drizzle.db`.
+   * The user is identified by `id` (preferred) or `email`.
+   *
+   * @param params - Contains `password` (already hashed), and `id` or `email`.
+   * @param tx - Optional transaction; falls back to `drizzle.db`.
+   *
+   * @throws {AppException} 500 — neither `id` nor `email` was provided.
    */
-  async changePassword(userId: string, password: string, tx?: DrizzleTransaction) {
+  async changePassword({password, id, email}: ChangePasswordRepositoryParams, tx?: DrizzleTransaction) {
+    let whereQuery: SQL<unknown>;
+
+    if (id) {
+      whereQuery = eq(user.id, id);
+    } else if (email) {
+      whereQuery = eq(user.email, email);
+    } else {
+      throw new AppException({
+        statusCode: 500,
+        code: 'MISSING_IDENTIFIER',
+        message: `Either 'email' or 'id' must be provided to change the user password. (${AuthRepository.name})`,
+      });
+    }
+
     const db = tx ?? this.drizzle.db;
 
     await db
       .update(user)
       .set({password})
-      .where(eq(user.id, userId));
+      .where(whereQuery);
   }
 }
