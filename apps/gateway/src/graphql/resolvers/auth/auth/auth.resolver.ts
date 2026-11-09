@@ -340,7 +340,14 @@ export class AuthResolver {
 
   @Decorators.ResetPasswordDecorators()
   @Mutation(() => String)
-  resetPassword() {
+  resetPassword(
+    @Args(
+      'input',
+      {type: () => AuthInputs.ResetPasswordInput},
+      new ZodPipe(ZodSchemas.ResetPasswordSchema)
+    ) input: ZodSchemas.ResetPasswordSchemaType
+  ) {
+    console.log(input);
     return 'reset password';
   }
 }

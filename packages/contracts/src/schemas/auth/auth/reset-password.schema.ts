@@ -1,18 +1,19 @@
 import z from "zod";
 import {UserPasswordSchema} from "../../common";
 
+/**
+ * Schema for validating a raw password reset token.
+ * The token is a 32-byte random value encoded as a 64-character hex string.
+ */
 export const PasswordResetTokenSchema = z
   .string()
   .trim()
-  .regex(
-    /^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\.[0-9a-f]{64}$/i,
-    "Invalid password reset token format"
-  )
-  .brand<"PasswordResetToken">();
+  .length(64, "Password reset token must be exactly 64 characters")
+  .regex(/^[0-9a-f]+$/i, "Password reset token must be a valid hex string");
 
 export const ResetPasswordSchema = z.object({
   token: PasswordResetTokenSchema,
   newPassword: UserPasswordSchema,
 });
 
-export type ResetPasswordSchema = z.infer<typeof ResetPasswordSchema>;
+export type ResetPasswordSchemaType = z.infer<typeof ResetPasswordSchema>;
