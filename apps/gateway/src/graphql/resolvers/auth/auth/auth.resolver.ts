@@ -16,7 +16,6 @@ import type {
 } from "@live-bid/services/types";
 
 import {firstValueFrom} from "rxjs";
-import type {Request} from "express";
 import {Inject} from "@nestjs/common";
 import * as AuthInputs from "./inputs";
 import * as AuthOutputs from "./outputs";
