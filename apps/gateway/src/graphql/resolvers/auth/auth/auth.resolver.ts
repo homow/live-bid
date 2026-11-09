@@ -10,11 +10,13 @@ import type {
   RegisterRequestService,
   RegisterResponseService,
   NormalizeClientInfoType,
+  ResetPasswordRequestService,
   ChangePasswordRequestService,
   ForgotPasswordRequestService,
 } from "@live-bid/services/types";
 
 import {firstValueFrom} from "rxjs";
+import type {Request} from "express";
 import {Inject} from "@nestjs/common";
 import * as AuthInputs from "./inputs";
 import * as AuthOutputs from "./outputs";
@@ -223,7 +225,7 @@ export class AuthResolver {
   @Decorators.LogoutDecorators()
   @Mutation(() => String)
   logout(
-    @Context() context: GraphQLContext<RefreshRequest>,
+    @Context() context: GraphQLContext,
   ) {
     const {res, req} = context;
 
@@ -282,7 +284,7 @@ export class AuthResolver {
 
     const result = await firstValueFrom<string>(
       this.authClient.send(
-        ServiceMessages.AUTH_PATTERNS.changePassword,
+        ServiceMessages.AUTH_PATTERNS.CHANGE_PASSWORD,
         {
           ...input,
           clientInfo,
@@ -329,7 +331,7 @@ export class AuthResolver {
   ) {
     return firstValueFrom<string>(
       this.authClient.send(
-        ServiceMessages.AUTH_PATTERNS.forgotPassword,
+        ServiceMessages.AUTH_PATTERNS.FORGOT_PASSWORD,
         {
           email,
           clientInfo,
@@ -338,16 +340,63 @@ export class AuthResolver {
     );
   }
 
+  /**
+   * **Reset the user's password using a valid reset token.**
+   *
+   * Forwards the request to the auth microservice, which validates the token,
+   * updates the password, and revokes all active refresh tokens for the user.
+   * Finally, clears the access and refresh token cookies (if present) on the client
+   * so the user must log in again with the new password.
+   *
+   * @param input      - `{ token, newPassword }` (validated by Zod).
+   * @param context    - GraphQL context; `res` is used to clear auth cookies.
+   * @param clientInfo - Normalized client metadata (IP, User-Agent, Geo, Lang)
+   *                     attached to the security-alert email.
+   * @returns Success message from the auth service.
+   *
+   * @throws {GatewayException} 400 — invalid or expired reset token.
+   * @throws {GatewayException} 400 — `newPassword` fails password policy (propagated).
+   *
+   * @remarks
+   * - Public endpoint (no authenticated session required).
+   * - The reset token is single-use and has a short TTL (stored as a hash in Redis).
+   * - Revokes **all** refresh tokens server-side for the user.
+   * - Clears both `ACCESS_TOKEN` and `REFRESH_TOKEN` cookies client-side,
+   *   in case the user was already logged in on the same device.
+   * - Triggers a "password reset" security-alert email.
+   *
+   * @example
+   * mutation ResetPassword($input: ResetPasswordInput!) {
+   *   resetPassword(input: $input)
+   * }
+   * // variables: { "input": { "token": "<64-char-hex>", "newPassword": "new-secret" } }
+   */
   @Decorators.ResetPasswordDecorators()
   @Mutation(() => String)
-  resetPassword(
+  async resetPassword(
     @Args(
       'input',
       {type: () => AuthInputs.ResetPasswordInput},
       new ZodPipe(ZodSchemas.ResetPasswordSchema)
-    ) input: ZodSchemas.ResetPasswordSchemaType
+    ) input: ZodSchemas.ResetPasswordSchemaType,
+    @NormalizeClientInfo() clientInfo: NormalizeClientInfoType,
+    @Context() context: GraphQLContext,
   ) {
-    console.log(input);
-    return 'reset password';
+    const {res} = context;
+
+    const result = await firstValueFrom<string>(
+      this.authClient.send(
+        ServiceMessages.AUTH_PATTERNS.RESET_PASSWORD,
+        {
+          ...input,
+          clientInfo,
+        } satisfies ResetPasswordRequestService
+      )
+    );
+
+    res.clearCookie(ACCESS_TOKEN_NAME);
+    res.clearCookie(REFRESH_TOKEN_NAME);
+
+    return result;
   }
 }

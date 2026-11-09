@@ -124,12 +124,7 @@ export class TokenUtil {
     return token;
   }
 
-  async verifyPwdToken(token: string) {
-    // Get user id from token
-    const [userId] = token.split(".");
-
-    if (!userId) return null;
-
+  async verifyPwdToken(userId: string, token: string) {
     // Get token hashed in Redis
     const storedHash = await this.cacheService.get<string>(`pwd_reset:${userId}`);
     if (!storedHash) return null;
