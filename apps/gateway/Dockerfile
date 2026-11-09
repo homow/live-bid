@@ -40,8 +40,8 @@ WORKDIR /app
 ENV NODE_ENV=production
 
 # Create User and Group
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S nestjs -u 1001 -G nodejs
+RUN addgroup -g 1001 -S gateway && \
+    adduser -S gateway -u 1001 -G gateway
 
 # Copy Dependencies
 COPY --from=deps /app/node_modules ./node_modules
@@ -59,7 +59,7 @@ COPY --from=builder /app/packages/services/dist ./packages/services/dist
 COPY --from=builder /app/public ./
 COPY --from=builder /app/migrations ./
 
-USER nestjs
+USER gateway
 
 EXPOSE 3001
 
