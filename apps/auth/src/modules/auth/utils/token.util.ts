@@ -91,11 +91,12 @@ export class TokenUtil {
    * @remarks
    * - If a valid (non-expired) reset token already exists for the user,
    *   a new one is **not** generated. This prevents email spam and abuse.
-   * - Only the **hashed** token is stored in Redis for security.
+   * - Only the **hashed** token is used as the Redis **key**; its **value** is the `userId`.
    * - The cache entry expires automatically after 15 minutes (TTL).
+   * - The raw token is returned **only once** to be sent via email; it is never stored.
    *
    * @param userId - The unique identifier of the user requesting the reset.
-   * @returns The raw (unhashed) token if generated, or `null` if a token already exists.
+   * @returns The raw (unhashed) token if generated, or `null` if a valid token already exists.
    *
    * @example
    * const rawToken = await this.setPwdToken(user.id);
@@ -104,21 +105,23 @@ export class TokenUtil {
    * }
    */
   async setPwdToken(userId: string): Promise<string | null> {
-    const key = `pwd_reset:${userId}`;
-
-    // Check if a valid token already exists.
-    const existingTokenHash = await this.cacheService.get<string>(key);
-    if (existingTokenHash) {
-      // A reset link was already sent recently; do not send another one.
-      return null;
-    }
-
     // Generate a raw reset token and its SHA-256 hash.
     const token = generatePasswordResetToken();
     const tokenHash = hashSecretToken(token);
 
-    // Cache the hashed token with a 15-minute TTL.
-    await this.cacheService.set(key, tokenHash, ONE_MINUTE_MS * 15);
+    // Use the hashed token as the Redis key (never the raw token).
+    const key = `pwd_reset:${tokenHash}`;
+
+    // Check if a valid token already exists for this user.
+    const existingUserId = await this.cacheService.get<string>(key);
+
+    if (existingUserId) {
+      // A reset link was already sent recently; do not send another one.
+      return null;
+    }
+
+    // Cache the hashed token → userId mapping with a 15-minute TTL.
+    await this.cacheService.set(key, userId, ONE_MINUTE_MS * 15);
 
     // Return the raw token (to be sent via email).
     return token;
