@@ -4,7 +4,7 @@ import * as Schemas from "@live-bid/contracts/schemas";
 import {UserRoleEnum} from "@live-bid/contracts/enums";
 import {DrizzleService} from "@live-bid/services/modules";
 import {type User, user} from "@live-bid/services/database";
-import {AppException, checkDrizzleError} from "@live-bid/services/lib";
+import {AppException, handleDrizzleError} from "@live-bid/services/lib";
 import type {DrizzleTransaction, SafeUser} from "@live-bid/services/types";
 
 export const USER_PUBLIC_COLUMNS = {
@@ -46,7 +46,7 @@ export class UsersRepository {
 
       return result;
     } catch (e) {
-      checkDrizzleError({
+      handleDrizzleError({
         e,
         mainResource: 'user',
         conflictField: 'email',
