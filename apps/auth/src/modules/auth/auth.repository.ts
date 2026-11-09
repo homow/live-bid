@@ -25,12 +25,22 @@ export class AuthRepository {
     private readonly drizzle: DrizzleService,
   ) {}
 
+  /**
+   * Inserts a new refresh token row.
+   *
+   * @param data - Refresh token insert payload.
+   */
   insertRefreshToken(data: RefreshTokenInsert) {
     return this.drizzle.db
       .insert(refreshToken)
       .values(data);
   }
 
+  /**
+   * Finds a refresh token record by its hash.
+   *
+   * @param tokenHash - SHA-256 hash of the refresh token.
+   */
   findRefreshRecord(tokenHash: string) {
     return this.drizzle.db
       .select(REFRESH_TOKEN_PUBLIC_COLUMNS)
@@ -38,13 +48,18 @@ export class AuthRepository {
       .where(eq(refreshToken.token_hash, tokenHash));
   }
 
+  /**
+   * Finds a refresh token by hash, joined with its public user record.
+   *
+   * @param tokenHash - SHA-256 hash of the refresh token.
+   */
   findRefreshRecordWithUser(tokenHash: string) {
     return this.drizzle.db
       .select({
         ...REFRESH_TOKEN_PUBLIC_COLUMNS,
 
         // Public User Record
-        user: USER_PUBLIC_COLUMNS
+        user: USER_PUBLIC_COLUMNS,
       })
       .from(refreshToken)
       .where(eq(refreshToken.token_hash, tokenHash))
@@ -78,6 +93,19 @@ export class AuthRepository {
       .where(eq(refreshToken.user_id, userId));
   }
 
+  /**
+   * Rotates a refresh token: inserts a new one and revokes the old one atomically.
+   *
+   * The old token is only revoked if it hasn't been revoked yet (prevents replay).
+   *
+   * @param oldTokenId - ID of the token to rotate out.
+   * @param newTokenData - Data for the newly issued token.
+   * @returns The newly inserted refresh token row.
+   *
+   * @remarks
+   * Runs inside a single DB transaction. `replace_by_token_id` is set on the
+   * old row for audit/traceability.
+   */
   rotateToken(
     oldTokenId: string,
     newTokenData: RefreshTokenInsert
@@ -103,6 +131,12 @@ export class AuthRepository {
     });
   }
 
+  /**
+   * Revokes a single refresh token by its hash.
+   *
+   * @param tokenHash - SHA-256 hash of the refresh token.
+   * @param tx - Optional transaction; falls back to `drizzle.db`.
+   */
   async revokeToken(tokenHash: string, tx?: DrizzleTransaction) {
     const db = tx ?? this.drizzle.db;
 
