@@ -7,4 +7,7 @@ export class ResetPasswordInput {
 
   @Field(() => String)
   newPassword: string;
+
+  @Field(() => String)
+  email: string;
 }
