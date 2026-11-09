@@ -66,19 +66,20 @@ export class AuthMailService {
   passwordChangedNotification(
     email: string,
     clientInfo: NormalizeClientInfoType,
+    action: 'reset' | 'change' = 'change'
   ) {
     return this.mail.send({
       email,
       force: false,
-      subject: `Your Password Successfully Changed - ${this.FRONTEND_NAME}`,
+      subject: `Your password successfully ${action} - ${this.FRONTEND_NAME}`,
       html: buildEmailHtml({
         clientInfo,
-        title: "Password Changed Successfully",
+        title: `Password ${action} successfully`,
         contentName: "changed-password",
         extra: {
           loginLink: `${this.FRONTEND_LOGIN_ADDRESS}`,
           resetLink: `${this.FRONTEND_FORGOT_PASSWORD_ADDRESS}`,
-          titleText: "Your Password Has Been Changed",
+          titleText: `Your Password Has Been ${action}`,
           messageText: "Your password was updated successfully. You can now log in with your new password.",
         },
       }),

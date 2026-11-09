@@ -337,7 +337,7 @@ export class AuthService {
     );
 
     // Send email After successful commit
-    void this.authMail.passwordChangedNotification(result.email, data.clientInfo);
+    void this.authMail.passwordChangedNotification(result.email, data.clientInfo, 'change');
 
     return result.message;
   }
@@ -408,8 +408,9 @@ export class AuthService {
       });
     }
 
-    void this.authMail.passwordChangedNotification(userEmail, clientInfo);
+    // Notification to user
+    void this.authMail.passwordChangedNotification(userEmail, clientInfo, 'reset');
 
-    return 'User password changed successfully.';
+    return 'User password reset successfully.';
   }
 }
