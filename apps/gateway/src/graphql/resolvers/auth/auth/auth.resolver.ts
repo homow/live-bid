@@ -297,6 +297,26 @@ export class AuthResolver {
     return result;
   }
 
+  /**
+   * **Initiate the password-reset flow.**
+   *
+   * Forwards the request to the auth microservice, which sends a reset-link
+   * email to the given address (if the account exists).
+   *
+   * @param email      - Target email address (validated by Zod).
+   * @param clientInfo - Normalized client metadata attached to the email.
+   * @returns Success message from the auth service.
+   *
+   * @remarks
+   * - Public endpoint (no session required).
+   * - Always returns a generic success message to avoid leaking account existence.
+   *
+   * @example
+   * mutation ForgotPassword($email: String!) {
+   *   forgotPassword(email: $email)
+   * }
+   * // variables: { "email": "user@example.com" }
+   */
   @Decorators.ForgotPasswordDecorators()
   @Mutation(() => String)
   forgotPassword(
