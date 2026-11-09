@@ -2,7 +2,10 @@
 FROM node:26-alpine AS deps
 WORKDIR /app
 
-COPY package-lock.json package.json ./
+COPY package.json package-lock.json ./
+COPY apps/gateway/tsconfig.app.json ./apps/gateway/
+COPY packages/contracts/package.json ./packages/contracts/
+COPY packages/services/package.json ./packages/services/
 
 RUN npm ci --omit=dev
 
@@ -16,11 +19,14 @@ RUN npm ci
 
 # Copy Gateway Resources
 COPY apps/gateway ./apps/gateway
-COPY apps/gateway/tsconfig.app.json ./apps/gateway/
 
-# Copy Root Resources
+# Copy Packages Resource
 COPY packages/contracts ./packages/contracts
 COPY packages/services ./packages/services
+
+# Copy Root Resources
+COPY public ./public
+COPY migrations ./migrations
 COPY tsconfig.build.json tsconfig.json nest-cli.json ./
 
 RUN npm run build:packages
@@ -39,13 +45,19 @@ RUN addgroup -g 1001 -S nodejs && \
 
 # Copy Dependencies
 COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/package.json ./package.json
+COPY --from=deps /app/package-lock.json ./package-lock.json
+COPY --from=deps /app/packages/contracts/package.json ./packages/contracts/package.json
+COPY --from=deps /app/packages/services/package.json ./packages/services/package.json
 
-# Copy Prodcution Files
+# Copy Prodcution Builder Files
+COPY --from=builder /app/apps/gateway/dist ./apps/gateway/dist
+COPY --from=builder /app/packages/contracts/dist ./packages/contracts/dist
+COPY --from=builder /app/packages/services/dist ./packages/services/dist
+
+# Root Resources
 COPY --from=builder /app/public ./
 COPY --from=builder /app/migrations ./
-COPY --from=builder /app/package.json ./
-COPY --from=builder /app/package-lock.json ./
-COPY --from=builder /app/apps/gateway/dist ./apps/gateway/dist
 
 USER nestjs
 
