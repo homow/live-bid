@@ -295,39 +295,51 @@ export class AuthService {
    * @throws {AppException} 500 — hashing or DB transaction failure.
    */
   async changePassword(data: ChangePasswordRequestService) {
-    const user = await this.usersRepository.findOne({id: data.userId}, false);
-
-    if (!user) throwNotFound('User', 'id');
-
-    // Check user password
-    const isValidPassword = await compareSecret(data.oldPassword, user.password);
-
-    // Throw exception if old password is invalid
-    if (!isValidPassword) {
-      this.logger.warn(
-        {userId: user.id},
-        'Password change failed: old password does not match'
-      );
-
-      throw new AppException({
-        statusCode: 400,
-        code: 'Invalid Old Password',
-        message: 'The current password you entered is incorrect.',
-      });
-    }
-
-    // Hash password
-    const hashedPassword = await hashSecret(data.newPassword);
-
     // Make a drizzle transaction for change and revoke all user sessions
-    await this.drizzle.db.transaction(async tx => {
-      await this.authRepository.changePassword(user.id, hashedPassword, tx);
-      await this.authRepository.revokeAllUserTokens(user.id, tx);
-    });
+    const result = await this.drizzle.db.transaction(
+      async (tx) => {
+        const user = await this.usersRepository.findOne({id: data.userId}, false, tx);
 
-    void this.authMail.passwordChangedNotification(user.email, data.clientInfo);
+        if (!user) throwNotFound('User', 'id');
 
-    return "Your password changed successfully. Please login again to your account.";
+        // Check user password
+        const isValidPassword = await compareSecret(data.oldPassword, user.password);
+
+        // Throw exception if old password is invalid
+        if (!isValidPassword) {
+          this.logger.warn(
+            {userId: user.id},
+            'Password change failed: old password does not match'
+          );
+
+          throw new AppException({
+            statusCode: 400,
+            code: 'Invalid Old Password',
+            message: 'The current password you entered is incorrect.',
+          });
+        }
+
+        // Hash password
+        const hashedPassword = await hashSecret(data.newPassword);
+
+        await this.authRepository.changePassword(user.id, hashedPassword, tx);
+        await this.authRepository.revokeAllUserTokens(user.id, tx);
+
+        // Return the value FROM the transaction (will be available after commit)
+        return {
+          email: user.email,
+          message: 'Your password changed successfully. Please login again to your account.'
+        };
+      },
+      {
+        isolationLevel: 'read committed'
+      }
+    );
+
+    // Send email After successful commit
+    void this.authMail.passwordChangedNotification(result.email, data.clientInfo);
+
+    return result.message;
   }
 
   /**
@@ -373,9 +385,8 @@ export class AuthService {
     return genericMessage;
   }
 
-  async resetPassword({clientInfo, token}: ResetPasswordRequestService) {
-
-    const user = await this.usersRepository.findOne({});
+  async resetPassword({clientInfo, token, email}: ResetPasswordRequestService) {
+    const user = await this.usersRepository.findOne({email});
 
     if (!user) throwNotFound('User', 'email');
   }

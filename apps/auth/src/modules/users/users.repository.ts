@@ -2,10 +2,10 @@ import {eq, SQL} from "drizzle-orm";
 import {Injectable} from "@nestjs/common";
 import * as Schemas from "@live-bid/contracts/schemas";
 import {UserRoleEnum} from "@live-bid/contracts/enums";
-import type {SafeUser} from "@live-bid/services/types";
 import {DrizzleService} from "@live-bid/services/modules";
 import {type User, user} from "@live-bid/services/database";
 import {AppException, checkDrizzleError} from "@live-bid/services/lib";
+import type {DrizzleTransaction, SafeUser} from "@live-bid/services/types";
 
 export const USER_PUBLIC_COLUMNS = {
   id: user.id,
@@ -59,7 +59,8 @@ export class UsersRepository {
    */
   async findOne(
     params: FindOneUserParams,
-    safe?: true
+    safe?: true,
+    tx?: DrizzleTransaction
   ): Promise<SafeUser | null>;
 
   /**
@@ -68,7 +69,8 @@ export class UsersRepository {
   // noinspection JSUnusedGlobalSymbols
   async findOne(
     params: FindOneUserParams,
-    safe?: false
+    safe?: false,
+    tx?: DrizzleTransaction
   ): Promise<User | null>;
 
   async findOne(
@@ -78,6 +80,7 @@ export class UsersRepository {
       username,
     }: FindOneUserParams,
     safe: boolean = true,
+    tx?: DrizzleTransaction,
   ): Promise<SafeUser | User | null> {
     let eqUser: SQL<unknown>;
 
@@ -95,7 +98,7 @@ export class UsersRepository {
       });
     }
 
-    const [findUser] = await this.buildUserQuery(eqUser);
+    const [findUser] = await this.buildUserQuery(eqUser, tx);
 
     if (!findUser) return null;
 
@@ -108,8 +111,10 @@ export class UsersRepository {
     return findUser satisfies User;
   }
 
-  buildUserQuery(whereCondition?: SQL<unknown>) {
-    const query = this.drizzle.db
+  buildUserQuery(whereCondition?: SQL<unknown>, tx?: DrizzleTransaction) {
+    const db = tx ?? this.drizzle.db;
+
+    const query = db
       .select()
       .from(user)
       .groupBy(user.id);
