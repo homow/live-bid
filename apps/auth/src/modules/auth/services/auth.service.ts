@@ -20,9 +20,9 @@ import {AuthMailService} from "./auth-mail.service";
 import * as ZodSchemas from "@live-bid/contracts/schemas";
 import {DrizzleService} from "@live-bid/services/modules";
 import {UsersCacheService} from "@app/auth/modules/users/services";
-import {AppException, throwNotFound} from "@live-bid/services/lib";
 import {UsersRepository} from "@app/auth/modules/users/users.repository";
 import {compareSecret, hashSecret, hashSecretToken} from "@app/auth/lib";
+import {AppException, handleDrizzleError, throwNotFound} from "@live-bid/services/lib";
 
 @Injectable()
 export class AuthService {
@@ -322,7 +322,7 @@ export class AuthService {
         // Hash password
         const hashedPassword = await hashSecret(data.newPassword);
 
-        await this.authRepository.changePassword(user.id, hashedPassword, tx);
+        await this.authRepository.changePassword({id: user.id, password: hashedPassword}, tx);
         await this.authRepository.revokeAllUserTokens(user.id, tx);
 
         // Return the value FROM the transaction (will be available after commit)
@@ -371,7 +371,7 @@ export class AuthService {
     // Return a generic message even if the user does not exist (security).
     if (!user) return genericMessage;
 
-    const rawToken = await this.tokenUtil.setPwdToken(user.id);
+    const rawToken = await this.tokenUtil.setPwdToken(email);
 
     if (rawToken) {
       void this.authMail.forgotPasswordNotification(
@@ -385,21 +385,31 @@ export class AuthService {
     return genericMessage;
   }
 
-  async resetPassword({token}: ResetPasswordRequestService) {
-    await this.drizzle.db.transaction(async (tx) => {
-      const userId = await this.tokenUtil.verifyPwdToken(token);
+  async resetPassword({token, newPassword, clientInfo}: ResetPasswordRequestService) {
+    const userEmail = await this.tokenUtil.verifyPwdToken(token);
 
-      if (!userId) throw new AppException({
-        statusCode: 400,
-        code: "INVALID_RESET_TOKEN",
-        message: "The reset token is invalid or has expired. Please request a new one.",
-      });
-
-      try {
-
-      } catch (e) {
-
-      }
+    if (!userEmail) throw new AppException({
+      statusCode: 400,
+      code: "INVALID_RESET_TOKEN",
+      message: "The reset token is invalid or has expired. Please request a new one.",
     });
+
+    try {
+      // Hash password and change
+      const hashedPassword = await hashSecret(newPassword);
+      await this.authRepository.changePassword({email: userEmail, password: hashedPassword});
+    } catch (e) {
+      handleDrizzleError({
+        e: e as Error,
+        conflictField: '',
+        mainResource: 'user',
+        notFoundField: 'id',
+        notFoundResource: 'user',
+      });
+    }
+
+    void this.authMail.passwordChangedNotification(userEmail, clientInfo);
+
+    return 'User password changed successfully.';
   }
 }

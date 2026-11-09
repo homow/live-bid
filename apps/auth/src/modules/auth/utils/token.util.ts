@@ -90,20 +90,20 @@ export class TokenUtil {
    * @remarks
    * - If a valid (non-expired) reset token already exists for the user,
    *   a new one is **not** generated. This prevents email spam and abuse.
-   * - Only the **hashed** token is used as the Redis **key**; its **value** is the `userId`.
+   * - Only the **hashed** token is used as the Redis **key**; its **value** is the `email`.
    * - The cache entry expires automatically after 15 minutes (TTL).
    * - The raw token is returned **only once** to be sent via email; it is never stored.
    *
-   * @param userId - The unique identifier of the user requesting the reset.
+   * @param email - The unique email of the user requesting the reset.
    * @returns The raw (unhashed) token if generated, or `null` if a valid token already exists.
    *
    * @example
-   * const rawToken = await this.setPwdToken(user.id);
+   * const rawToken = await this.setPwdToken(user.email);
    * if (!rawToken) {
    *   // A reset email was already sent recently; skip sending.
    * }
    */
-  async setPwdToken(userId: string): Promise<string | null> {
+  async setPwdToken(email: string): Promise<string | null> {
     // Generate a raw reset token and its SHA-256 hash.
     const token = generatePasswordResetToken();
     const tokenHash = hashSecretToken(token);
@@ -112,22 +112,22 @@ export class TokenUtil {
     const key = `pwd_reset:${tokenHash}`;
 
     // Check if a valid token already exists for this user.
-    const existingUserId = await this.cacheService.get<string>(key);
+    const existingUserEmail = await this.cacheService.get<string>(key);
 
-    if (existingUserId) {
+    if (existingUserEmail) {
       // A reset link was already sent recently; do not send another one.
       return null;
     }
 
-    // Cache the hashed token → userId mapping with a 15-minute TTL.
-    await this.cacheService.set(key, userId, ONE_MINUTE_MS * 15);
+    // Cache the hashed token → email mapping with a 15-minute TTL.
+    await this.cacheService.set(key, email, ONE_MINUTE_MS * 15);
 
     // Return the raw token (to be sent via email).
     return token;
   }
 
   /**
-   * Verifies a raw password reset token and returns the associated `userId`.
+   * Verifies a raw password reset token and returns the associated `email`.
    *
    * @remarks
    * - The token is hashed (SHA-256) before lookup; the raw token is never stored.
@@ -136,17 +136,17 @@ export class TokenUtil {
    *   responsible for deleting it after a successful password reset.
    *
    * @param token - The raw reset token received from the user (e.g. from the email link).
-   * @returns The `userId` associated with the token, or `null` if invalid/expired.
+   * @returns The `email` associated with the token, or `null` if invalid/expired.
    *
    * @example
-   * const userId = await this.verifyPwdToken(rawToken);
-   * if (!userId) throw new AppException({ ... "Invalid or expired token" });
+   * const email = await this.verifyPwdToken(rawToken);
+   * if (!email) throw new AppException({ ... "Invalid or expired token" });
    */
   async verifyPwdToken(token: string): Promise<string | null> {
     // Hash the raw token with SHA-256 (same as when it was stored).
     const tokenHash = hashSecretToken(token);
 
-    // Look up the hashed token in Redis; the value is the associated userId.
+    // Look up the hashed token in Redis; the value is the associated email.
     return this.cacheService.get<string>(`pwd_reset:${tokenHash}`);
   }
 }
