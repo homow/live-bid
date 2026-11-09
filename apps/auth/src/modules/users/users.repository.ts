@@ -28,12 +28,13 @@ interface FindOneUserParams {
 export class UsersRepository {
   constructor(private readonly drizzle: DrizzleService) {}
 
-  async insertUser({password, email, display_name}: Schemas.RegisterUserSchemaType) {
-    const {username, ...othersData} = USER_PUBLIC_COLUMNS;
-    void username;
+  async insertUser({password, email, display_name}: Schemas.RegisterUserSchemaType, tx: DrizzleTransaction) {
+    const db = tx ?? this.drizzle.db;
+
+    const {username: _, ...othersData} = USER_PUBLIC_COLUMNS;
 
     try {
-      const [result] = await this.drizzle.db
+      const [result] = await db
         .insert(user)
         .values({
           email,
