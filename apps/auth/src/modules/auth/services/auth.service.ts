@@ -385,9 +385,21 @@ export class AuthService {
     return genericMessage;
   }
 
-  async resetPassword({clientInfo, token, email}: ResetPasswordRequestService) {
-    const user = await this.usersRepository.findOne({email});
+  async resetPassword({token}: ResetPasswordRequestService) {
+    await this.drizzle.db.transaction(async (tx) => {
+      const userId = await this.tokenUtil.verifyPwdToken(token);
 
-    if (!user) throwNotFound('User', 'email');
+      if (!userId) throw new AppException({
+        statusCode: 400,
+        code: "INVALID_RESET_TOKEN",
+        message: "The reset token is invalid or has expired. Please request a new one.",
+      });
+
+      try {
+
+      } catch (e) {
+
+      }
+    });
   }
 }

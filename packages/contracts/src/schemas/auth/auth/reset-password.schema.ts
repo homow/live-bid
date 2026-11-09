@@ -12,7 +12,6 @@ export const PasswordResetTokenSchema = z
   .regex(/^[0-9a-f]+$/i, "Password reset token must be a valid hex string");
 
 export const ResetPasswordSchema = z.object({
-  email: z.email(),
   token: PasswordResetTokenSchema,
   newPassword: UserPasswordSchema,
 });
