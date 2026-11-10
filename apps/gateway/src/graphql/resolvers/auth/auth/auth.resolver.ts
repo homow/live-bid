@@ -237,8 +237,12 @@ export class AuthResolver {
     } satisfies LogoutRequestService);
 
     // Clear Cookies
-    res.clearCookie(ACCESS_TOKEN_NAME);
-    res.clearCookie(REFRESH_TOKEN_NAME);
+    res.clearCookie(ACCESS_TOKEN_NAME, {
+      path: "/"
+    });
+    res.clearCookie(REFRESH_TOKEN_NAME, {
+      path: "/"
+    });
 
     return "User logged out successfully.";
   }
@@ -294,8 +298,13 @@ export class AuthResolver {
       )
     );
 
-    res.clearCookie(ACCESS_TOKEN_NAME);
-    res.clearCookie(REFRESH_TOKEN_NAME);
+    // Remove cookies
+    res.clearCookie(ACCESS_TOKEN_NAME, {
+      path: "/"
+    });
+    res.clearCookie(REFRESH_TOKEN_NAME, {
+      path: "/"
+    });
 
     return result;
   }
@@ -395,8 +404,13 @@ export class AuthResolver {
       )
     );
 
-    res.clearCookie(ACCESS_TOKEN_NAME);
-    res.clearCookie(REFRESH_TOKEN_NAME);
+    // Remove Cookies
+    res.clearCookie(ACCESS_TOKEN_NAME, {
+      path: "/"
+    });
+    res.clearCookie(REFRESH_TOKEN_NAME, {
+      path: "/"
+    });
 
     return result;
   }
