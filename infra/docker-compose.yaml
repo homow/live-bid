@@ -49,6 +49,10 @@ services:
     depends_on:
       redis:
         condition: service_healthy
+      auth:
+        condition: service_started
+      core:
+        condition: service_started
     env_file:
       - ./.env.gateway
     environment:
@@ -98,6 +102,21 @@ services:
     environment:
       REDIS_HOST: redis
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+
+  # Web
+  web:
+    build:
+      context: ../.
+      dockerfile: clients/web/Dockerfile
+    image: live-bid-web:latest
+    restart: always
+    networks:
+      - live-bid-network
+    depends_on:
+      gateway:
+        condition: service_healthy
+    env_file:
+      - ./.env.web
 
 networks:
   live-bid-network:
