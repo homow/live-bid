@@ -1,10 +1,10 @@
 import {Reflector} from "@nestjs/core";
 import {Observable, from, mergeMap} from "rxjs";
 import {AppException} from "@live-bid/services/lib";
-import {getRequestResponse} from "@app/gateway/lib";
+import {getRequestResponse} from "@app/gateway/lib/utils";
 import type {AccessRequest} from "@live-bid/services/types";
 import {CacheService, RedisKey} from "@live-bid/services/cache";
-import {CACHEABLE_KEY, CacheableDecoratorType} from "@app/gateway/common";
+import {CACHEABLE_KEY, CacheableDecoratorType} from "@app/gateway/common/decorators";
 import {CallHandler, ExecutionContext, Injectable, NestInterceptor} from "@nestjs/common";
 
 @Injectable()
