@@ -10,12 +10,8 @@ services:
       - live-bid-postgres-data:/var/lib/postgresql/data
     env_file:
       - ./.env
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U user -d live_bid" ]
+      test: [ "CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB" ]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -39,6 +35,29 @@ services:
     ports:
       - "6379:6379"
 
+  gateway:
+    build:
+      context: ../.
+      dockerfile: apps/gateway/Dockerfile
+    image: live-bid-gateway:latest
+    ports:
+      - "3001:3001"
+    restart: always
+    networks:
+      - live-bid-network
+    depends_on:
+      redis:
+        condition: service_healthy
+    env_file:
+      - ./.env.gateway
+    environment:
+      REDIS_HOST: redis
+    healthcheck:
+      test: [ "CMD", "node", "-e", "fetch('http://127.0.0.1:3001/api/health').then(r => { if (!r.ok) process.exit(1) }).catch(() => process.exit(1))" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
 networks:
   live-bid-network:
     name: live-bid-network
@@ -46,4 +65,6 @@ networks:
 
 volumes:
   live-bid-postgres-data:
+    name: live-bid-postgres-data
   live-bid-redis-data:
+    name: live-bid-redis-data

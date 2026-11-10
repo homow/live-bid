@@ -112,12 +112,17 @@ Resolvers are **thin** — they validate input, call a microservice, and format 
 ```ts
 @Decorators.LoginDecorators()
 @Mutation(() => AuthOutputs.LoginUserOutput)
-async login(
+async
+login(
   @Args("input", {type: () => AuthInputs.LoginUserInput},
-    new ZodPipe(ZodSchemas.LoginUserSchema)) input: LoginUserSchemaType,
-@Context() context: GraphQLContext,
-@NormalizeClientInfo() clientInfo: NormalizeClientInfoType
-): Promise<SafeUser> {
+    new ZodPipe(ZodSchemas.LoginUserSchema))
+input: LoginUserSchemaType,
+@Context()
+context: GraphQLContext,
+@NormalizeClientInfo()
+clientInfo: NormalizeClientInfoType
+):
+Promise < SafeUser > {
   const result = await firstValueFrom<LoginResponseService>(
     this.authClient.send(AUTH_PATTERNS.LOGIN, {
       clientInfo,
@@ -128,7 +133,7 @@ async login(
   const {res} = context;
   const {user, accessToken, refreshToken, accessOptions, refreshOptions} = result;
 
-  res.cookie(ACCESS_TOKEN_NAME,  accessToken,  accessOptions);
+  res.cookie(ACCESS_TOKEN_NAME, accessToken, accessOptions);
   res.cookie(REFRESH_TOKEN_NAME, refreshToken, refreshOptions);
 
   return user;
@@ -240,12 +245,27 @@ Extracts and normalizes client metadata:
 ```ts
 {
   ip:      string | null,     // x-forwarded-for / cf-connection-ip / req.ip / socket
-    browser: string | null,     // via ua-parser-js
-    os:      string | null,
-    device:  "mobile" | "tablet" | "desktop" | ... (default: desktop),
+    browser
+:
+  string | null,     // via ua-parser-js
+    os
+:
+  string | null,
+    device
+:
+  "mobile" | "tablet" | "desktop" |
+...
+  (
+default:
+  desktop
+),
   country: string | null,     // via geoip-lite
-    city:    string | null,
-    lang:    string | null,     // Accept-Language header
+    city
+:
+  string | null,
+    lang
+:
+  string | null,     // Accept-Language header
 }
 ```
 
@@ -260,9 +280,12 @@ Two decorators, two interceptors. Key building is delegated to `RedisKey.keyPref
 ### `@Cacheable({...})` — set cache
 
 ```ts
-@Cacheable({ resource: "users", paramKey: "id", self: false, ttl: 60_000 })
+@Cacheable({resource: "users", paramKey: "id", self: false, ttl: 60_000})
 @Query(() => UserOutput)
-getUser(@Args("id") id: string) { ... }
+getUser(@Args("id")
+id: string
+)
+{ ... }
 ```
 
 | Option       | Description                                     |
@@ -289,18 +312,21 @@ Three modes:
 **Mode 1 — Exact key** (single resource eviction):
 
 ```ts
-@CacheEvict({ resource: "users", paramKey: "id", self: false })
+@CacheEvict({resource: "users", paramKey: "id", self: false})
 @Mutation(() => UserOutput)
-updateUser(@Args("id") id: string) { ... }
+updateUser(@Args("id")
+id: string
+)
+{ ... }
 ```
 
 **Mode 2 — Prefix wildcard** (bulk invalidation):
 
 ```ts
-@CacheEvict({ prefix: "users" })          // delete all keys starting with users
+@CacheEvict({prefix: "users"})          // delete all keys starting with users
 // or
-@CacheEvict({ resource: "users", force: true })             // *users*
-@CacheEvict({ resource: "users", forcePagination: true })   // *users:list*
+@CacheEvict({resource: "users", force: true})             // *users*
+@CacheEvict({resource: "users", forcePagination: true})   // *users:list*
 ```
 
 **Mode 3 — Find by param** (evict keys containing a specific path param):
@@ -308,7 +334,7 @@ updateUser(@Args("id") id: string) { ... }
 ```ts
 @CacheEvict({
   resource: "auctions",
-  findPrefix: { param: "id", paramKeyReplace: "auctionId", listOrSingle: "single" }
+  findPrefix: {param: "id", paramKeyReplace: "auctionId", listOrSingle: "single"}
 })
 ```
 
@@ -375,7 +401,7 @@ Client POST /api/v1/graphql { mutation login }
        ↓
 1. cookieParser        — parse cookies
 2. helmet              — security headers
-3. CORS                — FRONT_END_URL only
+3. CORS                — APP_URL only
        ↓
 4. GraphqlThrottleGuard — rate limit (Redis)
 5. AccessTokenGuard    — verifies access JWT (skipped: @Public)

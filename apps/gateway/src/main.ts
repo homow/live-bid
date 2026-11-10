@@ -41,8 +41,8 @@ async function bootstrap(): Promise<void> {
   app.enableCors({
     credentials: true,
     origin: isProduction
-      ? process.env.FRONT_END_URL
-      : process.env.FRONT_END_URL || 'http://localhost:3000',
+      ? process.env.APP_URL
+      : process.env.APP_URL || 'http://localhost:3000',
   });
 
   await app.listen(PORT, HOST);
