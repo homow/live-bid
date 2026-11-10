@@ -1,6 +1,7 @@
 import Redis from "ioredis";
 import {ConfigService} from "@nestjs/config";
 import {AppException, ONE_MINUTE_MS} from "../lib";
+import type {ResetTokenPayloadTypes} from "../types";
 import {Injectable, OnModuleDestroy, OnModuleInit} from '@nestjs/common';
 
 @Injectable()
@@ -138,7 +139,7 @@ export class CacheService implements OnModuleInit, OnModuleDestroy {
   async setPwdTokenAtomic(
     tokenKey: string,
     userKey: string,
-    value: { id: string; email: string; },
+    value: ResetTokenPayloadTypes,
     tokenHash: string,
     ttlMs: number,
   ): Promise<boolean> {
