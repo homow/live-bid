@@ -371,7 +371,7 @@ export class AuthService {
     // Return a generic message even if the user does not exist (security).
     if (!user) return genericMessage;
 
-    const rawToken = await this.tokenUtil.setPwdToken(email);
+    const rawToken = await this.tokenUtil.setPwdToken({email, id: user.id});
 
     if (rawToken) {
       void this.authMail.forgotPasswordNotification(
@@ -385,10 +385,41 @@ export class AuthService {
     return genericMessage;
   }
 
+  /**
+   * Resets the user's password using a valid reset token.
+   *
+   * @remarks
+   * - The token is verified and **consumed** by `verifyPwdToken` (single-use).
+   *   An invalid, expired, or already-used token results in a `400`.
+   * - The password update and **all** refresh-token revocations are executed
+   *   inside a single database **transaction** (`drizzle.db.transaction`),
+   *   ensuring the user is never left with a new password but stale sessions.
+   * - The reset token's per-user lock (`pwd_reset:user:<id>`) is **not**
+   *   released here; it expires on its own TTL (15 min).
+   * - A "password changed" security-alert email is sent **after** the
+   *   transaction commits (fire-and-forget; delivery failures are logged,
+   *   not thrown).
+   *
+   * @param token       - Raw reset token from the email link.
+   * @param newPassword - New password (validated upstream by Zod).
+   * @param clientInfo  - Client metadata attached to the security-alert email.
+   * @returns Success message.
+   *
+   * @throws {AppException} 400 — `INVALID_RESET_TOKEN` if the token is
+   *   invalid, expired, or already used.
+   * @throws {AppException} — propagated from `handleDrizzleError` on DB failure.
+   *
+   * @example
+   * await this.resetPassword({
+   *   token: rawToken,
+   *   newPassword: "n3w-S3cret!",
+   *   clientInfo,
+   * });
+   */
   async resetPassword({token, newPassword, clientInfo}: ResetPasswordRequestService) {
-    const userEmail = await this.tokenUtil.verifyPwdToken(token);
+    const cached = await this.tokenUtil.verifyPwdToken(token);
 
-    if (!userEmail) throw new AppException({
+    if (!cached) throw new AppException({
       statusCode: 400,
       code: "INVALID_RESET_TOKEN",
       message: "The reset token is invalid or has expired. Please request a new one.",
@@ -397,7 +428,11 @@ export class AuthService {
     try {
       // Hash password and change
       const hashedPassword = await hashSecret(newPassword);
-      await this.authRepository.changePassword({email: userEmail, password: hashedPassword});
+
+      await this.drizzle.db.transaction(async (tx) => {
+        await this.authRepository.changePassword({id: cached.id, password: hashedPassword}, tx);
+        await this.authRepository.revokeAllUserTokens(cached.id, tx);
+      });
     } catch (e) {
       handleDrizzleError({
         e: e as Error,
@@ -409,7 +444,7 @@ export class AuthService {
     }
 
     // Notification to user
-    void this.authMail.passwordChangedNotification(userEmail, clientInfo, 'reset');
+    void this.authMail.passwordChangedNotification(cached.email, clientInfo, 'reset');
 
     return 'User password reset successfully.';
   }

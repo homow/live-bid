@@ -1,6 +1,6 @@
 import type {Request} from "express";
-import type {SafeUser} from "./user.types";
-import type {RefreshToken} from "../../database";
+import type {SafeUser} from "../user";
+import type {RefreshToken} from "../../../database";
 import type {UserRoleEnum} from "@live-bid/contracts/enums";
 
 /** **AccessToken payload on JWT** */
