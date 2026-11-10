@@ -7,13 +7,15 @@ COPY package.json package-lock.json ./
 COPY clients/web/package.json ./clients/web/package.json
 COPY clients/web/package-lock.json ./clients/web/package-lock.json
 COPY packages/contracts/package.json ./packages/contracts/
-RUN npm ci --workspace=clients/web --include-workspace-root=false --omit=dev
+RUN npm ci --workspace=clients/web --include-workspace-root=false
 
 # ===================================
 # Stage 2: Builder
 # ===================================
 FROM node:24-alpine AS builder
 WORKDIR /app
+
+COPY --from=deps /app/node_modules ./node_modules
 
 # Copy Root Resources
 COPY package.json package-lock.json ./
@@ -25,17 +27,16 @@ COPY clients/web/package-lock.json ./clients/web/package-lock.json
 # Copy Contracts Resources
 COPY packages/contracts/package.json ./packages/contracts/package.json
 
-RUN npm ci --workspace=clients/web --include-workspace-root=false
-
 # Copy Source Codes
 COPY clients/web clients/web/
 COPY packages/contracts/ ./packages/contracts/
 
 # Normalize permissions regardless of the host umask, so the
 # non-root runtime user can always read whatever ends up in public.
-RUN find public -type d -exec chmod 755 {} + \
-    && find public -type f -exec chmod 644 {} +
+RUN find clients/web/public -type d -exec chmod 755 {} + \
+    && find clients/web/public -type f -exec chmod 644 {} +
 
+RUN npm run build:contracts
 RUN npm run build:web
 
 # ===================================

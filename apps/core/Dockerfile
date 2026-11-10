@@ -9,7 +9,7 @@ COPY packages/services/package.json ./packages/services/
 
 RUN npm ci --omit=dev
 
-# ---------- Stage 2: builder ----------
+# ---------- Stage 2: Builder ----------
 FROM node:26-alpine AS builder
 WORKDIR /app
 
@@ -32,7 +32,7 @@ COPY tsconfig.build.json tsconfig.json nest-cli.json ./
 RUN npm run build:packages
 RUN npm run build:core
 
-# ---------- Stage 2: builder ----------
+# ---------- Stage 3: Runner ----------
 FROM node:26-alpine AS production
 WORKDIR /app
 
