@@ -1,2 +1,49 @@
 services:
-  
+  #  PostgresQL
+  postgres:
+    image: postgres:16-alpine
+    container_name: live-bid-postgres
+    restart: always
+    networks:
+      - live-bid-network
+    volumes:
+      - live-bid-postgres-data:/var/lib/postgresql/data
+    env_file:
+      - ./.env
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U user -d live_bid" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "5432:5432"
+
+  # Redis
+  redis:
+    image: redis:7-alpine
+    container_name: live-bid-redis
+    restart: always
+    networks:
+      - live-bid-network
+    volumes:
+      - live-bid-redis-data:/data
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "6379:6379"
+
+networks:
+  live-bid-network:
+    name: live-bid-network
+    driver: bridge
+
+volumes:
+  live-bid-postgres-data:
+  live-bid-redis-data:
