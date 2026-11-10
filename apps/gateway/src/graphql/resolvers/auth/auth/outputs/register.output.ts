@@ -1,4 +1,4 @@
-import {BaseOutput} from "@app/gateway/lib";
+import {BaseOutput} from "@app/gateway/lib/utils";
 import {Field, ObjectType} from "@nestjs/graphql";
 import {UserRoleEnum} from "@app/gateway/graphql/resolvers/auth/enums";
 

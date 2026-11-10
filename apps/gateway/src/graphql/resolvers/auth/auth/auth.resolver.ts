@@ -20,12 +20,14 @@ import {Inject} from "@nestjs/common";
 import * as AuthInputs from "./inputs";
 import * as AuthOutputs from "./outputs";
 import * as Decorators from "./decorators";
+import {ZodPipe} from "@app/gateway/common/pipes";
 import {ClientProxy} from "@nestjs/microservices";
 import type {GraphQLContext} from "@app/gateway/types";
+import {RefreshGuard} from "@app/gateway/common/guards";
 import * as ZodSchemas from "@live-bid/contracts/schemas";
 import * as ServiceMessages from "@live-bid/services/messages";
 import {Resolver, Mutation, Args, Context} from "@nestjs/graphql";
-import {CurrentUser, NormalizeClientInfo, RefreshGuard, ZodPipe} from "@app/gateway/common";
+import {CurrentUser, NormalizeClientInfo} from "@app/gateway/common/decorators";
 import {ACCESS_TOKEN_NAME, AUTH_SERVICE_NAME, REFRESH_TOKEN_NAME} from "@live-bid/services/names";
 
 /**

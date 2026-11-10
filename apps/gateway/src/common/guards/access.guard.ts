@@ -1,9 +1,9 @@
 import {Reflector} from "@nestjs/core";
 import {AuthGuard} from "@nestjs/passport";
 import {ACCESS_STRATEGY_NAME} from "../strategies";
-import {getRequestResponse} from "@app/gateway/lib";
-import {GatewayException} from "@app/gateway/common";
 import type {UserAccess} from "@live-bid/services/types";
+import {getRequestResponse} from "@app/gateway/lib/utils";
+import {GatewayException} from "@app/gateway/common/filters";
 import {IS_PUBLIC_KEY, PublicDecoratorParams} from "../decorators";
 import {CanActivate, ExecutionContext, Injectable} from "@nestjs/common";
 

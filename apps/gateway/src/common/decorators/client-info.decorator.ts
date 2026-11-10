@@ -2,7 +2,7 @@ import geoip from "geoip-lite";
 import {UAParser} from "ua-parser-js";
 import {GraphQLContext} from "@app/gateway/types";
 import {GqlExecutionContext} from "@nestjs/graphql";
-import {normalizeClientInfo} from "@app/gateway/lib";
+import {normalizeClientInfo} from "@app/gateway/lib/utils";
 import {createParamDecorator, ExecutionContext} from "@nestjs/common";
 
 export const NormalizeClientInfo = createParamDecorator(

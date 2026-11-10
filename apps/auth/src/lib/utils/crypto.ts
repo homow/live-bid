@@ -1,5 +1,5 @@
 import {hash, compare} from "bcrypt";
-import {createHash, randomBytes} from "node:crypto";
+import {randomBytes} from "node:crypto";
 
 /** hashed password with bcrypt */
 export async function hashSecret(
@@ -20,11 +20,6 @@ export async function compareSecret(
 /** generate refresh token from randomBytes */
 export function generateRandomToken(): string {
   return randomBytes(64).toString("hex");
-}
-
-/** hashed refresh token on SHA256 */
-export function hashSecretToken(value: string): string {
-  return createHash('sha256').update(value).digest('hex');
 }
 
 /** **generate password reset token (short-lived, 32 bytes)** */

@@ -19,10 +19,10 @@ import {AuthRepository} from "../auth.repository";
 import {AuthMailService} from "./auth-mail.service";
 import * as ZodSchemas from "@live-bid/contracts/schemas";
 import {DrizzleService} from "@live-bid/services/modules";
+import {compareSecret, hashSecret} from "@app/auth/lib/utils";
 import {UsersCacheService} from "@app/auth/modules/users/services";
 import {UsersRepository} from "@app/auth/modules/users/users.repository";
-import {compareSecret, hashSecret, hashSecretToken} from "@app/auth/lib/utils";
-import {AppException, handleDrizzleError, throwNotFound} from "@live-bid/services/lib";
+import {hashSecretToken, AppException, handleDrizzleError, throwNotFound} from "@live-bid/services/lib";
 
 @Injectable()
 export class AuthService {

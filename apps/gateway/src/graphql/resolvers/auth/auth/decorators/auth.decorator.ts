@@ -1,4 +1,5 @@
-import {Public, RefreshGuard} from "@app/gateway/common";
+import {Public} from "@app/gateway/common/decorators";
+import {RefreshGuard} from "@app/gateway/common/guards";
 import {applyDecorators, UseGuards} from "@nestjs/common";
 
 export const RegisterDecorators = () => applyDecorators(

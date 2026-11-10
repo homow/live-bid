@@ -1,6 +1,6 @@
-import {Public} from "@app/gateway/common";
 import {HealthCheckOutput} from './outputs';
 import {Query, Resolver} from '@nestjs/graphql';
+import {Public} from "@app/gateway/common/decorators";
 
 @Resolver()
 export class HealthResolver {

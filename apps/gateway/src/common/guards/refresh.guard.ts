@@ -1,11 +1,11 @@
 import {firstValueFrom} from "rxjs";
 import type {Request} from "express";
-import {hashSecretToken} from "@app/auth/lib";
 import {ClientProxy} from "@nestjs/microservices";
-import {getRequestResponse} from "@app/gateway/lib";
-import {GatewayException} from "@app/gateway/common";
+import {hashSecretToken} from "@live-bid/services/lib";
 import {AUTH_PATTERNS} from '@live-bid/services/messages';
+import {getRequestResponse} from "@app/gateway/lib/utils";
 import {AUTH_SERVICE_NAME} from "@live-bid/services/names";
+import {GatewayException} from "@app/gateway/common/filters";
 import {CanActivate, type ExecutionContext, Inject, Injectable} from "@nestjs/common";
 import type {RefreshRequest, RefreshTokenPayload, ValidateRefreshRequestService} from "@live-bid/services/types";
 
