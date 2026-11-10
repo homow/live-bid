@@ -6,7 +6,7 @@ import {ConfigService} from "@nestjs/config";
 import {ONE_MINUTE_MS} from "@live-bid/services/lib";
 import {CacheService} from "@live-bid/services/cache";
 import {hashSecretToken} from "@live-bid/services/lib";
-import type {AccessTokenPayload} from "@live-bid/services/types";
+import type {AccessTokenPayload, ResetTokenPayloadTypes} from "@live-bid/services/types";
 import {generatePasswordResetToken, generateRandomToken} from "@app/auth/lib/utils";
 
 @Injectable()
@@ -86,68 +86,83 @@ export class TokenUtil {
   }
 
   /**
-   * Generates a password reset token, hashes it, and caches it in Redis.
+   * Issues a new password-reset token for the given user.
    *
    * @remarks
-   * - If a valid (non-expired) reset token already exists for the user,
-   *   a new one is **not** generated. This prevents email spam and abuse.
-   * - Only the **hashed** token is used as the Redis **key**; its **value** is the `email`.
-   * - The cache entry expires automatically after 15 minutes (TTL).
-   * - The raw token is returned **only once** to be sent via email; it is never stored.
+   * - A raw token is generated and **never persisted**; only its SHA-256
+   *   hash is used as the Redis key (`pwd_reset:token:<hash>`).
+   * - Two keys are written **atomically** via Lua:
+   *   - `pwd_reset:token:<hash>` → `{ id, email }` (consumed on verify)
+   *   - `pwd_reset:user:<id>`    → `tokenHash` (anti-spam lock)
+   * - If the per-user lock already exists (an active reset link was issued
+   *   within the last 15 minutes), no new token is created and `null` is
+   *   returned. This prevents reset-email spam and abuse.
+   * - Both keys share the same TTL (**15 minutes**) and expire together.
+   * - The caller is responsible for delivering the raw token via email and
+   *   must never log or store it.
    *
-   * @param email - The unique email of the user requesting the reset.
-   * @returns The raw (unhashed) token if generated, or `null` if a valid token already exists.
+   * @param payload - `{ id, email }` of the user requesting the reset.
+   * @returns The raw (unhashed) token if a new one was issued,
+   *          or `null` if a valid reset link already exists for this user.
    *
    * @example
-   * const rawToken = await this.setPwdToken(user.email);
+   * const rawToken = await this.setPwdToken({ id: user.id, email: user.email });
    * if (!rawToken) {
-   *   // A reset email was already sent recently; skip sending.
+   *   // A reset email was already sent recently — do not send another.
+   *   return;
    * }
+   * await this.authMail.sendPasswordReset(user.email, rawToken);
    */
-  async setPwdToken(email: string): Promise<string | null> {
-    // Generate a raw reset token and its SHA-256 hash.
-    const token = generatePasswordResetToken();
-    const tokenHash = hashSecretToken(token);
+  async setPwdToken({id, email}: ResetTokenPayloadTypes): Promise<string | null> {
+    // Generate new Token
+    const rawToken = generatePasswordResetToken();
 
-    // Use the hashed token as the Redis key (never the raw token).
-    const key = `pwd_reset:${tokenHash}`;
+    // Hashed Token
+    const tokenHash = hashSecretToken(rawToken);
 
-    // Check if a valid token already exists for this user.
-    const existingUserEmail = await this.cacheService.get<string>(key);
+    // Build Keys
+    const tokenKey = `pwd_reset:token:${tokenHash}`;
+    const userKey = `pwd_reset:user:${id}`; // for lock user
 
-    if (existingUserEmail) {
-      // A reset link was already sent recently; do not send another one.
-      return null;
-    }
+    // Check and set Token Atomic
+    const written = await this.cacheService.setPwdTokenAtomic(
+      tokenKey,
+      userKey,
+      {id, email},
+      tokenHash,
+      ONE_MINUTE_MS * 15,
+    );
 
-    // Cache the hashed token → email mapping with a 15-minute TTL.
-    await this.cacheService.set(key, email, ONE_MINUTE_MS * 15);
+    if (!written) return null;
 
-    // Return the raw token (to be sent via email).
-    return token;
+    return rawToken;
   }
 
   /**
-   * Verifies a raw password reset token and returns the associated `email`.
+   * Verifies a raw password reset token, consumes it (single-use),
+   * and returns the associated `{ id, email }`.
    *
    * @remarks
    * - The token is hashed (SHA-256) before lookup; the raw token is never stored.
+   * - The token is **consumed atomically** (`GETDEL`): it cannot be reused.
    * - Returns `null` if the token is invalid, expired, or already used.
-   * - This method does **not** consume (delete) the token; the caller is
-   *   responsible for deleting it after a successful password reset.
+   * - The per-user lock (`pwd_reset:user:<id>`) is **not** released here;
+   *   it expires on its own TTL (15 min). This prevents rapid re-issuance
+   *   of new reset links (anti-spam) even after a successful reset.
    *
-   * @param token - The raw reset token received from the user (e.g. from the email link).
-   * @returns The `email` associated with the token, or `null` if invalid/expired.
+   * @param token - The raw reset token from the email link.
+   * @returns The `{ id, email }` payload, or `null` if invalid/expired/used.
    *
    * @example
-   * const email = await this.verifyPwdToken(rawToken);
-   * if (!email) throw new AppException({ ... "Invalid or expired token" });
+   * const payload = await this.verifyPwdToken(rawToken);
+   * if (!payload) throw new AppException({ ... "Invalid or expired token" });
    */
-  async verifyPwdToken(token: string): Promise<string | null> {
-    // Hash the raw token with SHA-256 (same as when it was stored).
+  async verifyPwdToken(token: string): Promise<ResetTokenPayloadTypes | null> {
+    // Hashed Raw Token for Find in Redis
     const tokenHash = hashSecretToken(token);
+    const tokenKey = `pwd_reset:token:${tokenHash}`; // build key
 
-    // Look up the hashed token in Redis; the value is the associated email.
-    return this.cacheService.get<string>(`pwd_reset:${tokenHash}`);
+    // Find and delete Token Key with Payload Value
+    return this.cacheService.getDel<ResetTokenPayloadTypes>(tokenKey);
   }
 }
