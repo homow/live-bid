@@ -73,8 +73,6 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-      gateway:
-        condition: service_healthy
     env_file:
       - ./.env.auth
     environment:
@@ -94,8 +92,6 @@ services:
       postgres:
         condition: service_healthy
       redis:
-        condition: service_healthy
-      gateway:
         condition: service_healthy
     env_file:
       - ./.env.core
