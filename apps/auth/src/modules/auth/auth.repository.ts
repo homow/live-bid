@@ -6,7 +6,7 @@ import {USER_PUBLIC_COLUMNS} from "../users/users.repository";
 import {refreshToken, user} from "@live-bid/services/database";
 import type {DrizzleTransaction} from "@live-bid/services/types";
 import {REFRESH_TOKEN_PUBLIC_COLUMNS} from "@app/auth/common/constants";
-import type {ChangePasswordRepositoryParams, RefreshTokenInsert} from "@app/auth/types";
+import type {ChangePasswordRepositoryParams, RefreshTokenInsert} from "@app/auth/types/auth";
 
 @Injectable()
 export class AuthRepository {

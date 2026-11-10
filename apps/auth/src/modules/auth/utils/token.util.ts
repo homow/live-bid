@@ -6,7 +6,7 @@ import {ConfigService} from "@nestjs/config";
 import {ONE_MINUTE_MS} from "@live-bid/services/lib";
 import {CacheService} from "@live-bid/services/cache";
 import type {AccessTokenPayload} from "@live-bid/services/types";
-import {generatePasswordResetToken, generateRandomToken, hashSecretToken} from "@app/auth/lib";
+import {generatePasswordResetToken, generateRandomToken, hashSecretToken} from "@app/auth/lib/utils";
 
 @Injectable()
 export class TokenUtil {
