@@ -15,7 +15,7 @@ import {AUTH_SERVICE_NAME, CORE_SERVICE_NAME} from "@live-bid/services/names";
           transport: Transport.REDIS,
           options: {
             host: config.get<string>("REDIS_HOST"),
-            port: Number(config.get<string>("REDIS_PORT") || 6973),
+            port: Number(config.get<string>("REDIS_PORT") || 6379),
             retryAttempts: 5,
             retryDelay: 1000,
             retryStrategy: (): number => 1000
@@ -30,7 +30,7 @@ import {AUTH_SERVICE_NAME, CORE_SERVICE_NAME} from "@live-bid/services/names";
           transport: Transport.REDIS,
           options: {
             host: config.get<string>("REDIS_HOST"),
-            port: Number(config.get<string>("REDIS_PORT") || 6973),
+            port: Number(config.get<string>("REDIS_PORT") || 6379),
             retryAttempts: 5,
             retryDelay: 1000,
             retryStrategy: (): number => 1000
