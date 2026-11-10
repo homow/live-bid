@@ -6,21 +6,21 @@ import {NormalizeClientInfoType} from "@live-bid/services/types";
 
 @Injectable()
 export class AuthMailService {
-  FRONTEND_NAME: string;
-  FRONTEND_ADDRESS: string;
-  FRONTEND_LOGIN_ADDRESS: string;
-  FRONTEND_FORGOT_PASSWORD_ADDRESS: string;
+  APPLICATION_NAME: string;
+  APPLICATION_URL: string;
+  APPLICATION_LOGIN_URL: string;
+  APPLICATION_FORGOT_PASSWORD_URL: string;
 
   constructor(
     private readonly mail: MailService,
     private readonly config: ConfigService,
   ) {
-    this.FRONTEND_ADDRESS = this.config.get<string>('FRONTEND_ADDRESS') ?? "http://localhost:127.0.0.1";
-    this.FRONTEND_NAME = this.config.get<string>('FRONTEND_NAME') ?? "Live Bid";
-    this.FRONTEND_LOGIN_ADDRESS = this.config.get<string>("FRONTEND_LOGIN_ADDRESS")
-      ?? `${this.FRONTEND_ADDRESS}/login`;
-    this.FRONTEND_FORGOT_PASSWORD_ADDRESS = this.config.get<string>("FRONTEND_FORGOT_PASSWORD_ADDRESS")
-      ?? `${this.FRONTEND_ADDRESS}/forgot-password`;
+    this.APPLICATION_URL = this.config.get<string>('APPLICATION_URL') ?? "http://localhost:127.0.0.1";
+    this.APPLICATION_NAME = this.config.get<string>('APPLICATION_NAME') ?? "Live Bid";
+    this.APPLICATION_LOGIN_URL = this.config.get<string>("APPLICATION_LOGIN_URL")
+      ?? `${this.APPLICATION_URL}/login`;
+    this.APPLICATION_FORGOT_PASSWORD_URL = this.config.get<string>("APPLICATION_FORGOT_PASSWORD_URL")
+      ?? `${this.APPLICATION_URL}/forgot-password`;
   }
 
   /**
@@ -42,14 +42,14 @@ export class AuthMailService {
     return this.mail.send({
       email,
       force: false,
-      subject: isRegister ? `Register Successfully - ${this.FRONTEND_NAME}` : `Login Successfully - ${this.FRONTEND_NAME}`,
+      subject: isRegister ? `Register Successfully - ${this.APPLICATION_NAME}` : `Login Successfully - ${this.APPLICATION_NAME}`,
       html: buildEmailHtml({
         clientInfo,
-        title: isRegister ? `Welcome to ${this.FRONTEND_NAME}` : `Login to ${this.FRONTEND_NAME}`,
+        title: isRegister ? `Welcome to ${this.APPLICATION_NAME}` : `Login to ${this.APPLICATION_NAME}`,
         contentName: isRegister ? "welcome" : "login",
         extra: {
           dashboardLink,
-          titleText: isRegister ? `Welcome to ${this.FRONTEND_NAME}` : "Login Successful",
+          titleText: isRegister ? `Welcome to ${this.APPLICATION_NAME}` : "Login Successful",
           messageText: isRegister
             ? "Your account has been successfully created."
             : "You have successfully logged into your account.",
@@ -71,14 +71,14 @@ export class AuthMailService {
     return this.mail.send({
       email,
       force: false,
-      subject: `Your password successfully ${action} - ${this.FRONTEND_NAME}`,
+      subject: `Your password successfully ${action} - ${this.APPLICATION_NAME}`,
       html: buildEmailHtml({
         clientInfo,
         title: `Password ${action} successfully`,
         contentName: "changed-password",
         extra: {
-          loginLink: `${this.FRONTEND_LOGIN_ADDRESS}`,
-          resetLink: `${this.FRONTEND_FORGOT_PASSWORD_ADDRESS}`,
+          loginLink: `${this.APPLICATION_LOGIN_URL}`,
+          resetLink: `${this.APPLICATION_FORGOT_PASSWORD_URL}`,
           titleText: `Your Password Has Been ${action}`,
           messageText: "Your password was updated successfully. You can now log in with your new password.",
         },
@@ -105,13 +105,13 @@ export class AuthMailService {
     return this.mail.send({
       email,
       force: false,
-      subject: `Reset Your Password - ${this.FRONTEND_NAME}`,
+      subject: `Reset Your Password - ${this.APPLICATION_NAME}`,
       html: buildEmailHtml({
         clientInfo,
         title: "Reset Your Password",
         contentName: "forgot-password",
         extra: {
-          resetLink: `${this.FRONTEND_FORGOT_PASSWORD_ADDRESS}?token=${resetToken}`,
+          resetLink: `${this.APPLICATION_FORGOT_PASSWORD_URL}?token=${resetToken}`,
           expireMinutes: expireMinutes.toString(),
           titleText: "Reset Your Password",
           messageText: "We received a request to reset the password for your account.",

@@ -151,12 +151,12 @@ services:
     env_file:
       - ../apps/auth/.env
     environment:
-      - REDIS_HOST=redis
-      - FRONTEND_ADDRESS=http://web:3000
-      - FRONTEND_DASHBOARD=http://web:3000/dashboard
-      - FRONTEND_LOGIN_ADDRESS=http://web:3000/login
-      - FRONTEND_FORGOT_PASSWORD_ADDRESS=http://web:3000/forgot-password
-      - DATABASE_URL=postgresql://admin:admin@postgres:5432/live_bid
+      REDIS_HOST: redis
+      APPLICATION_URL: http://web:3000
+      APPLICATION_DASHBOARD_URL: http://web:3000/dashboard
+      APPLICATION_LOGIN_URL: http://web:3000/login
+      APPLICATION_FORGOT_PASSWORD_URL: http://web:3000/forgot-password
+      DATABASE_URL: postgresql://admin:admin@postgres:5432/live_bid
 
   # Core Service
   core:
@@ -186,9 +186,9 @@ services:
     env_file:
       - ../apps/core/.env
     environment:
-      - REDIS_HOST=redis
-      - FRONTEND_ADDRESS=http://web:3000
-      - DATABASE_URL=postgresql://admin:admin@postgres:5432/live_bid
+      REDIS_HOST: redis
+      APPLICATION_URL: http://web:3000
+      DATABASE_URL: postgresql://admin:admin@postgres:5432/live_bid
 
 volumes:
   live_bid_postgres_dev_data:

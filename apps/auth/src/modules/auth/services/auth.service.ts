@@ -55,7 +55,7 @@ export class AuthService {
       "User registered successfully",
     );
 
-    const dashboardLink: string = this.config.get<string>("FRONTEND_DASHBOARD") ?? "http://127.0.0.1:3000/dashboard";
+    const dashboardLink: string = this.config.get<string>("APPLICATION_DASHBOARD_URL") ?? "http://127.0.0.1:3000/dashboard";
 
     void this.authMail.authNotification(
       "register",
@@ -134,7 +134,7 @@ export class AuthService {
     void this.usersCacheService.setCacheUserInfo(safeUser);
     this.logger.info({userId: safeUser.id}, 'User logged in');
 
-    const dashboardLink: string = this.config.get<string>("FRONTEND_DASHBOARD") ?? "http://127.0.0.1:3000/dashboard";
+    const dashboardLink: string = this.config.get<string>("APPLICATION_DASHBOARD_URL") ?? "http://127.0.0.1:3000/dashboard";
 
     void this.authMail.authNotification(
       "login",
