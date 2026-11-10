@@ -114,6 +114,13 @@ export class CacheService implements OnModuleInit, OnModuleDestroy {
     return await this.delete(...cleanKeys);
   }
 
+  /** **get and delete atomically (for one-time tokens)** */
+  async getDel<T>(key: string): Promise<T | null> {
+    const value = await this.getClient().getdel(key);
+    if (!value) return null;
+    return JSON.parse(value) as T;
+  }
+
   cleanPrefix(keys: string[]): string[] {
     return keys.map(k =>
       k.startsWith(this.prefix)
