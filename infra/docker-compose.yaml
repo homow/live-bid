@@ -81,6 +81,28 @@ services:
       REDIS_HOST: redis
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
 
+  # Core Service
+  core:
+    build:
+      context: ../.
+      dockerfile: apps/core/Dockerfile
+    image: live-bid-core:latest
+    restart: always
+    networks:
+      - live-bid-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      gateway:
+        condition: service_healthy
+    env_file:
+      - ./.env.core
+    environment:
+      REDIS_HOST: redis
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+
 networks:
   live-bid-network:
     name: live-bid-network
