@@ -18,6 +18,18 @@ export interface RefreshTokenPayload {
   user: SafeUser;
 }
 
+/**
+ * **Refresh Guard Data**
+ * */
+export interface RefreshGuardData {
+  userId: string;
+  tokenHash: string;
+}
+
+/**
+ * **Refresh Request**
+ * */
 export interface RefreshRequest extends Request {
+  refreshGuardData: RefreshGuardData;
   refreshPayload: RefreshTokenPayload;
 }
