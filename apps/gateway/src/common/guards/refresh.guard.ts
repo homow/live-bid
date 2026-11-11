@@ -1,22 +1,14 @@
 import z from "zod";
-import {firstValueFrom} from "rxjs";
 import type {Request} from "express";
-import {ClientProxy} from "@nestjs/microservices";
 import {hashSecretToken} from "@live-bid/services/lib";
-import {AUTH_PATTERNS} from '@live-bid/services/messages';
 import {getRequestResponse} from "@app/gateway/lib/utils";
-import {AUTH_SERVICE_NAME} from "@live-bid/services/names";
 import {GatewayException} from "@app/gateway/common/filters";
-import {CanActivate, type ExecutionContext, Inject, Injectable} from "@nestjs/common";
+import type {RefreshRequest} from "@live-bid/services/types";
+import {CanActivate, type ExecutionContext, Injectable} from "@nestjs/common";
 import {refreshTokenRandomPartSchema, UUIDv7Schema} from "@live-bid/contracts/schemas";
-import type {RefreshRequest, RefreshTokenPayload, ValidateRefreshRequestService} from "@live-bid/services/types";
 
 @Injectable()
 export class RefreshGuard implements CanActivate {
-  constructor(
-    @Inject(AUTH_SERVICE_NAME) private readonly authClient: ClientProxy
-  ) {}
-
   static getTokenFromReq<T extends Request>(req: T): string | null {
     const cookies = req.cookies as { refreshToken?: string };
     const header = req.headers['x-refresh-token'];
@@ -24,7 +16,7 @@ export class RefreshGuard implements CanActivate {
     return cookies?.refreshToken || (Array.isArray(header) ? header[0] : header) || null;
   }
 
-  async canActivate(context: ExecutionContext) {
+  canActivate(context: ExecutionContext): boolean {
     const req = getRequestResponse<RefreshRequest>(context).req;
 
     const rawToken = RefreshGuard.getTokenFromReq(req);
@@ -35,7 +27,7 @@ export class RefreshGuard implements CanActivate {
       message: 'Invalid or expired refresh token',
     });
 
-    const hashed = hashSecretToken(rawToken);
+    const tokenHash = hashSecretToken(rawToken);
     const [userId, randomToken] = rawToken.split(":");
 
     // Check user id
@@ -57,12 +49,10 @@ export class RefreshGuard implements CanActivate {
     });
 
     // Validate refresh token
-    req.refreshPayload = await firstValueFrom<RefreshTokenPayload>(
-      this.authClient.send(AUTH_PATTERNS.VALIDATE_REFRESH_TOKEN, {
-        userId,
-        tokenHash: hashed
-      } satisfies ValidateRefreshRequestService)
-    );
+    req.refreshGuardData = {
+      userId,
+      tokenHash,
+    };
 
     return true;
   }
