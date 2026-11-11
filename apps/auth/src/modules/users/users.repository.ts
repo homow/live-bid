@@ -1,10 +1,10 @@
 import {eq, SQL} from "drizzle-orm";
 import {Injectable} from "@nestjs/common";
+import {AppException} from "@live-bid/services/lib";
 import * as Schemas from "@live-bid/contracts/schemas";
 import {UserRoleEnum} from "@live-bid/contracts/enums";
 import {DrizzleService} from "@live-bid/services/modules";
 import {type User, user} from "@live-bid/services/database";
-import {AppException, handleDrizzleError} from "@live-bid/services/lib";
 import type {DrizzleTransaction, SafeUser} from "@live-bid/services/types";
 
 export const USER_PUBLIC_COLUMNS = {
