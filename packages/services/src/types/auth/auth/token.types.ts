@@ -10,7 +10,6 @@ export interface AccessTokenPayload {
   iat?: number;
   jti?: string;
   role: UserRoleEnum;
-  display_name?: string;
 }
 
 /** **Refresh Token Payload** */

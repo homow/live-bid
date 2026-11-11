@@ -119,7 +119,6 @@ export class AuthService {
         sub: user.id,
         role: user.role,
         jti: randomUUID() + Date.now(),
-        display_name: user.display_name,
       },
       userData.remember
     );
@@ -248,7 +247,6 @@ export class AuthService {
         sub: user.id,
         role: user.role,
         jti: randomUUID() + Date.now(),
-        display_name: user.display_name,
       },
       remember_me
     );

@@ -34,7 +34,6 @@ export class AccessStrategy extends PassportStrategy(Strategy, ACCESS_STRATEGY_N
       iat: payload.iat,
       jti: payload.jti,
       role: payload.role,
-      display_name: payload.display_name ?? "",
     };
   }
 }
