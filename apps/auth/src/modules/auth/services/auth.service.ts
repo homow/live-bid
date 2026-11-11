@@ -1,5 +1,7 @@
 import {
   SafeUser,
+  RefreshGuardData,
+  DrizzleTransaction,
   RefreshTokenPayload,
   LoginResponseService,
   RefreshRequestService,
@@ -7,9 +9,9 @@ import {
   RegisterResponseService,
   ResetPasswordRequestService,
   ChangePasswordRequestService,
-  ValidateRefreshRequestService,
 } from "@live-bid/services/types";
 
+import {v7} from "uuid";
 import {TokenUtil} from "../utils";
 import {PinoLogger} from "nestjs-pino";
 import {randomUUID} from "node:crypto";
@@ -188,11 +190,12 @@ export class AuthService {
    *
    * @param userId - User id extracted from the refresh token (already verified by guard)
    * @param tokenHash - SHA-256 hash of the raw refresh token
+   * @param tx - @type {DrizzleTransaction}
    * @returns Resolved refresh record + user
    * @throws {AppException} 401 REFRESH_TOKEN_EXPIRE — token not found or expired
    * @throws {AppException} 401 REFRESH_TOKEN_REVOKED — token was revoked (all sessions invalidated)
    */
-  async validateRefresh({userId, tokenHash}: ValidateRefreshRequestService): Promise<RefreshTokenPayload> {
+  async validateRefresh({userId, tokenHash}: RefreshGuardData, tx?: DrizzleTransaction): Promise<RefreshTokenPayload> {
     // Get user from cache if exists.
     const userCached = await this.usersCacheService.getCachedUserInfo(userId);
 
@@ -209,7 +212,7 @@ export class AuthService {
     // If user cache exists
     if (userCached) {
       // Get session/token from db
-      const [findToken] = await this.authRepository.findRefreshRecord(tokenHash);
+      const [findToken] = await this.authRepository.findRefreshRecord(tokenHash, tx);
 
       // If token not exists, Throw an exception
       if (!findToken) handleThrowRefresh();
@@ -221,7 +224,7 @@ export class AuthService {
       };
     } else {
       // If user cache not exists, find user from db
-      const [findToken] = await this.authRepository.findRefreshRecordWithUser(tokenHash);
+      const [findToken] = await this.authRepository.findRefreshRecordWithUser(tokenHash, tx);
 
       // If token not exists, Throw an exception
       if (!findToken) handleThrowRefresh();
@@ -240,7 +243,7 @@ export class AuthService {
     // If this token is revoked
     if (tokenRecord.refreshRecord.is_revoked) {
       // Revoke all user session.
-      await this.authRepository.revokeAllUserTokens(userId);
+      await this.authRepository.revokeAllUserTokens(userId, tx);
 
       this.logger.warn(
         {userId},
@@ -277,42 +280,63 @@ export class AuthService {
    * @param client_info - Normalized client info for the new session
    * @returns New access/refresh tokens + cookie options + user
    */
-  async refresh({refreshPayload, client_info}: RefreshRequestService): Promise<LoginResponseService> {
-    const user = refreshPayload.user;
-    const remember_me = refreshPayload.refreshRecord.remember_me;
+  async refresh({userId, tokenHash, client_info}: RefreshRequestService): Promise<LoginResponseService> {
+    const result = await this.drizzle.db.transaction(
+      async (tx) => {
+        const refreshPayload = await this.validateRefresh({tokenHash, userId}, tx);
 
-    // Generate refresh and access tokens
-    const tokens = this.tokenUtil.getAccessAndRefreshTokens(
-      {
-        sub: user.id,
-        role: user.role,
-        jti: randomUUID() + Date.now(),
+        const user = refreshPayload.user;
+        const remember_me = refreshPayload.refreshRecord.remember_me;
+
+        // Generate refresh and access tokens
+        const tokens = this.tokenUtil.getAccessAndRefreshTokens(
+          {
+            sub: user.id,
+            role: user.role,
+            jti: v7(),
+          },
+          remember_me
+        );
+
+        const {hashedRefreshToken, refreshToken, accessToken, expires_in} = tokens;
+
+        // Rotate token(revoke old token and insert new token in db)
+        await this.authRepository.rotateToken(
+          refreshPayload.refreshRecord.id,
+          {
+            expires_in,
+            client_info,
+            remember_me,
+            user_id: user.id,
+            replace_by_token_id: null,
+            token_hash: hashedRefreshToken,
+          },
+          tx
+        );
+
+        return {
+          user,
+          remember_me,
+          accessToken,
+          refreshToken,
+        };
       },
-      remember_me
+      {
+        accessMode: 'read write',
+        isolationLevel: 'read committed'
+      }
     );
-
-    const {hashedRefreshToken, refreshToken, accessToken, expires_in} = tokens;
-
-    // Rotate token(revoke old token and insert new token in db)
-    await this.authRepository.rotateToken(refreshPayload.refreshRecord.id, {
-      expires_in,
-      client_info,
-      remember_me,
-      user_id: user.id,
-      replace_by_token_id: null,
-      token_hash: hashedRefreshToken,
-    });
 
     // Generate access and refresh options
     const accessOptions = this.tokenUtil.getCookieOptions('access');
-    const refreshOptions = this.tokenUtil.getCookieOptions('refresh', remember_me);
+    const refreshOptions = this.tokenUtil.getCookieOptions('refresh', result.remember_me);
 
     return {
-      user,
-      accessToken,
-      refreshToken,
       accessOptions,
       refreshOptions,
+      user: result.user,
+      accessToken: result.accessToken,
+      refreshToken: result.refreshToken,
     };
   }
 

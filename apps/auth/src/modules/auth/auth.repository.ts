@@ -36,21 +36,28 @@ export class AuthRepository {
    * Finds a refresh token record by its hash.
    *
    * @param tokenHash - SHA-256 hash of the refresh token.
+   * @param tx
    */
-  findRefreshRecord(tokenHash: string) {
-    return this.drizzle.db
+  findRefreshRecord(tokenHash: string, tx?: DrizzleTransaction) {
+    const db = tx ?? this.drizzle.db;
+
+    return db
       .select(REFRESH_TOKEN_PUBLIC_COLUMNS)
       .from(refreshToken)
-      .where(eq(refreshToken.token_hash, tokenHash));
+      .where(eq(refreshToken.token_hash, tokenHash))
+      .for('update');
   }
 
   /**
    * Finds a refresh token by hash, joined with its public user record.
    *
    * @param tokenHash - SHA-256 hash of the refresh token.
+   * @param tx
    */
-  findRefreshRecordWithUser(tokenHash: string) {
-    return this.drizzle.db
+  findRefreshRecordWithUser(tokenHash: string, tx?: DrizzleTransaction) {
+    const db = tx ?? this.drizzle.db;
+
+    return db
       .select({
         ...REFRESH_TOKEN_PUBLIC_COLUMNS,
 
@@ -60,16 +67,7 @@ export class AuthRepository {
       .from(refreshToken)
       .where(eq(refreshToken.token_hash, tokenHash))
       .leftJoin(user, eq(refreshToken.user_id, user.id))
-      .groupBy(
-        refreshToken.id,
-        user.id,
-        user.email,
-        user.username,
-        user.is_active,
-        user.updated_at,
-        user.created_at,
-        user.display_name,
-      );
+      .for('update', {of: refreshToken});
   }
 
   /**
@@ -99,6 +97,7 @@ export class AuthRepository {
    *
    * @param oldTokenId - ID of the token to rotate out.
    * @param newTokenData - Data for the newly issued token.
+   * @param tx
    * @returns The newly inserted refresh token row.
    *
    * @throws {AppException} 401 REFRESH_TOKEN_REUSE — old token already revoked;
@@ -108,50 +107,51 @@ export class AuthRepository {
    * Runs inside a single DB transaction. `replace_by_token_id` is set on the
    * old row for audit/traceability.
    */
-  rotateToken(
+  async rotateToken(
     oldTokenId: string,
-    newTokenData: RefreshTokenInsert
+    newTokenData: RefreshTokenInsert,
+    tx?: DrizzleTransaction,
   ) {
-    return this.drizzle.db.transaction(async tx => {
-      const updated = await tx
-        .update(refreshToken)
-        .set({is_revoked: true})
-        .where(and(
-          eq(refreshToken.id, oldTokenId),
-          eq(refreshToken.is_revoked, false)
-        ))
-        .returning({
-          id: refreshToken.id
-        });
+    const db = tx ?? this.drizzle.db;
 
-      if (!updated.length) {
-        await this.revokeAllUserTokens(newTokenData.user_id, tx);
+    const updated = await db
+      .update(refreshToken)
+      .set({is_revoked: true})
+      .where(and(
+        eq(refreshToken.id, oldTokenId),
+        eq(refreshToken.is_revoked, false)
+      ))
+      .returning({
+        id: refreshToken.id
+      });
 
-        this.logger.warn(
-          {userId: newTokenData.user_id, oldTokenId},
-          'Refresh token reuse detected — all sessions revoked'
-        );
+    if (!updated.length) {
+      await this.revokeAllUserTokens(newTokenData.user_id, tx);
 
-        throw new AppException({
-          statusCode: 401,
-          code: 'REFRESH_TOKEN_REUSE',
-          message: 'Refresh token reuse detected. All sessions revoked for security.',
-          meta: {clearAuthCookies: true},
-        });
-      }
+      this.logger.warn(
+        {userId: newTokenData.user_id, oldTokenId},
+        'Refresh token reuse detected — all sessions revoked'
+      );
 
-      const [newToken] = await tx
-        .insert(refreshToken)
-        .values(newTokenData)
-        .returning();
+      throw new AppException({
+        statusCode: 401,
+        code: 'REFRESH_TOKEN_REUSE',
+        message: 'Refresh token reuse detected. All sessions revoked for security.',
+        meta: {clearAuthCookies: true},
+      });
+    }
 
-      await tx
-        .update(refreshToken)
-        .set({replace_by_token_id: newToken.id})
-        .where(eq(refreshToken.id, oldTokenId));
+    const [newToken] = await db
+      .insert(refreshToken)
+      .values(newTokenData)
+      .returning();
 
-      return newToken;
-    });
+    await db
+      .update(refreshToken)
+      .set({replace_by_token_id: newToken.id})
+      .where(eq(refreshToken.id, oldTokenId));
+
+    return newToken;
   }
 
   /**

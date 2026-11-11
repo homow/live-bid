@@ -190,7 +190,8 @@ export class AuthResolver {
         ServiceMessages.AUTH_PATTERNS.REFRESH,
         {
           client_info,
-          refreshPayload: req.refreshPayload
+          userId: req.refreshGuardData.userId,
+          tokenHash: req.refreshGuardData.tokenHash,
         } satisfies RefreshRequestService
       )
     );
