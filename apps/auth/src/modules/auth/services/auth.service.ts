@@ -44,27 +44,35 @@ export class AuthService {
     // Hash user password
     const hashedPassword: string = await hashSecret(userData.password);
 
-    // Insert user record in db
-    const user = await this.usersRepository.insertUser({
-      ...userData,
-      password: hashedPassword,
-    });
+    try {
+      // Insert user record in db
+      const [user] = await this.usersRepository.insertUser({
+        ...userData,
+        password: hashedPassword,
+      });
 
-    this.logger.info(
-      {userId: user.id, display_name: user.display_name},
-      "User registered successfully",
-    );
+      this.logger.info(
+        {userId: user.id, display_name: user.display_name},
+        "User registered successfully",
+      );
 
-    const dashboardLink: string = this.config.get<string>("APPLICATION_DASHBOARD_URL") ?? "http://127.0.0.1:3000/dashboard";
+      const dashboardLink: string = this.config.get<string>("APPLICATION_DASHBOARD_URL") ?? "http://127.0.0.1:3000/dashboard";
 
-    void this.authMail.authNotification(
-      "register",
-      userData.email,
-      dashboardLink,
-      clientInfo
-    );
+      void this.authMail.authNotification(
+        "register",
+        userData.email,
+        dashboardLink,
+        clientInfo
+      );
 
-    return user;
+      return user;
+    } catch (e) {
+      handleDrizzleError({
+        e,
+        mainResource: 'user',
+        conflictField: 'email',
+      });
+    }
   }
 
   /**

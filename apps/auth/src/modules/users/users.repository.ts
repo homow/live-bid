@@ -33,26 +33,16 @@ export class UsersRepository {
 
     const {username: _, ...othersData} = USER_PUBLIC_COLUMNS;
 
-    try {
-      const [result] = await db
-        .insert(user)
-        .values({
-          email,
-          password,
-          display_name,
-          is_active: true,
-          role: UserRoleEnum.USER,
-        })
-        .returning(othersData);
-
-      return result;
-    } catch (e) {
-      handleDrizzleError({
-        e,
-        mainResource: 'user',
-        conflictField: 'email',
-      });
-    }
+    return await db
+      .insert(user)
+      .values({
+        email,
+        password,
+        display_name,
+        is_active: true,
+        role: UserRoleEnum.USER,
+      })
+      .returning(othersData);
   }
 
   /**
