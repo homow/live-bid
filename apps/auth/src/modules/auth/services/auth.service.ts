@@ -258,9 +258,20 @@ export class AuthService {
 
   /**
    * **Rotate refresh token**
-   *  - Revoke old token
-   *  - Insert new session
-   * */
+   *
+   * Performs token rotation in a single DB operation:
+   * - Revoke the old refresh token
+   * - Insert a new session with the new token hash
+   *
+   * The new access + refresh tokens are generated first, then persisted
+   * via `rotateToken` (which must be atomic in the repository). Cookie
+   * options are built after persistence so a failure there never leaves
+   * an orphan token in the DB.
+   *
+   * @param refreshPayload - Validated payload from `validateRefresh` (user + old token record)
+   * @param client_info - Normalized client info for the new session
+   * @returns New access/refresh tokens + cookie options + user
+   */
   async refresh({refreshPayload, client_info}: RefreshRequestService): Promise<LoginResponseService> {
     const user = refreshPayload.user;
     const remember_me = refreshPayload.refreshRecord.remember_me;
