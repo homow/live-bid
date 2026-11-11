@@ -93,7 +93,11 @@ export class AuthService {
     );
 
     // Throw exception if user doesn't in database
-    if (!user) throwNotFound('User', 'Username or Email');
+    if (!user) throw new AppException({
+      statusCode: 401,
+      code: 'Invalid Credentials',
+      message: "Invalid user credentials",
+    });
 
     // Check password
     const isValidPassword: boolean = await compareSecret(userData.password, user.password);
