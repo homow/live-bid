@@ -176,8 +176,22 @@ export class AuthService {
   }
 
   /**
-   * **Validate refresh token from refresh guard**
-   * */
+   * Validate a refresh token against cache + DB.
+   *
+   * Fast path: if the user is cached, only the token record is fetched.
+   * Slow path: if cache is cold, token + user are fetched together and
+   * the user is cached back for subsequent calls.
+   *
+   * If the token is already revoked, all sessions for the user are
+   * revoked (defense in depth) and a 401 with `clearAuthCookies` meta
+   * is thrown so the client drops its cookies.
+   *
+   * @param userId - User id extracted from the refresh token (already verified by guard)
+   * @param tokenHash - SHA-256 hash of the raw refresh token
+   * @returns Resolved refresh record + user
+   * @throws {AppException} 401 REFRESH_TOKEN_EXPIRE — token not found or expired
+   * @throws {AppException} 401 REFRESH_TOKEN_REVOKED — token was revoked (all sessions invalidated)
+   */
   async validateRefresh({userId, tokenHash}: ValidateRefreshRequestService): Promise<RefreshTokenPayload> {
     // Get user from cache if exists.
     const userCached = await this.usersCacheService.getCachedUserInfo(userId);
