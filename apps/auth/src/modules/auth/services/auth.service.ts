@@ -216,8 +216,8 @@ export class AuthService {
 
       // Else, complete token record object
       tokenRecord = {
+        user: userCached,
         refreshRecord: findToken,
-        user: userCached
       };
     } else {
       // If user cache not exists, find user from db
@@ -241,6 +241,11 @@ export class AuthService {
     if (tokenRecord.refreshRecord.is_revoked) {
       // Revoke all user session.
       await this.authRepository.revokeAllUserTokens(userId);
+
+      this.logger.warn(
+        {userId},
+        'Refresh token reuse detected — all sessions revoked'
+      );
 
       // Throw an exception
       throw new AppException({

@@ -1,3 +1,4 @@
+import {PinoLogger} from "nestjs-pino";
 import {and, eq, SQL} from "drizzle-orm";
 import {Injectable} from "@nestjs/common";
 import {AppException} from "@live-bid/services/lib";
@@ -11,8 +12,11 @@ import type {ChangePasswordRepositoryParams, RefreshTokenInsert} from "@app/auth
 @Injectable()
 export class AuthRepository {
   constructor(
+    private readonly logger: PinoLogger,
     private readonly drizzle: DrizzleService,
-  ) {}
+  ) {
+    this.logger.setContext(AuthRepository.name);
+  }
 
   /**
    * Inserts a new refresh token row.
@@ -86,13 +90,19 @@ export class AuthRepository {
   }
 
   /**
-   * Rotates a refresh token: inserts a new one and revokes the old one atomically.
+   * Rotates a refresh token: revokes the old one and inserts a new one atomically.
    *
-   * The old token is only revoked if it hasn't been revoked yet (prevents replay).
+   * The old token is only revoked if `is_revoked = false`. If the update
+   * affects zero rows, the token was already used or revoked (race or replay):
+   * all sessions for the user are revoked in the same transaction and a 401
+   * is thrown so the client clears its cookies.
    *
    * @param oldTokenId - ID of the token to rotate out.
    * @param newTokenData - Data for the newly issued token.
    * @returns The newly inserted refresh token row.
+   *
+   * @throws {AppException} 401 REFRESH_TOKEN_REUSE — old token already revoked;
+   *   all user sessions revoked in the same transaction.
    *
    * @remarks
    * Runs inside a single DB transaction. `replace_by_token_id` is set on the
@@ -103,6 +113,33 @@ export class AuthRepository {
     newTokenData: RefreshTokenInsert
   ) {
     return this.drizzle.db.transaction(async tx => {
+      const updated = await tx
+        .update(refreshToken)
+        .set({is_revoked: true})
+        .where(and(
+          eq(refreshToken.id, oldTokenId),
+          eq(refreshToken.is_revoked, false)
+        ))
+        .returning({
+          id: refreshToken.id
+        });
+
+      if (!updated.length) {
+        await this.revokeAllUserTokens(newTokenData.user_id, tx);
+
+        this.logger.warn(
+          {userId: newTokenData.user_id, oldTokenId},
+          'Refresh token reuse detected — all sessions revoked'
+        );
+
+        throw new AppException({
+          statusCode: 401,
+          code: 'REFRESH_TOKEN_REUSE',
+          message: 'Refresh token reuse detected. All sessions revoked for security.',
+          meta: {clearAuthCookies: true},
+        });
+      }
+
       const [newToken] = await tx
         .insert(refreshToken)
         .values(newTokenData)
@@ -110,14 +147,8 @@ export class AuthRepository {
 
       await tx
         .update(refreshToken)
-        .set({
-          is_revoked: true,
-          replace_by_token_id: newToken.id,
-        })
-        .where(and(
-          eq(refreshToken.id, oldTokenId),
-          eq(refreshToken.is_revoked, false)
-        ));
+        .set({replace_by_token_id: newToken.id})
+        .where(eq(refreshToken.id, oldTokenId));
 
       return newToken;
     });
