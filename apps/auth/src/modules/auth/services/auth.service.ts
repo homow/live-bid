@@ -93,10 +93,10 @@ export class AuthService {
     );
 
     // Throw exception if user doesn't in database
-    if (!user) throwNotFound('User', 'phone or email');
+    if (!user) throwNotFound('User', 'Username or Email');
 
     // Check password
-    const isValidPassword = await compareSecret(userData.password, user.password);
+    const isValidPassword: boolean = await compareSecret(userData.password, user.password);
 
     // Throw exception if password is invalid
     if (!isValidPassword) {
@@ -109,34 +109,36 @@ export class AuthService {
       });
     }
 
-    const {password: _, ...safeUser} = user;
-
     // Generate refresh and access tokens
     const tokens = this.tokenUtil.getAccessAndRefreshTokens(
       {
-        sub: safeUser.id,
-        role: safeUser.role,
+        sub: user.id,
+        role: user.role,
         jti: randomUUID() + Date.now(),
-        display_name: safeUser.display_name,
+        display_name: user.display_name,
       },
       userData.remember
     );
 
     const {hashedRefreshToken, refreshToken, accessToken, expires_in} = tokens;
 
+    // Create a session in db
+    await this.authRepository.insertRefreshToken(
+      {
+        expires_in,
+        user_id: user.id,
+        client_info: clientInfo,
+        replace_by_token_id: null,
+        token_hash: hashedRefreshToken,
+        remember_me: userData.remember,
+      }
+    );
+
+    const {password: _, ...safeUser} = user;
+
     // Generate access and refresh options
     const accessOptions = this.tokenUtil.getCookieOptions('access');
     const refreshOptions = this.tokenUtil.getCookieOptions('refresh', userData.remember);
-
-    // Create a session in db
-    await this.authRepository.insertRefreshToken({
-      expires_in,
-      user_id: safeUser.id,
-      client_info: clientInfo,
-      replace_by_token_id: null,
-      token_hash: hashedRefreshToken,
-      remember_me: userData.remember,
-    });
 
     // Set user cache
     void this.usersCacheService.setCacheUserInfo(safeUser);
@@ -154,9 +156,9 @@ export class AuthService {
     return {
       accessToken,
       refreshToken,
-      user: safeUser,
       accessOptions,
-      refreshOptions
+      refreshOptions,
+      user: safeUser,
     };
   }
 

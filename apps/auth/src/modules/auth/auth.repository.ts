@@ -18,9 +18,12 @@ export class AuthRepository {
    * Inserts a new refresh token row.
    *
    * @param data - Refresh token insert payload.
+   * @param tx     - Optional transaction; falls back to `drizzle.db`.
    */
-  insertRefreshToken(data: RefreshTokenInsert) {
-    return this.drizzle.db
+  insertRefreshToken(data: RefreshTokenInsert, tx?: DrizzleTransaction) {
+    const db = tx ?? this.drizzle.db;
+
+    return db
       .insert(refreshToken)
       .values(data);
   }
