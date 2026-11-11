@@ -1,5 +1,4 @@
 import type {
-  RefreshTokenPayload,
   LoginRequestService,
   LoginResponseService,
   LogoutRequestService,
@@ -9,7 +8,6 @@ import type {
   ResetPasswordRequestService,
   ChangePasswordRequestService,
   ForgotPasswordRequestService,
-  ValidateRefreshRequestService,
 } from "@live-bid/services/types";
 
 import {Controller} from "@nestjs/common";
@@ -58,20 +56,6 @@ export class AuthController {
     @Payload() data: LoginRequestService,
   ): Promise<LoginResponseService> {
     return this.authService.login(data.userData, data.clientInfo);
-  }
-
-  /**
-   * **Validate refresh token**
-   *
-   * @param data - User ID and hashed refresh token
-   *
-   * @returns Validated token record with associated user data
-   */
-  @MessagePattern(ServiceMessages.AUTH_PATTERNS.VALIDATE_REFRESH_TOKEN)
-  validateRefreshToken(
-    @Payload() data: ValidateRefreshRequestService,
-  ): Promise<RefreshTokenPayload> {
-    return this.authService.validateRefresh(data);
   }
 
   /**

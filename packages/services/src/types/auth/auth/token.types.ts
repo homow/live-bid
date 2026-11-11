@@ -31,5 +31,4 @@ export interface RefreshGuardData {
  * */
 export interface RefreshRequest extends Request {
   refreshGuardData: RefreshGuardData;
-  refreshPayload: RefreshTokenPayload;
 }

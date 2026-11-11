@@ -5,4 +5,3 @@ export * from "./register.request";
 export * from "./reset-password.request";
 export * from "./change-password.request";
 export * from "./forgot-password.request";
-export * from "./validate-refresh.request";
