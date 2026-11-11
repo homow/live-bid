@@ -39,7 +39,17 @@ export class AuthService {
     this.logger.setContext(AuthService.name);
   }
 
-  /** **Register New Users** */
+  /**
+   * Register a new user.
+   *
+   * Hashes the password, inserts the user, sends a welcome email
+   * (fire-and-forget), and returns the created user record.
+   *
+   * @param userData - Registration payload (email, username, password, display_name)
+   * @param clientInfo - Normalized client info (IP, user-agent, etc.)
+   * @returns The created user record
+   * @throws {AppException} On duplicate email or other Drizzle-level errors
+   */
   async register(userData: ZodSchemas.RegisterUserSchemaType, clientInfo: NormalizeClientInfoType): Promise<RegisterResponseService> {
     // Hash user password
     const hashedPassword: string = await hashSecret(userData.password);
@@ -172,7 +182,7 @@ export class AuthService {
     // Get user from cache if exists.
     const userCached = await this.usersCacheService.getCachedUserInfo(userId);
 
-    function handleThrowRefresh() {
+    function handleThrowRefresh(): never {
       throw new AppException({
         statusCode: 401,
         code: 'REFRESH_TOKEN_EXPIRE',
