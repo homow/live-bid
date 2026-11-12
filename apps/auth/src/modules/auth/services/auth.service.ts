@@ -345,13 +345,24 @@ export class AuthService {
         refreshToken: result.refreshToken,
       };
     } catch (e) {
-      const exp = (e as { error: unknown }).error as AppErrorPayload;
+      if (e instanceof AppException) {
+        const exp = (e as unknown as { error: unknown })?.error as AppErrorPayload;
+        const code = exp?.code;
 
-      if (e instanceof AppException && exp.code === 'REFRESH_TOKEN_REVOKED' || exp.code === 'REFRESH_TOKEN_REUSE') {
-        // Revoke all user session.
-        await this.authRepository.revokeAllUserTokens(userId);
-        throw e;
+        if (code === 'REFRESH_TOKEN_REVOKED' || code === 'REFRESH_TOKEN_REUSE') {
+          try {
+            await this.authRepository.revokeAllUserTokens(userId);
+
+          } catch (revokeErr: unknown) {
+            this.logger.error(
+              {userId, revokeErr, originalCode: code},
+              'Failed to revoke all user tokens during refresh-token reuse handling'
+            );
+          }
+        }
       }
+
+      throw e;
     }
   }
 
