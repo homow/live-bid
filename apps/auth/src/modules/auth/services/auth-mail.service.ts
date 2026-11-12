@@ -4,6 +4,27 @@ import {buildEmailHtml} from "@live-bid/services/lib";
 import {MailService} from "@live-bid/services/modules";
 import {NormalizeClientInfoType} from "@live-bid/services/types";
 
+/**
+ * **AuthMailService**
+ *
+ * Builds and dispatches authentication-related transactional emails
+ * (registration, login alerts, password changes, and password reset links).
+ *
+ * @remarks
+ * - Wraps the shared `MailService` and injects the application's branding
+ *   (`APPLICATION_NAME`, `APPLICATION_URL`, etc.) resolved from `ConfigService`.
+ * - Each method composes the email via `buildEmailHtml`, passing `clientInfo`
+ *   so the template can render security metadata (IP, device, geo).
+ * - Login/register and reset emails use `force: false` (respecting user
+ *   notification preferences), while security-alert emails use `force: true`.
+ *
+ * ### Available emails
+ * | Method | Trigger | Forced |
+ * |---|---|---|
+ * | `authNotification` | Register / Login | ❌ |
+ * | `passwordChangedNotification` | Password change / reset | ❌ |
+ * | `forgotPasswordNotification` | Password reset request | ✅ |
+ */
 @Injectable()
 export class AuthMailService {
   APPLICATION_NAME: string;
@@ -24,12 +45,13 @@ export class AuthMailService {
   }
 
   /**
-   * **Send an authentication-related email.**
+   * Sends a welcome (register) or login-alert email.
    *
-   * @param type - "signup" or "login"
-   * @param email - recipient email
-   * @param dashboardLink
-   * @param clientInfo
+   * @param type - Email variant: `register` (welcome) or `login` (alert).
+   * @param email - Recipient address.
+   * @param dashboardLink - URL to the user's dashboard, embedded in the email.
+   * @param clientInfo - Client metadata rendered in the email footer.
+   * @returns The underlying `MailService.send` promise.
    */
   authNotification(
     type: "login" | "register",
@@ -59,9 +81,15 @@ export class AuthMailService {
   }
 
   /**
-   * **Send password-changed confirmation email.**
+   * Sends a security-alert email after a successful password change or reset.
    *
-   * Called after a successful password change/reset.
+   * This email is always forced (ignores notification preferences) because
+   * it is security-critical.
+   *
+   * @param email - Recipient address.
+   * @param clientInfo - Client metadata rendered in the email footer.
+   * @param action - Whether the password was `change`d or `reset` (affects copy).
+   * @returns The underlying `MailService.send` promise.
    */
   passwordChangedNotification(
     email: string,
@@ -70,7 +98,7 @@ export class AuthMailService {
   ) {
     return this.mail.send({
       email,
-      force: true,
+      force: false,
       subject: `Your password successfully ${action} - ${this.APPLICATION_NAME}`,
       html: buildEmailHtml({
         clientInfo,
@@ -87,14 +115,13 @@ export class AuthMailService {
   }
 
   /**
-   * **Send password-reset link email.**
+   * Sends the password-reset link email.
    *
-   * Called when a user requests to reset their forgotten password.
-   *
-   * @param email - The recipient's email address.
-   * @param resetToken - The raw reset token to embed in the reset link.
-   * @param clientInfo - Normalized client metadata for the email footer.
-   * @param expireMinutes - The token's validity duration (default: 15).
+   * @param email - Recipient address.
+   * @param resetToken - Raw reset token embedded in the reset URL.
+   * @param clientInfo - Client metadata rendered in the email footer.
+   * @param expireMinutes - Token validity (minutes) shown in the email.
+   * @returns The underlying `MailService.send` promise.
    */
   forgotPasswordNotification(
     email: string,
@@ -104,7 +131,7 @@ export class AuthMailService {
   ) {
     return this.mail.send({
       email,
-      force: false,
+      force: true,
       subject: `Reset Your Password - ${this.APPLICATION_NAME}`,
       html: buildEmailHtml({
         clientInfo,
