@@ -9,6 +9,32 @@ import type {DrizzleTransaction} from "@live-bid/services/types";
 import {REFRESH_TOKEN_PUBLIC_COLUMNS} from "@app/auth/common/constants";
 import type {ChangePasswordRepositoryParams, RefreshTokenInsert} from "@app/auth/types/auth";
 
+/**
+ * **AuthRepository**
+ *
+ * Data-access layer for authentication and session management.
+ * Encapsulates all Drizzle ORM queries related to refresh tokens and user credentials.
+ *
+ * @remarks
+ * - **Transactions:** every method accepts an optional `tx: DrizzleTransaction`.
+ *   If omitted, it falls back to the default `drizzle.db` connection. This allows
+ *   the service layer to compose multiple operations atomically.
+ * - **Locking:** read operations used during token rotation acquire a
+ *   `FOR UPDATE` lock (via `.for('update')`) to prevent race conditions.
+ * - **Security:** refresh tokens are stored and queried **only by their SHA-256 hash**,
+ *   never in plain text. Token rotation and reuse detection are handled atomically.
+ *
+ * ### Available operations
+ * | Method | Purpose | Locking / Atomicity |
+ * |---|---|---|
+ * | `insertRefreshToken` | Persist a new session token | – |
+ * | `findRefreshRecord` | Fetch a token record by hash | `FOR UPDATE` |
+ * | `findRefreshRecordWithUser` | Fetch token + user (cold cache) | `FOR UPDATE` (token only) |
+ * | `revokeAllUserTokens` | Revoke every session for a user | – |
+ * | `rotateToken` | Revoke old token + insert new (reuse detection) | Transaction required |
+ * | `revokeToken` | Revoke a single token by hash | – |
+ * | `changePassword` | Update the user's password hash | – |
+ */
 @Injectable()
 export class AuthRepository {
   constructor(
