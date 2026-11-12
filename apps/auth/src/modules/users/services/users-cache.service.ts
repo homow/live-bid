@@ -7,11 +7,27 @@ import type {SafeUser} from "@live-bid/services/types";
 import {throwNotFound, ONE_HOUR_MS} from "@live-bid/services/lib";
 
 /**
- * Service responsible for caching user data using Redis.
+ * **UsersCacheService**
  *
- * - Uses a **Cache-Aside** pattern.
- * - Writes are **fire-and-forget** to avoid blocking the main flow.
- * - Errors are logged but never thrown — cache is treated as a secondary layer.
+ * Redis-backed caching layer for user data.
+ * Implements the **Cache-Aside** pattern to reduce database load
+ * during read-heavy flows (e.g., auth validation, profile lookups).
+ *
+ * @remarks
+ * - **Cache-Aside:** the service checks the cache first, falls back to the
+ *   database on a miss, and populates the cache for subsequent calls.
+ * - **Fire-and-forget writes:** `setCacheUserInfo` does not block the caller.
+ *   Failures are logged but never thrown, since the cache is secondary to the DB.
+ * - **TTL:** cached users expire after **1 hour**.
+ * - **Serialization:** `Date` fields are re-hydrated back to `Date` objects
+ *   when reading from Redis.
+ *
+ * ### Available operations
+ * | Method | Purpose | Cache-Aside |
+ * |---|---|---|
+ * | `setCacheUserInfo` | Write user to Redis (1h TTL) | – |
+ * | `getCachedUserInfo` | Read user from Redis | – |
+ * | `getOrSetUserCache` | Read → fallback to DB → cache | ✅ |
  */
 @Injectable()
 export class UsersCacheService {
@@ -40,6 +56,9 @@ export class UsersCacheService {
   /**
    * Fetches a user from Redis by ID.
    *
+   * Re-hydrates `created_at` and `updated_at` into `Date` instances,
+   * since Redis stores them as strings.
+   *
    * @param id - User ID
    * @returns The cached user, or `null` if not found
    */
@@ -57,15 +76,15 @@ export class UsersCacheService {
   }
 
   /**
-   * Resolves a user using the **Cache-Aside** strategy:
+   * Resolves a user using the **Cache-Aside** strategy.
    *
    * 1. Check Redis cache.
    * 2. On miss, fetch from database.
-   * 3. Store result in cache (async) and return.
-   * 4. Throws `NotFoundException` if user doesn't exist in DB.
+   * 3. Store result in cache (async, non-blocking) and return.
    *
    * @param id - User ID
    * @returns The resolved user object
+   * @throws {AppException} 404 — user not found in the database.
    */
   async getOrSetUserCache(id: string) {
     const userCached = await this.getCachedUserInfo(id);
