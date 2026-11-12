@@ -1,5 +1,4 @@
 import {
-  SafeUser,
   RefreshGuardData,
   DrizzleTransaction,
   RefreshTokenPayload,
@@ -24,7 +23,7 @@ import {DrizzleService} from "@live-bid/services/modules";
 import {compareSecret, hashSecret} from "@app/auth/lib/utils";
 import {UsersCacheService} from "@app/auth/modules/users/services";
 import {UsersRepository} from "@app/auth/modules/users/users.repository";
-import {hashSecretToken, AppException, handleDrizzleError, throwNotFound} from "@live-bid/services/lib";
+import {hashSecretToken, AppException, handleDrizzleError, throwNotFound, AppErrorPayload} from "@live-bid/services/lib";
 
 @Injectable()
 export class AuthService {
@@ -199,14 +198,6 @@ export class AuthService {
     // Get user from cache if exists.
     const userCached = await this.usersCacheService.getCachedUserInfo(userId);
 
-    function handleThrowRefresh(): never {
-      throw new AppException({
-        statusCode: 401,
-        code: 'REFRESH_TOKEN_EXPIRE',
-        message: 'Invalid or expired refresh token',
-      });
-    }
-
     let tokenRecord: RefreshTokenPayload;
 
     // If user cache exists
@@ -215,7 +206,11 @@ export class AuthService {
       const [findToken] = await this.authRepository.findRefreshRecord(tokenHash, tx);
 
       // If token not exists, Throw an exception
-      if (!findToken) handleThrowRefresh();
+      if (!findToken) throw new AppException({
+        statusCode: 401,
+        code: 'REFRESH_TOKEN_EXPIRE',
+        message: 'Invalid or expired refresh token',
+      });
 
       // Else, complete token record object
       tokenRecord = {
@@ -227,26 +222,36 @@ export class AuthService {
       const [findToken] = await this.authRepository.findRefreshRecordWithUser(tokenHash, tx);
 
       // If token not exists, Throw an exception
-      if (!findToken) handleThrowRefresh();
+      if (!findToken) throw new AppException({
+        statusCode: 401,
+        code: 'REFRESH_TOKEN_EXPIRE',
+        message: 'Invalid or expired refresh token',
+      });
+
+      if (!findToken.user) {
+        this.logger.warn({tokenHash}, 'Refresh token found but user does not exist');
+
+        throw new AppException({
+          statusCode: 401,
+          code: 'USER_NOT_FOUND',
+          message: 'User associated with this token no longer exists',
+        });
+      }
 
       // Cach user
-      void this.usersCacheService.setCacheUserInfo(findToken.user as SafeUser);
+      void this.usersCacheService.setCacheUserInfo(findToken.user);
 
       const {user, ...refreshRecord} = findToken;
 
       tokenRecord = {
+        user,
         refreshRecord,
-        user: user as SafeUser,
       };
     }
 
     // If this token is revoked
     if (tokenRecord.refreshRecord.is_revoked) {
-      // Revoke all user session.
-      await this.authRepository.revokeAllUserTokens(userId, tx);
-
-      this.logger.warn(
-        {userId},
+      this.logger.warn({userId},
         'Refresh token reuse detected — all sessions revoked'
       );
 
@@ -280,64 +285,74 @@ export class AuthService {
    * @param client_info - Normalized client info for the new session
    * @returns New access/refresh tokens + cookie options + user
    */
-  async refresh({userId, tokenHash, client_info}: RefreshRequestService): Promise<LoginResponseService> {
-    const result = await this.drizzle.db.transaction(
-      async (tx) => {
-        const refreshPayload = await this.validateRefresh({tokenHash, userId}, tx);
+  async refresh({userId, tokenHash, client_info}: RefreshRequestService) {
+    try {
+      const result = await this.drizzle.db.transaction(
+        async (tx) => {
+          const refreshPayload = await this.validateRefresh({tokenHash, userId}, tx);
 
-        const user = refreshPayload.user;
-        const remember_me = refreshPayload.refreshRecord.remember_me;
+          const user = refreshPayload.user;
+          const remember_me = refreshPayload.refreshRecord.remember_me;
 
-        // Generate refresh and access tokens
-        const tokens = this.tokenUtil.getAccessAndRefreshTokens(
-          {
-            sub: user.id,
-            role: user.role,
-            jti: v7(),
-          },
-          remember_me
-        );
+          // Generate refresh and access tokens
+          const tokens = this.tokenUtil.getAccessAndRefreshTokens(
+            {
+              sub: user.id,
+              role: user.role,
+              jti: v7(),
+            },
+            remember_me
+          );
 
-        const {hashedRefreshToken, refreshToken, accessToken, expires_in} = tokens;
+          const {hashedRefreshToken, refreshToken, accessToken, expires_in} = tokens;
 
-        // Rotate token(revoke old token and insert new token in db)
-        await this.authRepository.rotateToken(
-          refreshPayload.refreshRecord.id,
-          {
-            expires_in,
-            client_info,
+          // Rotate token(revoke old token and insert new token in db)
+          await this.authRepository.rotateToken(
+            refreshPayload.refreshRecord.id,
+            {
+              expires_in,
+              client_info,
+              remember_me,
+              user_id: user.id,
+              replace_by_token_id: null,
+              token_hash: hashedRefreshToken,
+            },
+            tx
+          );
+
+          return {
+            user,
             remember_me,
-            user_id: user.id,
-            replace_by_token_id: null,
-            token_hash: hashedRefreshToken,
-          },
-          tx
-        );
+            accessToken,
+            refreshToken,
+          };
+        },
+        {
+          accessMode: 'read write',
+          isolationLevel: 'read committed'
+        }
+      );
 
-        return {
-          user,
-          remember_me,
-          accessToken,
-          refreshToken,
-        };
-      },
-      {
-        accessMode: 'read write',
-        isolationLevel: 'read committed'
+      // Generate access and refresh options
+      const accessOptions = this.tokenUtil.getCookieOptions('access');
+      const refreshOptions = this.tokenUtil.getCookieOptions('refresh', result.remember_me);
+
+      return {
+        accessOptions,
+        refreshOptions,
+        user: result.user,
+        accessToken: result.accessToken,
+        refreshToken: result.refreshToken,
+      };
+    } catch (e) {
+      const exp = (e as { error: unknown }).error as AppErrorPayload;
+
+      if (e instanceof AppException && exp.code === 'REFRESH_TOKEN_REVOKED' || exp.code === 'REFRESH_TOKEN_REUSE') {
+        // Revoke all user session.
+        await this.authRepository.revokeAllUserTokens(userId);
+        throw e;
       }
-    );
-
-    // Generate access and refresh options
-    const accessOptions = this.tokenUtil.getCookieOptions('access');
-    const refreshOptions = this.tokenUtil.getCookieOptions('refresh', result.remember_me);
-
-    return {
-      accessOptions,
-      refreshOptions,
-      user: result.user,
-      accessToken: result.accessToken,
-      refreshToken: result.refreshToken,
-    };
+    }
   }
 
   /**

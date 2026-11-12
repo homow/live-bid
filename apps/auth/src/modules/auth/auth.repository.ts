@@ -126,8 +126,6 @@ export class AuthRepository {
       });
 
     if (!updated.length) {
-      await this.revokeAllUserTokens(newTokenData.user_id, tx);
-
       this.logger.warn(
         {userId: newTokenData.user_id, oldTokenId},
         'Refresh token reuse detected — all sessions revoked'
