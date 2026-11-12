@@ -70,7 +70,7 @@ export class AuthMailService {
   ) {
     return this.mail.send({
       email,
-      force: false,
+      force: true,
       subject: `Your password successfully ${action} - ${this.APPLICATION_NAME}`,
       html: buildEmailHtml({
         clientInfo,

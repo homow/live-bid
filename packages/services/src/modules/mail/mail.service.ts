@@ -15,7 +15,7 @@ export interface PayloadEventEmail {
 export class MailService {
   private readonly defaultFrom: string;
   private readonly defaultReplay: string;
-  private readonly emailNotification: string;
+  private readonly emailNonCriticalEnabled: boolean;
 
   constructor(
     private readonly logger: PinoLogger,
@@ -24,16 +24,12 @@ export class MailService {
   ) {
     this.defaultFrom = this.config.get<string>("EMAIL_FROM") ?? "";
     this.defaultReplay = this.config.get<string>("EMAIL_REPLAY") ?? "";
-    this.emailNotification = this.config.get<string>("EMAIL_NOTIFICATIONS_ENABLED") ?? "";
-  }
-
-  isEmailEnabled(): boolean {
-    return this.emailNotification.toLowerCase() === "true";
+    this.emailNonCriticalEnabled = this.config.get<string>("EMAIL_NON_CRITICAL_ENABLED") === 'true';
   }
 
   // Check enabled email and send email
   async send({force = true, ...payload}: PayloadEventEmail) {
-    if (!force && !this.isEmailEnabled()) return;
+    if (!force && !this.emailNonCriticalEnabled) return;
 
     try {
       return await this.mailer.sendMail({
