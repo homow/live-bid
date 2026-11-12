@@ -25,6 +25,45 @@ import {UsersCacheService} from "@app/auth/modules/users/services";
 import {UsersRepository} from "@app/auth/modules/users/users.repository";
 import {hashSecretToken, AppException, handleDrizzleError, throwNotFound, AppErrorPayload} from "@live-bid/services/lib";
 
+/**
+ * **AuthService**
+ *
+ * Core business-logic layer for all authentication flows.
+ * Handles registration, login, token lifecycle (issue/rotate/revoke),
+ * password changes, and password recovery, while coordinating
+ * with the repositories, cache, token utility, and mail service.
+ *
+ * @remarks
+ * - **Transactions:** operations that mutate credentials or sessions
+ *   (`refresh`, `changePassword`, `resetPassword`) run inside a
+ *   `drizzle.db.transaction` to guarantee atomicity.
+ * - **Security:**
+ *   - Passwords and tokens are hashed before persistence.
+ *   - Refresh-token reuse triggers a full revocation of all user sessions.
+ *   - Password reset is single-use and bound to a short TTL.
+ *   - `forgotPassword` always returns a generic message (anti-enumeration).
+ * - **Side effects:** security/notification emails are sent fire-and-forget
+ *   (`void`), so delivery failures never block or roll back the main flow.
+ * - **Caching:** the `UsersCacheService` is used as a fast path during
+ *   refresh validation and is refreshed on login.
+ *
+ * ### Public methods
+ * | Method | Purpose | DB Transaction | Emails |
+ * |---|---|---|---|
+ * | `register` | Create a new user | ❌ | welcome |
+ * | `login` | Authenticate + issue tokens | ❌ | login alert |
+ * | `validateRefresh` | Validate refresh token (cache + DB) | optional (`tx`) | – |
+ * | `refresh` | Rotate refresh token atomically | ✅ | – |
+ * | `logout` | Revoke a single refresh token | ❌ | – |
+ * | `changePassword` | Update password + revoke all sessions | ✅ | password changed |
+ * | `forgotPassword` | Issue a reset token + email | ❌ | reset link |
+ * | `resetPassword` | Consume token + update password + revoke sessions | ✅ | password changed |
+ *
+ * @example
+ * // Login flow
+ * const { user, accessToken, refreshToken } =
+ *   await authService.login({ email, password }, clientInfo);
+ */
 @Injectable()
 export class AuthService {
   constructor(
