@@ -18,13 +18,30 @@ import * as ServiceMessages from "@live-bid/services/messages";
 /**
  * **AuthController**
  *
- * Handles incoming microservice messages for authentication operations.
- * All methods are message handlers that delegate business logic to `AuthService`.
+ * Microservice controller for authentication operations.
+ * Acts as a thin transport layer that receives messages from the API Gateway
+ * via `ClientProxy` and delegates the actual business logic to `AuthService`.
  *
  * @remarks
- * - Uses Redis transport for inter-service communication
- * - Input validation is performed by Zod schemas before reaching this layer
- * - All responses are typed with service-specific response types
+ * - **Transport:** all handlers are registered using `@MessagePattern` and receive
+ *   data through `@Payload()`. No HTTP layer is involved here.
+ * - **Responsibility:** this controller does **not** contain business logic; it
+ *   only forwards payloads to the service layer and returns the result.
+ * - **Error handling:** errors thrown by `AuthService` (e.g. 400, 401, 404) are
+ *   propagated back to the gateway unchanged.
+ * - **Fire-and-forget:** `logout` uses a `void` return and performs the token
+ *   revocation asynchronously without waiting for a response.
+ *
+ * ### Message patterns
+ * | Pattern | Payload | Returns |
+ * |---|---|---|
+ * | `REGISTER` | `{ input, clientInfo }` | Created user (safe fields) |
+ * | `LOGIN` | `{ userData, clientInfo }` | User + access/refresh tokens |
+ * | `REFRESH` | `{ clientInfo, userId, tokenHash }` | Rotated tokens |
+ * | `LOGOUT` | `{ rawRefreshTokenId }` | `void` (fire-and-forget) |
+ * | `CHANGE_PASSWORD` | `{ userId, oldPassword, newPassword, clientInfo }` | Success message |
+ * | `FORGOT_PASSWORD` | `{ email, clientInfo }` | Generic success message |
+ * | `RESET_PASSWORD` | `{ token, newPassword, clientInfo }` | Success message |
  */
 @Controller()
 export class AuthController {
@@ -68,7 +85,7 @@ export class AuthController {
   @MessagePattern(ServiceMessages.AUTH_PATTERNS.REFRESH)
   refresh(
     @Payload() data: RefreshRequestService,
-  ) {
+  ): Promise<LoginResponseService> {
     return this.authService.refresh(data);
   }
 
@@ -85,7 +102,7 @@ export class AuthController {
   @MessagePattern(ServiceMessages.AUTH_PATTERNS.LOGOUT)
   logout(
     @Payload() data: LogoutRequestService,
-  ) {
+  ): void {
     this.authService.logout(data.rawRefreshTokenId);
   }
 
@@ -102,7 +119,7 @@ export class AuthController {
   @MessagePattern(ServiceMessages.AUTH_PATTERNS.CHANGE_PASSWORD)
   changePassword(
     @Payload() data: ChangePasswordRequestService,
-  ) {
+  ): Promise<string> {
     return this.authService.changePassword(data);
   }
 
@@ -118,7 +135,7 @@ export class AuthController {
   @MessagePattern(ServiceMessages.AUTH_PATTERNS.FORGOT_PASSWORD)
   forgotPassword(
     @Payload() data: ForgotPasswordRequestService
-  ) {
+  ): Promise<string> {
     return this.authService.forgotPassword(data.email, data.clientInfo);
   }
 
@@ -134,7 +151,7 @@ export class AuthController {
   @MessagePattern(ServiceMessages.AUTH_PATTERNS.RESET_PASSWORD)
   resetPassword(
     @Payload() data: ResetPasswordRequestService
-  ) {
+  ): Promise<string> {
     return this.authService.resetPassword(data);
   }
 }

@@ -285,7 +285,7 @@ export class AuthService {
    * @param client_info - Normalized client info for the new session
    * @returns New access/refresh tokens + cookie options + user
    */
-  async refresh({userId, tokenHash, client_info}: RefreshRequestService) {
+  async refresh({userId, tokenHash, client_info}: RefreshRequestService): Promise<LoginResponseService> {
     try {
       const result = await this.drizzle.db.transaction(
         async (tx) => {
