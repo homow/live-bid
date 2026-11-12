@@ -33,16 +33,34 @@ import {ACCESS_TOKEN_NAME, AUTH_SERVICE_NAME, REFRESH_TOKEN_NAME} from "@live-bi
 /**
  * **AuthResolver**
  *
- * Handles authentication operations for the GraphQL API.
- * This resolver communicates with the Auth microservice via the `ClientProxy` transport layer.
+ * GraphQL resolver for all authentication operations.
+ * Delegates every request to the **Auth microservice** over the `ClientProxy`
+ * transport and, where relevant, manages the auth cookies on the HTTP response.
  *
  * @remarks
- * - All mutations are decorated with custom security decorators (RegisterDecorators, LoginDecorators)
- * - Input validation is performed using ZodPipe with predefined schemas
- * - Authentication tokens are set as HTTP-only cookies on login
+ * - **Transport:** each mutation sends a message (`send`) or emits a fire-and-forget
+ *   event (`emit`) to the auth service using `ServiceMessages.AUTH_PATTERNS`.
+ * - **Validation:** inputs are validated at the edge with `ZodPipe` + schemas.
+ * - **Cookies:** `ACCESS_TOKEN` and `REFRESH_TOKEN` are HTTP-only; they are set on
+ *   login/refresh and cleared on logout, password change, and password reset.
+ * - **Security decorators:** public or guarded mutations are annotated via
+ *   `RegisterDecorators`, `LoginDecorators`, `RefreshDecorators`, `LogoutDecorators`,
+ *   `ForgotPasswordDecorators`, and `ResetPasswordDecorators`.
+ * - **Client metadata:** `@NormalizeClientInfo()` attaches IP, User-Agent, Geo, and
+ *   language to requests (and to the security-alert emails they trigger).
+ *
+ * ### Exposed mutations
+ * | Mutation | Auth required | Side effects |
+ * |---|---|---|
+ * | `register` | ❌ | creates user |
+ * | `login` | ❌ | sets auth cookies |
+ * | `refresh` | ✅ (refresh token) | rotates cookies |
+ * | `logout` | ❌ | revokes refresh token, clears cookies |
+ * | `changePassword` | ✅ | revokes all sessions, clears cookies, sends alert email |
+ * | `forgotPassword` | ❌ | sends reset-link email |
+ * | `resetPassword` | ❌ | revokes all sessions, clears cookies, sends alert email |
  *
  * @example
- * // In your GraphQL client:
  * mutation Register {
  *   register(input: { email: "test@example.com", username: "john", password: "secret" }) {
  *     id
