@@ -9,6 +9,33 @@ import {hashSecretToken} from "@live-bid/services/lib";
 import {generatePasswordResetToken, generateRandomToken} from "@app/auth/lib/utils";
 import type {AccessTokenPayload, ResetTokenPayloadTypes} from "@live-bid/services/types";
 
+/**
+ * **TokenUtil**
+ *
+ * Utility service for token generation, cookie configuration, and
+ * password-reset token management.
+ *
+ * @remarks
+ * - **Access Tokens:** JWTs signed with `JWT_SECRET`, short-lived (`JWT_EXPIRES`).
+ * - **Refresh Tokens:** Opaque tokens formatted as `<userId>:<randomPart>`.
+ *   Only their SHA-256 hash is persisted in the database.
+ * - **Cookies:** Built with strict security defaults (`httpOnly`, `secure` in
+ *   production, `sameSite=strict`). Refresh token max-age adapts to the
+ *   "remember me" flag.
+ * - **Password Reset:** Uses Redis atomic operations (Lua) to enforce a
+ *   15-minute single-use token and an anti-spam per-user lock.
+ *
+ * ### Available operations
+ * | Method | Purpose |
+ * |---|---|
+ * | `getCookieOptions` | Generate secure cookie configurations |
+ * | `getRefreshDate` | Calculate refresh token TTL (12h or 7d) |
+ * | `getAccessDate` | Calculate access token TTL from config |
+ * | `generateAccessToken` | Sign a JWT access token |
+ * | `getAccessAndRefreshTokens` | Generate a complete token pair |
+ * | `setPwdToken` | Issue a single-use reset token with anti-spam lock |
+ * | `verifyPwdToken` | Consume and validate a reset token |
+ */
 @Injectable()
 export class TokenUtil {
   constructor(
@@ -17,7 +44,13 @@ export class TokenUtil {
     private readonly cacheService: CacheService,
   ) {}
 
-  /** **get same refreshToken options** */
+  /**
+   * Builds the cookie options for auth tokens.
+   *
+   * @param type - The target cookie type (`refresh`, `access`, or `logout`).
+   * @param remember - Whether the user requested a long-lived session.
+   * @returns Secure `CookieOptions` (with `maxAge` for access/refresh).
+   */
   getCookieOptions(type: "refresh" | "access" | "logout", remember?: boolean): CookieOptions {
     const isProduction: boolean = this.config.get<string>('NODE_ENV') === "production";
 
@@ -40,20 +73,33 @@ export class TokenUtil {
     };
   }
 
-  /** **Get refresh token date** */
+  /**
+   * Calculates the refresh-token TTL in milliseconds.
+   *
+   * @param remember - If `true`, returns 7 days; otherwise 12 hours.
+   */
   getRefreshDate(remember: boolean): number {
     return remember
       ? 7 * 24 * 60 * 60 * 1000 // 7 Days
       : 12 * 60 * 60 * 1000;    // 12 Hours
   }
 
-  /** **Get Access Token Date** */
+
+  /**
+   * Calculates the access-token TTL in milliseconds from `JWT_EXPIRES`.
+   */
   getAccessDate(): number {
     const expiresIn = this.config.get<StringValue>("JWT_EXPIRES") ?? "15m";
     return ms(expiresIn);
   }
 
-  /** **generate new accessToken with payload** */
+  /**
+   * Signs a new JWT access token.
+   *
+   * @param payload - The data to encode inside the token.
+   * @returns The signed JWT string.
+   * @throws {Error} If `JWT_SECRET` is not configured.
+   */
   generateAccessToken(payload: AccessTokenPayload): string {
     const secret = this.config.get<string>("JWT_SECRET");
     if (!secret) throw new Error("JWT_SECRET must be set");
@@ -64,7 +110,16 @@ export class TokenUtil {
     });
   }
 
-  /** **Get and return refresh and access** */
+  /**
+   * Generates a fresh access/refresh token pair.
+   *
+   * The refresh token is composed of the user ID and a cryptographically
+   * secure random string. Its SHA-256 hash is returned for DB persistence.
+   *
+   * @param payload - Access token payload (user ID, role, etc.).
+   * @param remember - Whether to use the extended refresh TTL.
+   * @returns An object containing the raw tokens, hashed refresh token, and expiration date.
+   */
   getAccessAndRefreshTokens(payload: AccessTokenPayload, remember: boolean) {
     const randomPart: string = generateRandomToken();
     const refreshToken: string = `${payload.sub}:${randomPart}`;
