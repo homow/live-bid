@@ -121,9 +121,7 @@ export class AuthRepository {
         eq(refreshToken.id, oldTokenId),
         eq(refreshToken.is_revoked, false)
       ))
-      .returning({
-        id: refreshToken.id
-      });
+      .returning({id: refreshToken.id});
 
     if (!updated.length) {
       this.logger.warn(
@@ -142,7 +140,7 @@ export class AuthRepository {
     const [newToken] = await db
       .insert(refreshToken)
       .values(newTokenData)
-      .returning();
+      .returning({id: refreshToken.id});
 
     await db
       .update(refreshToken)
