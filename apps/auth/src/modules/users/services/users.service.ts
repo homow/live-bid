@@ -99,6 +99,11 @@ export class UsersService {
       statusCode: 400,
     });
 
+    /**
+     * Todo: Delete user Cache in Redis
+     * Todo: Return a String or Data
+     * Todo: Write JSDocs for new services methods
+     * */
     try {
       await this.usersRepository.updateProfile(userId, finalData);
     } catch (e) {
