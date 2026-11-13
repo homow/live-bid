@@ -5,9 +5,9 @@ export abstract class BaseOutput {
   @Field(() => String)
   id: string;
 
-  @Field(() => String, {nullable: true})
-  created_at: string | null;
+  @Field(() => String)
+  created_at: string;
 
-  @Field(() => String, {nullable: true})
-  updated_at: string | null;
+  @Field(() => String)
+  updated_at: string;
 }

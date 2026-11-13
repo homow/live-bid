@@ -1,3 +1,4 @@
+import {eq} from "drizzle-orm";
 import {baseDrizzleTable} from "./common";
 import {UserRoleEnum} from "@live-bid/contracts/enums";
 import {boolean, index, pgEnum, pgTable, varchar} from "drizzle-orm/pg-core";
@@ -8,15 +9,33 @@ export const user = pgTable(
   "users",
   {
     ...baseDrizzleTable,
-    password: varchar("password", {length: 255}).notNull(),
-    email: varchar("email").notNull().unique(),
-    username: varchar("username", {length: 255}).unique(),
-    is_active: boolean("is_active").default(true).notNull(),
-    display_name: varchar("display_name", {length: 60}).notNull(),
-    role: userRoleEnum('role').notNull().default(UserRoleEnum.USER),
+
+    password: varchar("password", {length: 255})
+      .notNull(),
+
+    email: varchar("email", {length: 255})
+      .notNull()
+      .unique(),
+
+    username: varchar("username", {length: 30})
+      .notNull()
+      .unique(),
+
+    is_active: boolean("is_active")
+      .default(true)
+      .notNull(),
+
+    display_name: varchar("display_name", {length: 60})
+      .notNull(),
+
+    role: userRoleEnum('role')
+      .notNull()
+      .default(UserRoleEnum.USER),
   },
   (table) => [
-    index("users_is_active_role").on(table.is_active, table.role),
+    index("users_is_active_role")
+      .on(table.is_active, table.role)
+      .where(eq(table.is_active, true)),
   ],
 );
 
