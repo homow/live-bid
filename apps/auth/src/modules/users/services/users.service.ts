@@ -1,7 +1,9 @@
 import {Injectable} from "@nestjs/common";
-import {MailService} from "@live-bid/services/modules";
 import {UsersCacheService} from "./users-cache.service";
+import {UpdateProfileRequestService} from "@live-bid/services/types/services-request/auth/users";
 import type {GetProfileResponseService, PublicProfileResponseService} from "@live-bid/services/types";
+import {AppException, handleDrizzleError} from "@live-bid/services/lib";
+import {UsersRepository} from "@app/auth/modules/users/users.repository";
 
 /**
  * **UsersService**
@@ -17,7 +19,7 @@ import type {GetProfileResponseService, PublicProfileResponseService} from "@liv
 @Injectable()
 export class UsersService {
   constructor(
-    private readonly mailService: MailService,
+    protected readonly usersRepository: UsersRepository,
     private readonly usersCacheService: UsersCacheService,
   ) {}
 
@@ -74,5 +76,37 @@ export class UsersService {
    */
   getMyProfile(userId: string): Promise<GetProfileResponseService> {
     return this.usersCacheService.getOrSetUserCache(userId);
+  }
+
+  async updateProfile({userId, updatableData}: UpdateProfileRequestService) {
+    const user = await this.usersCacheService.getOrSetUserCache(userId);
+
+    const finalData: UpdateProfileRequestService['updatableData'] = {};
+
+    if (updatableData.username && updatableData.username !== user.username) {
+      finalData.username = updatableData.username;
+    }
+
+    if (updatableData.display_name && updatableData.display_name !== user.display_name) {
+      finalData.display_name = updatableData.display_name;
+    }
+
+    const hasChanges = Object.keys(finalData).length > 0;
+
+    if (!hasChanges) throw new AppException({
+      code: 'NO_CHANGES',
+      message: 'No changes detected. Provide at least one new value.',
+      statusCode: 400,
+    });
+
+    try {
+      await this.usersRepository.updateProfile(userId, finalData);
+    } catch (e) {
+      handleDrizzleError({
+        e,
+        mainResource: 'user',
+        conflictField: 'username',
+      });
+    }
   }
 }

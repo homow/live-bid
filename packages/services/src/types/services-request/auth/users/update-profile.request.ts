@@ -1,5 +1,7 @@
 export interface UpdateProfileRequestService {
   userId: string;
-  username: string;
-  display_name: string;
+  updatableData: {
+    username?: string;
+    display_name?: string;
+  };
 }

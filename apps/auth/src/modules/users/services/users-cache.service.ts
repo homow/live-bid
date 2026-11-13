@@ -62,17 +62,9 @@ export class UsersCacheService {
    * @param id - User ID
    * @returns The cached user, or `null` if not found
    */
-  async getCachedUserInfo(id: string): Promise<SafeUser | null> {
+  getCachedUserInfo(id: string): Promise<SafeUser | null> {
     const key = RedisKey.build('user', ...RedisKey.getUserProfileKey(id));
-    const user = await this.cache.get<SafeUser>(key);
-
-    if (!user) return null;
-
-    return {
-      ...user,
-      created_at: new Date(user.created_at as unknown as string),
-      updated_at: new Date(user.updated_at as unknown as string),
-    };
+    return this.cache.get<SafeUser>(key);
   }
 
   /**
