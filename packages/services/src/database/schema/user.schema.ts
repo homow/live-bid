@@ -18,7 +18,6 @@ export const user = pgTable(
       .unique(),
 
     username: varchar("username", {length: 30})
-      .notNull()
       .unique(),
 
     is_active: boolean("is_active")
