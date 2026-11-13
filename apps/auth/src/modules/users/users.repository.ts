@@ -7,6 +7,7 @@ import {DrizzleService} from "@live-bid/services/modules";
 import {type User, user} from "@live-bid/services/database";
 import {USER_PUBLIC_COLUMNS} from "@app/auth/common/constants";
 import type {DrizzleTransaction, SafeUser} from "@live-bid/services/types";
+import {UpdateProfileRequestService} from "@live-bid/services/types/services-request/auth/users";
 
 interface FindOneUserParams {
   id?: string;
@@ -160,5 +161,12 @@ export class UsersRepository {
     }
 
     return query;
+  }
+
+  async updateProfile(userId: string, data: UpdateProfileRequestService['updatableData']) {
+    await this.drizzle.db
+      .update(user)
+      .set(data)
+      .where(eq(user.id, userId));
   }
 }
