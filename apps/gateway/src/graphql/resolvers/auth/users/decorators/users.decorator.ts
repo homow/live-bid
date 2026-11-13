@@ -13,3 +13,9 @@ export const GetMyProfileDecorators = () => applyDecorators(
     requiredRole: UserRoleEnum.USER
   }),
 );
+
+export const GetUpdateProfileDecorators = () => applyDecorators(
+  Role({
+    requiredRole: UserRoleEnum.USER
+  })
+);
