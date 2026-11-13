@@ -5,7 +5,7 @@ import * as UsersDecorator from "./decorators";
 import {ZodPipe} from "@app/gateway/common/pipes";
 import {ClientProxy} from "@nestjs/microservices";
 import {UUIDv7Schema} from "@live-bid/contracts/schemas";
-import {Args, ID, Query, Resolver} from "@nestjs/graphql";
+import {Args, ID, Mutation, Query, Resolver} from "@nestjs/graphql";
 import {CurrentUser} from "@app/gateway/common/decorators";
 import {AUTH_SERVICE_NAME} from "@live-bid/services/names";
 import * as ServiceMessages from "@live-bid/services/messages";
@@ -119,5 +119,11 @@ export class UserResolver {
         user.userId
       )
     );
+  }
+
+  @UsersDecorator.GetUpdateProfileDecorators()
+  @Mutation(() => String, {name: 'updateProfile'})
+  updateProfile() {
+    return '';
   }
 }
