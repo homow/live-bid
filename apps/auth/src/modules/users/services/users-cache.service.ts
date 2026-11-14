@@ -101,4 +101,24 @@ export class UsersCacheService {
 
     return findUser;
   }
+
+  /**
+   * Removes a user's profile from the Redis cache.
+   *
+   * @remarks
+   * - Should be called after any operation that mutates user data
+   *   (e.g., `updateProfile`, `changePassword`) to prevent serving stale data.
+   * - The cache key is built using the same strategy as `getCachedUserInfo`
+   *   and `setCacheUserInfo`, ensuring consistency.
+   * - If the key does not exist, Redis silently ignores the operation
+   *   (no error is thrown).
+   *
+   * @param id - The ID of the user whose cache should be invalidated.
+   * @returns The result of the underlying Redis `DEL` command
+   *          (typically the number of keys removed: `0` or `1`).
+   */
+  async deleteUserCache(id: string) {
+    const key = RedisKey.build('user', ...RedisKey.getUserProfileKey(id));
+    return await this.cache.delete(key);
+  }
 }
