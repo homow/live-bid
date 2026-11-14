@@ -77,7 +77,34 @@ export class UsersService {
     return this.usersCacheService.getOrSetUserCache(userId);
   }
 
+  /**
+   * **Update Authenticated User's Profile**
+   *
+   * Updates the profile details of the currently logged-in user.
+   * Only specific fields are allowed to be modified.
+   *
+   * @remarks
+   * **Allowed Fields:**
+   * - `username`
+   * - `display_name`
+   *
+   * **Flow & Behavior:**
+   * - **Cache-First:** Reads the current user from cache (falls back to DB on a miss).
+   * - **Change Detection:** Compares the new values with the current ones. If no actual changes are detected, it throws a `400 NO_CHANGES` error to avoid redundant DB writes.
+   * - **Invalidation:** After a successful update, the user's cache is deleted (fire-and-forget) to prevent serving stale data.
+   * - **Conflict Handling:** If the new `username` is already taken, the error is caught and formatted by `handleDrizzleError`.
+   *
+   * @param data - An object containing:
+   *   - `userId`: The ID of the user to update.
+   *   - `updatableData`: A partial object containing only the fields to be updated.
+   *
+   * @returns A partial object containing **only the fields that were actually updated**.
+   *
+   * @throws {AppException} `400` — If no changes were detected (`NO_CHANGES`).
+   * @throws {AppException} — Propagated from `handleDrizzleError` on database conflicts (e.g., duplicate username).
+   */
   async updateProfile({userId, updatableData}: UpdateProfileRequestService) {
+    // Get user from db or cache
     const user = await this.usersCacheService.getOrSetUserCache(userId);
 
     const finalData: UpdateProfileRequestService['updatableData'] = {};
@@ -90,6 +117,7 @@ export class UsersService {
       finalData.display_name = updatableData.display_name;
     }
 
+    // Has anything to change?
     const hasChanges = Object.keys(finalData).length > 0;
 
     if (!hasChanges) throw new AppException({
@@ -98,13 +126,15 @@ export class UsersService {
       statusCode: 400,
     });
 
-    /**
-     * Todo: Delete user Cache in Redis
-     * Todo: Return a String or Data
-     * Todo: Write JSDocs for new services methods
-     * */
+
     try {
+      // Change data in db
       await this.usersRepository.updateProfile(userId, finalData);
+
+      // Delete user cache(fire-and-forget)
+      void this.usersCacheService.deleteUserCache(userId);
+
+      return finalData;
     } catch (e) {
       handleDrizzleError({
         e,
