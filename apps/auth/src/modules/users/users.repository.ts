@@ -163,6 +163,21 @@ export class UsersRepository {
     return query;
   }
 
+  /**
+   * Updates the editable fields of a user's profile.
+   *
+   * @remarks
+   * - Only **`username`** and **`display_name`** are allowed to be updated.
+   *   Any other field in `data` is silently ignored to prevent mass-assignment
+   *   vulnerabilities (e.g., a client trying to change `role` or `is_active`).
+   * - This method does not throw if the user does not exist (Drizzle returns 0 rows);
+   *   existence checks should be handled by the caller if required.
+   * - Cache invalidation is the caller's responsibility (e.g., `UsersCacheService`).
+   *
+   * @param userId - ID of the user whose profile is being updated.
+   * @param data - Partial profile data. Only `username` and `display_name` are applied.
+   * @returns A promise that resolves once the update is executed.
+   */
   async updateProfile(userId: string, data: UpdateProfileRequestService['updatableData']) {
     await this.drizzle.db
       .update(user)
