@@ -2,7 +2,7 @@ import {UsersService} from "./services";
 import {Controller} from "@nestjs/common";
 import {MessagePattern, Payload} from "@nestjs/microservices";
 import * as ServiceMessages from "@live-bid/services/messages";
-import type {GetProfileResponseService, PublicProfileResponseService} from "@live-bid/services/types";
+import type {GetProfileResponseService, PublicProfileResponseService, UpdateProfileRequestService} from "@live-bid/services/types";
 
 /**
  * **UsersController**
@@ -59,5 +59,21 @@ export class UsersController {
     @Payload() userId: string
   ): Promise<GetProfileResponseService> {
     return this.usersService.getMyProfile(userId);
+  }
+
+  /**
+   * **Update the authenticated user's profile.**
+   *
+   * Receives the update payload from the API Gateway and delegates
+   * the operation to `UsersService.updateProfile`.
+   *
+   * @param input - Contains `userId` and `updatableData` (username, display_name).
+   * @returns The fields that were actually updated.
+   */
+  @MessagePattern(ServiceMessages.USERS_PATTERNS.UPDATE_PROFILE)
+  updateProfile(
+    @Payload() input: UpdateProfileRequestService
+  ) {
+    return this.usersService.updateProfile(input);
   }
 }
