@@ -124,19 +124,30 @@ export class UserResolver {
   }
 
   /**
-   * **Update the authenticated user's profile.**
+   * **Update the authenticated user's profile**
    *
-   * Allows the logged-in user to modify their `username` and/or `display_name`.
-   * The request is validated by Zod and delegated to the users microservice.
+   * Allows the currently authenticated user to modify their `username`
+   * and/or `display_name`. The request is validated via Zod and delegated
+   * to the auth microservice.
+   *
+   * @param input - The validated profile data (`username`, `display_name`)
+   * @param user  - Authenticated user injected by `@CurrentUser()`
+   * @returns UpdateProfileOutput - Only the fields that were actually modified
    *
    * @remarks
-   * - Requires an authenticated session (`@CurrentUser()`).
-   * - Only `username` and `display_name` are accepted by the schema.
-   * - Returns only the fields that were actually modified.
+   * - Requires a valid authenticated session
+   * - `input` is validated via `ZodPipe(ZodSchemas.UpdateProfileSchema)`
+   * - Access control is enforced by `UsersDecorator.GetUpdateProfileDecorators()`
+   * - Throws `BAD_REQUEST` (`NO_CHANGES`) if no new values are provided
+   * - Throws `UNAUTHORIZED` if no valid session is present
    *
-   * @param input - Validated profile data (`username`, `display_name`).
-   * @param user - Authenticated user injected by `@CurrentUser()`.
-   * @returns The updated fields (or throws `400 NO_CHANGES` if nothing changed).
+   * @example
+   * mutation {
+   *   updateProfile(input: { display_name: "New Name" }) {
+   *     username
+   *     display_name
+   *   }
+   * }
    */
   @UsersDecorator.GetUpdateProfileDecorators()
   @Mutation(() => Outputs.UpdateProfileOutput, {name: 'updateProfile'})
