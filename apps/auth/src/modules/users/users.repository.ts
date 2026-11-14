@@ -5,15 +5,9 @@ import * as Schemas from "@live-bid/contracts/schemas";
 import {UserRoleEnum} from "@live-bid/contracts/enums";
 import {DrizzleService} from "@live-bid/services/modules";
 import {type User, user} from "@live-bid/services/database";
+import type {FindOneUserParams} from "@app/auth/types/users";
 import {USER_PUBLIC_COLUMNS} from "@app/auth/common/constants";
-import type {DrizzleTransaction, SafeUser} from "@live-bid/services/types";
-import {UpdateProfileRequestService} from "@live-bid/services/types/services-request/auth/users";
-
-interface FindOneUserParams {
-  id?: string;
-  email?: string;
-  username?: string;
-}
+import type {DrizzleTransaction, SafeUser, UpdateProfileRequestService} from "@live-bid/services/types";
 
 /**
  * **UsersRepository**
@@ -96,10 +90,14 @@ export class UsersRepository {
    * - When `safe = true` (default), the `password` field is stripped.
    * - When `safe = false`, the full record (including `password`) is returned,
    *   typically for credential verification during login.
+   * - When `lock = true` is passed inside `params`, a row-level lock
+   *   (`FOR UPDATE`) is acquired on the matched row.
    *
    * @param params - At least one of `{ id, email, username }` must be provided.
+   *                 Optionally includes `lock` to acquire a `FOR UPDATE` lock.
    * @param safe - Whether to omit sensitive fields (default: `true`).
    * @param tx - Optional transaction; falls back to `drizzle.db`.
+   *             Required for `lock` to have a meaningful effect.
    * @returns The matching user (safe or full), or `null` if not found.
    * @throws {AppException} 500 — no identifier was provided.
    */
@@ -132,9 +130,8 @@ export class UsersRepository {
 
     if (!findUser) return null;
 
-    if (safe) {
-      const {password, ...data} = findUser;
-      void password;
+    if (!safe) {
+      const {password: _, ...data} = findUser;
       return data satisfies SafeUser;
     }
 
@@ -142,13 +139,16 @@ export class UsersRepository {
   }
 
   /**
-   * Builds a base user query, optionally filtered by a `WHERE` clause.
+   * Builds a base user query, optionally filtered by a `WHERE` clause
+   * and/or locked with `FOR UPDATE`.
    *
-   * @param whereCondition - Optional SQL condition.
+   * @param whereCondition - Optional SQL condition to filter the query.
    * @param tx - Optional transaction; falls back to `drizzle.db`.
+   * @param lock - When `true`, appends a `FOR UPDATE` clause to lock the
+   *               matched rows. Should only be used inside a transaction.
    * @returns A Drizzle query object (executable).
    */
-  buildUserQuery(whereCondition?: SQL<unknown>, tx?: DrizzleTransaction) {
+  buildUserQuery(whereCondition?: SQL<unknown>, tx?: DrizzleTransaction, lock?: boolean) {
     const db = tx ?? this.drizzle.db;
 
     const query = db
@@ -157,8 +157,17 @@ export class UsersRepository {
       .groupBy(user.id);
 
     if (whereCondition) {
+
+      if (lock) {
+        return query
+          .where(whereCondition)
+          .for('update');
+      }
+
       return query.where(whereCondition);
     }
+
+    if (lock) return query.for('update');
 
     return query;
   }

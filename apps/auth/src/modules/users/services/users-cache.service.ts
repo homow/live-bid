@@ -74,15 +74,25 @@ export class UsersCacheService {
    * 2. On miss, fetch from database.
    * 3. Store result in cache (async, non-blocking) and return.
    *
-   * @param id - User ID
-   * @returns The resolved user object
+   * @remarks
+   * - The `lock` parameter is only applied to the **database fallback**
+   *   (cache miss). Cached hits are always returned immediately without locking.
+   * - Because locking requires a transaction, passing `lock = true` without
+   *   an active transaction in the caller will not produce a real row lock.
+   *   It's mainly intended for flows where the caller wants to ensure the
+   *   freshly-fetched user is not concurrently modified before caching.
+   *
+   * @param id - User ID.
+   * @param lock - When `true`, acquires a `FOR UPDATE` lock on the DB row
+   *               (only on cache miss). Defaults to `undefined` (no lock).
+   * @returns The resolved user object.
    * @throws {AppException} 404 — user not found in the database.
    */
-  async getOrSetUserCache(id: string) {
+  async getOrSetUserCache(id: string, lock?: true) {
     const userCached = await this.getCachedUserInfo(id);
     if (userCached) return userCached;
 
-    const findUser = await this.userRepository.findOne({id}, true);
+    const findUser = await this.userRepository.findOne({id, lock}, true);
 
     // Throw exception if user doesn't in database
     if (!findUser) throwNotFound('User', 'id');
