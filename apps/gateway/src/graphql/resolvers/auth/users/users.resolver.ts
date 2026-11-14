@@ -147,7 +147,7 @@ export class UserResolver {
       new ZodPipe(ZodSchemas.UpdateProfileSchema)
     ) input: ZodSchemas.UpdateProfileSchemaType,
     @CurrentUser() user: UserAccess
-  ) {
+  ): Promise<UpdateProfileResponseService> {
     return firstValueFrom<UpdateProfileResponseService>(
       this.authClient.send(
         ServiceMessages.USERS_PATTERNS.UPDATE_PROFILE,
