@@ -7,7 +7,8 @@ import {DrizzleService} from "@live-bid/services/modules";
 import {type User, user} from "@live-bid/services/database";
 import type {FindOneUserParams} from "@app/auth/types/users";
 import {USER_PUBLIC_COLUMNS} from "@app/auth/common/constants";
-import type {DrizzleTransaction, SafeUser, UpdateProfileRequestService} from "@live-bid/services/types";
+import type {UpdateProfileSchemaType} from "@live-bid/contracts/schemas";
+import type {DrizzleTransaction, SafeUser} from "@live-bid/services/types";
 
 /**
  * **UsersRepository**
@@ -187,7 +188,7 @@ export class UsersRepository {
    * @param data - Partial profile data. Only `username` and `display_name` are applied.
    * @returns A promise that resolves once the update is executed.
    */
-  async updateProfile(userId: string, data: UpdateProfileRequestService['updatableData']) {
+  async updateProfile(userId: string, data: UpdateProfileSchemaType) {
     await this.drizzle.db
       .update(user)
       .set(data)

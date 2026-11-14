@@ -1,6 +1,7 @@
 import {Injectable} from "@nestjs/common";
 import {UsersCacheService} from "./users-cache.service";
 import {AppException, handleDrizzleError} from "@live-bid/services/lib";
+import type {UpdateProfileSchemaType} from "@live-bid/contracts/schemas";
 import {UsersRepository} from "@app/auth/modules/users/users.repository";
 import type {GetProfileResponseService, PublicProfileResponseService, UpdateProfileRequestService, UpdateProfileResponseService} from "@live-bid/services/types";
 
@@ -107,9 +108,9 @@ export class UsersService {
     // Get user from db or cache
     const user = await this.usersCacheService.getOrSetUserCache(userId);
 
-    const finalData: UpdateProfileRequestService['updatableData'] = {};
+    const finalData: UpdateProfileSchemaType = {};
 
-    if (updatableData.username && updatableData.username !== user.username) {
+    if (updatableData.username !== undefined && updatableData.username !== user.username) {
       finalData.username = updatableData.username;
     }
 

@@ -1,3 +1,3 @@
-import type {UpdateProfileRequestService} from "../../../services-request";
+import {UpdateProfileSchemaType} from "@live-bid/contracts/schemas";
 
-export type UpdateProfileResponseService = UpdateProfileRequestService['updatableData'];
+export type UpdateProfileResponseService = UpdateProfileSchemaType;
