@@ -1,9 +1,9 @@
 import {Injectable} from "@nestjs/common";
 import {UsersCacheService} from "./users-cache.service";
-import {UpdateProfileRequestService} from "@live-bid/services/types/services-request/auth/users";
-import type {GetProfileResponseService, PublicProfileResponseService} from "@live-bid/services/types";
 import {AppException, handleDrizzleError} from "@live-bid/services/lib";
 import {UsersRepository} from "@app/auth/modules/users/users.repository";
+import {UpdateProfileRequestService} from "@live-bid/services/types/services-request/auth/users";
+import type {GetProfileResponseService, PublicProfileResponseService} from "@live-bid/services/types";
 
 /**
  * **UsersService**
