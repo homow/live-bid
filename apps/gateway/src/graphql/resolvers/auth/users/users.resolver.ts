@@ -1,3 +1,4 @@
+import * as Inputs from "./inputs";
 import {firstValueFrom} from "rxjs";
 import * as Outputs from "./outputs";
 import {Inject} from "@nestjs/common";
@@ -5,11 +6,12 @@ import * as UsersDecorator from "./decorators";
 import {ZodPipe} from "@app/gateway/common/pipes";
 import {ClientProxy} from "@nestjs/microservices";
 import {UUIDv7Schema} from "@live-bid/contracts/schemas";
-import {Args, ID, Mutation, Query, Resolver} from "@nestjs/graphql";
+import * as ZodSchemas from "@live-bid/contracts/schemas";
 import {CurrentUser} from "@app/gateway/common/decorators";
 import {AUTH_SERVICE_NAME} from "@live-bid/services/names";
 import * as ServiceMessages from "@live-bid/services/messages";
-import type {GetProfileResponseService, PublicProfileResponseService, UserAccess} from "@live-bid/services/types";
+import {Args, ID, Mutation, Query, Resolver} from "@nestjs/graphql";
+import type {GetProfileResponseService, PublicProfileResponseService, UpdateProfileRequestService, UpdateProfileResponseService, UserAccess} from "@live-bid/services/types";
 
 /**
  * **UserResolver**
@@ -121,9 +123,39 @@ export class UserResolver {
     );
   }
 
+  /**
+   * **Update the authenticated user's profile.**
+   *
+   * Allows the logged-in user to modify their `username` and/or `display_name`.
+   * The request is validated by Zod and delegated to the users microservice.
+   *
+   * @remarks
+   * - Requires an authenticated session (`@CurrentUser()`).
+   * - Only `username` and `display_name` are accepted by the schema.
+   * - Returns only the fields that were actually modified.
+   *
+   * @param input - Validated profile data (`username`, `display_name`).
+   * @param user - Authenticated user injected by `@CurrentUser()`.
+   * @returns The updated fields (or throws `400 NO_CHANGES` if nothing changed).
+   */
   @UsersDecorator.GetUpdateProfileDecorators()
-  @Mutation(() => String, {name: 'updateProfile'})
-  updateProfile() {
-    return '';
+  @Mutation(() => Outputs.UpdateProfileOutput, {name: 'updateProfile'})
+  updateProfile(
+    @Args(
+      'input',
+      {type: () => Inputs.UpdateProfileInput},
+      new ZodPipe(ZodSchemas.UpdateProfileSchema)
+    ) input: ZodSchemas.UpdateProfileSchemaType,
+    @CurrentUser() user: UserAccess
+  ) {
+    return firstValueFrom<UpdateProfileResponseService>(
+      this.authClient.send(
+        ServiceMessages.USERS_PATTERNS.UPDATE_PROFILE,
+        {
+          userId: user.userId,
+          updatableData: input
+        } satisfies UpdateProfileRequestService
+      )
+    );
   }
 }
