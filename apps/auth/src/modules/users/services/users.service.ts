@@ -126,7 +126,6 @@ export class UsersService {
       statusCode: 400,
     });
 
-
     try {
       // Change data in db
       await this.usersRepository.updateProfile(userId, finalData);
