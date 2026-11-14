@@ -2,7 +2,7 @@ import {Injectable} from "@nestjs/common";
 import {UsersCacheService} from "./users-cache.service";
 import {AppException, handleDrizzleError} from "@live-bid/services/lib";
 import {UsersRepository} from "@app/auth/modules/users/users.repository";
-import type {GetProfileResponseService, PublicProfileResponseService, UpdateProfileRequestService} from "@live-bid/services/types";
+import type {GetProfileResponseService, PublicProfileResponseService, UpdateProfileRequestService, UpdateProfileResponseService} from "@live-bid/services/types";
 
 /**
  * **UsersService**
@@ -103,7 +103,7 @@ export class UsersService {
    * @throws {AppException} `400` — If no changes were detected (`NO_CHANGES`).
    * @throws {AppException} — Propagated from `handleDrizzleError` on database conflicts (e.g., duplicate username).
    */
-  async updateProfile({userId, updatableData}: UpdateProfileRequestService) {
+  async updateProfile({userId, updatableData}: UpdateProfileRequestService): Promise<UpdateProfileResponseService> {
     // Get user from db or cache
     const user = await this.usersCacheService.getOrSetUserCache(userId);
 
