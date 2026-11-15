@@ -2,13 +2,12 @@ import z from "zod";
 
 export const UserDisplayNameSchema = z
   .string()
+  .trim()
   .min(3, "Display name must be at least 3 characters")
-  .max(60, "Display name must be at most 60 characters")
-  .trim();
+  .max(60, "Display name must be at most 60 characters");
 
 export const UserPasswordSchema = z
   .string()
-  .trim()
   .min(8)
   .max(30)
   .regex(
@@ -19,8 +18,9 @@ export const UserPasswordSchema = z
 export const UsernameSchema = z
   .string()
   .trim()
+  .toLowerCase()
   .min(3, "Username must be at least 3 characters")
-  .max(255, "Username must be at most 255 characters")
+  .max(30, "Username must be at most 255 characters")
   .regex(
     /^[a-zA-Z][a-zA-Z0-9_]*$/,
     "Username must start with a letter and can only contain letters, numbers, and underscore"

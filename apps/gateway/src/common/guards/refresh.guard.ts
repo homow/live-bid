@@ -1,20 +1,14 @@
-import {firstValueFrom} from "rxjs";
+import z from "zod";
 import type {Request} from "express";
-import {hashSecretToken} from "@app/auth/lib";
-import {ClientProxy} from "@nestjs/microservices";
-import {getRequestResponse} from "@app/gateway/lib";
-import {GatewayException} from "@app/gateway/common";
-import {AUTH_PATTERNS} from '@live-bid/services/messages';
-import {AUTH_SERVICE_NAME} from "@live-bid/services/names";
-import {CanActivate, type ExecutionContext, Inject, Injectable} from "@nestjs/common";
-import type {RefreshRequest, RefreshTokenPayload, ValidateRefreshRequestService} from "@live-bid/services/types";
+import {hashSecretToken} from "@live-bid/services/lib";
+import {getRequestResponse} from "@app/gateway/lib/utils";
+import {GatewayException} from "@app/gateway/common/filters";
+import type {RefreshRequest} from "@live-bid/services/types";
+import {CanActivate, type ExecutionContext, Injectable} from "@nestjs/common";
+import {refreshTokenRandomPartSchema, UUIDv7Schema} from "@live-bid/contracts/schemas";
 
 @Injectable()
 export class RefreshGuard implements CanActivate {
-  constructor(
-    @Inject(AUTH_SERVICE_NAME) private readonly authClient: ClientProxy
-  ) {}
-
   static getTokenFromReq<T extends Request>(req: T): string | null {
     const cookies = req.cookies as { refreshToken?: string };
     const header = req.headers['x-refresh-token'];
@@ -22,26 +16,43 @@ export class RefreshGuard implements CanActivate {
     return cookies?.refreshToken || (Array.isArray(header) ? header[0] : header) || null;
   }
 
-  async canActivate(context: ExecutionContext) {
+  canActivate(context: ExecutionContext): boolean {
     const req = getRequestResponse<RefreshRequest>(context).req;
 
     const rawToken = RefreshGuard.getTokenFromReq(req);
 
     if (!rawToken) throw new GatewayException({
       statusCode: 401,
-      code: "REFRESH_TOKEN_MISSING",
-      message: "Refresh token missing.",
+      code: 'REFRESH_TOKEN_EXPIRE',
+      message: 'Invalid or expired refresh token',
     });
 
-    const hashed = hashSecretToken(rawToken);
-    const userId = rawToken.split(":")[0];
+    const tokenHash = hashSecretToken(rawToken);
+    const [userId, randomToken] = rawToken.split(":");
 
-    req.refreshPayload = await firstValueFrom<RefreshTokenPayload>(
-      this.authClient.send(AUTH_PATTERNS.VALIDATE_REFRESH_TOKEN, {
-        userId,
-        tokenHash: hashed
-      } satisfies ValidateRefreshRequestService)
-    );
+    // Check user id
+    const isValidateUserId = z.safeParse(UUIDv7Schema, userId);
+
+    if (!isValidateUserId.success) throw new GatewayException({
+      statusCode: 401,
+      code: 'REFRESH_TOKEN_EXPIRE',
+      message: 'Invalid or expired refresh token',
+    });
+
+    // Check random token
+    const isValidateRandomToken = z.safeParse(refreshTokenRandomPartSchema, randomToken);
+
+    if (!isValidateRandomToken) throw new GatewayException({
+      statusCode: 401,
+      code: 'REFRESH_TOKEN_EXPIRE',
+      message: 'Invalid or expired refresh token',
+    });
+
+    // Validate refresh token
+    req.refreshGuardData = {
+      userId,
+      tokenHash,
+    };
 
     return true;
   }

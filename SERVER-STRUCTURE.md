@@ -1,6 +1,3 @@
-# 📐 `server-structure.md`
-
-```md
 # 🗺️ Server Structure
 
 High-level structure of the Live Bid backend — from the monorepo root down to individual services. This is a **map**, not a file listing: it shows *where things live* and *how they
@@ -238,31 +235,3 @@ sequenceDiagram
 - [`apps/gateway/README.md`](./apps/gateway/README.md) — GraphQL, guards, caching
 - [`apps/auth/README.md`](./apps/auth/README.md) — auth flows, token rotation
 - [`apps/core/README.md`](./apps/core/README.md) — core roadmap
-
-```
-
----
-
-## 📝 Notes
-
-- **Filename suggestion:** `server-structure.md` (root) — sits alongside `README.server.md` and `CONTRIBUTING.md`. If you prefer, `docs/server-structure.md` also works, but the root keeps it discoverable.
-- **Mermaid blocks** render natively on GitHub, GitLab, and most Markdown editors (VS Code with extension).
-- **Two diagrams** included: a full map (graph TD) and a boundary rule (graph LR) + a request flow (sequence). All are self-contained, no external images needed.
-- **No file-by-file listing** — only directories and their **role**, as you asked.
-- **Cross-links** point to the READMEs we already wrote, so the doc fits into the existing set.
-
----
-
-## 🔗 Link it from `README.server.md`
-
-Add one line near the top (after the intro paragraph):
-
-```md
-> 🗺️ For a high-level map of the backend (directories, boundaries, request flow), see [`server-structure.md`](./server-structure.md).
-```
-
-And optionally in `README.md` (root), under the backend section:
-
-```md
-> 🗺️ Backend structure: [`server-structure.md`](./server-structure.md)
-```

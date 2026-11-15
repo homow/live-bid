@@ -1,5 +1,5 @@
-import type {User} from "../../database";
-import type {AccessTokenPayload} from "./token.types";
+import type {User} from "../../../database";
+import type {AccessTokenPayload} from "../auth";
 
 export type SafeUser = Omit<User, 'password'>;
 

@@ -1,10 +1,10 @@
 import {Reflector} from "@nestjs/core";
-import {getRequestResponse} from "@app/gateway/lib";
 import {UserRoleEnum} from "@live-bid/contracts/enums";
+import {getRequestResponse} from "@app/gateway/lib/utils";
 import type {AccessRequest} from "@live-bid/services/types";
 import {AppException, isRoleAccess} from "@live-bid/services/lib";
 import {CanActivate, ExecutionContext, Injectable} from "@nestjs/common";
-import {IS_PUBLIC_KEY, PublicDecoratorParams, ROLE_METADATA, RoleDecoratorParams} from "@app/gateway/common";
+import {IS_PUBLIC_KEY, PublicDecoratorParams, ROLE_METADATA, RoleDecoratorParams} from "@app/gateway/common/decorators";
 
 @Injectable()
 export class RoleGuard implements CanActivate {
