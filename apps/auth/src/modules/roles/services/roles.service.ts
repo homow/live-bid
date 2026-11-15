@@ -1,9 +1,9 @@
 import {PinoLogger} from "nestjs-pino";
 import {Injectable} from "@nestjs/common";
-import {AppException, throwNotFound} from "@live-bid/services/lib";
 import {UserRoleEnum} from "@live-bid/contracts/enums";
 import {DrizzleService} from "@live-bid/services/modules";
 import {UsersCacheService} from "@app/auth/modules/users/services";
+import {AppException, throwNotFound} from "@live-bid/services/lib";
 import type {ModifyRoleRequestService} from "@live-bid/services/types";
 import {UsersRepository} from "@app/auth/modules/users/users.repository";
 
