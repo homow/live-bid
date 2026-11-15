@@ -1,6 +1,6 @@
 import {PinoLogger} from "nestjs-pino";
 import {Injectable} from "@nestjs/common";
-import {AppException} from "@live-bid/services/lib";
+import {AppException, throwNotFound} from "@live-bid/services/lib";
 import {UserRoleEnum} from "@live-bid/contracts/enums";
 import {DrizzleService} from "@live-bid/services/modules";
 import {UsersCacheService} from "@app/auth/modules/users/services";
@@ -70,11 +70,22 @@ export class RolesService {
 
     await this.drizzle.db.transaction(async (tx) => {
       // Find target user
-      const targetUser = await this.usersRepository.findOne({
-        id: target.id,
-        lock: true,
-      }, true, tx);
-    });
+      const targetUser = await this.usersRepository.findOne(
+        {
+          lock: true,
+          id: target.id,
+        },
+        true,
+        tx
+      );
 
+      if (!targetUser) throwNotFound('User', 'id');
+
+      if (targetUser.role === target.newRole) throw new AppException({
+        statusCode: 409,
+        code: 'ROLE_ALREADY_ASSIGNED',
+        message: `User already has the role ${target.newRole}`,
+      });
+    });
   }
 }
