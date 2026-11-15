@@ -1,11 +1,16 @@
 import type {UserRoleEnum} from "@live-bid/contracts/enums";
 
-interface ModifyRoleUserData {
+interface ModifyTargetRoleParams {
   id: string;
   newRole: UserRoleEnum;
 }
 
+interface ModifyActorRoleParams {
+  id: string;
+  role: UserRoleEnum;
+}
+
 export interface ModifyRoleRequestService {
-  actor: ModifyRoleUserData;
-  target: ModifyRoleUserData;
+  actor: ModifyActorRoleParams;
+  target: ModifyTargetRoleParams;
 }
