@@ -17,6 +17,7 @@ import type {
 
 import {firstValueFrom} from "rxjs";
 import {Inject} from "@nestjs/common";
+import type {Response} from "express";
 import * as AuthInputs from "./inputs";
 import * as AuthOutputs from "./outputs";
 import * as Decorators from "./decorators";
@@ -256,12 +257,7 @@ export class AuthResolver {
     } satisfies LogoutRequestService);
 
     // Clear Cookies
-    res.clearCookie(ACCESS_TOKEN_NAME, {
-      path: "/"
-    });
-    res.clearCookie(REFRESH_TOKEN_NAME, {
-      path: "/"
-    });
+    this.clearCookies(res);
 
     return "User logged out successfully.";
   }
@@ -318,12 +314,7 @@ export class AuthResolver {
     );
 
     // Remove cookies
-    res.clearCookie(ACCESS_TOKEN_NAME, {
-      path: "/"
-    });
-    res.clearCookie(REFRESH_TOKEN_NAME, {
-      path: "/"
-    });
+    this.clearCookies(res);
 
     return result;
   }
@@ -424,13 +415,23 @@ export class AuthResolver {
     );
 
     // Remove Cookies
+    this.clearCookies(res);
+
+    return result;
+  }
+
+  /**
+   * **Clear Cookies**
+   * @param res - @type Response
+   * */
+  clearCookies(res: Response): void {
+    // Clear Cookies
     res.clearCookie(ACCESS_TOKEN_NAME, {
       path: "/"
     });
+
     res.clearCookie(REFRESH_TOKEN_NAME, {
       path: "/"
     });
-
-    return result;
   }
 }
