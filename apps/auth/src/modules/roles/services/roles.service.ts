@@ -68,24 +68,50 @@ export class RolesService {
     // Check roles policy
     this.assertCanModifyRole({target, actor});
 
-    await this.drizzle.db.transaction(async (tx) => {
-      // Find target user
-      const targetUser = await this.usersRepository.findOne(
-        {
-          lock: true,
-          id: target.id,
-        },
-        true,
-        tx
-      );
+    const result = await this.drizzle.db.transaction(
+      async (tx) => {
+        // Find target user
+        const targetUser = await this.usersRepository.findOne(
+          {
+            lock: true,
+            id: target.id,
+          },
+          true,
+          tx
+        );
 
-      if (!targetUser) throwNotFound('User', 'id');
+        // If user doesn't exist:
+        if (!targetUser) throwNotFound('User', 'id');
 
-      if (targetUser.role === target.newRole) throw new AppException({
-        statusCode: 409,
-        code: 'ROLE_ALREADY_ASSIGNED',
-        message: `User already has the role ${target.newRole}`,
-      });
-    });
+        // If target user role is OWNER:
+        if (targetUser.role === UserRoleEnum.OWNER) throw new AppException({
+          statusCode: 403,
+          code: 'OWNER_DEMOTION_FORBIDDEN',
+          message: 'The owner role cannot be revoked via the API. It must be changed by a platform operator.',
+        });
+
+        // If user already has new role:
+        if (targetUser.role === target.newRole) throw new AppException({
+          statusCode: 409,
+          code: 'ROLE_ALREADY_ASSIGNED',
+          message: `User already has the role ${target.newRole}`,
+        });
+
+        await this.usersRepository.updateRole(target.id, target.newRole, tx);
+
+        return {
+          userId: target.id,
+          newRole: target.newRole,
+          result: 'Target user role updated successfully.',
+        };
+      },
+      {
+        accessMode: 'read write',
+        isolationLevel: 'read committed',
+      }
+    );
+
+    void this.usersCacheService.deleteUserCache(target.id);
+    return result;
   }
 }

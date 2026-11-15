@@ -194,4 +194,13 @@ export class UsersRepository {
       .set(data)
       .where(eq(user.id, userId));
   }
+
+  async updateRole(userID: string, role: UserRoleEnum, tx?: DrizzleTransaction) {
+    const db = tx ?? this.drizzle.db;
+
+    await db
+      .update(user)
+      .set({role})
+      .where(eq(user.id, userID));
+  }
 }
