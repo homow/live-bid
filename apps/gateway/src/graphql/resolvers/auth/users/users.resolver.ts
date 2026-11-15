@@ -2,15 +2,15 @@ import * as Inputs from "./inputs";
 import {firstValueFrom} from "rxjs";
 import * as Outputs from "./outputs";
 import {Inject} from "@nestjs/common";
-import * as UsersDecorator from "./decorators";
+import * as Decorators from "./decorators";
 import {ZodPipe} from "@app/gateway/common/pipes";
 import {ClientProxy} from "@nestjs/microservices";
 import {UUIDv7Schema} from "@live-bid/contracts/schemas";
-import * as ZodSchemas from "@live-bid/contracts/schemas";
 import {CurrentUser} from "@app/gateway/common/decorators";
 import {AUTH_SERVICE_NAME} from "@live-bid/services/names";
-import * as ServiceMessages from "@live-bid/services/messages";
+import {USERS_PATTERNS} from "@live-bid/services/messages";
 import {Args, ID, Mutation, Query, Resolver} from "@nestjs/graphql";
+import {type UpdateProfileSchemaType, UpdateProfileSchema} from "@live-bid/contracts/schemas";
 import type {GetProfileResponseService, PublicProfileResponseService, UpdateProfileRequestService, UpdateProfileResponseService, UserAccess} from "@live-bid/services/types";
 
 /**
@@ -20,7 +20,7 @@ import type {GetProfileResponseService, PublicProfileResponseService, UpdateProf
  * This resolver communicates with the Auth microservice via the `ClientProxy` transport layer.
  *
  * @remarks
- * - All queries are decorated with custom security decorators (`UsersDecorator.*`)
+ * - All queries are decorated with custom security decorators (`Decorators.*`)
  * - Input validation is performed using `ZodPipe` with predefined schemas
  * - Public profiles are exposed without sensitive fields (email, phone, role, etc.)
  * - Private profile data is resolved from the authenticated user's session
@@ -59,7 +59,7 @@ export class UserResolver {
    * @remarks
    * - `userId` is validated via `ZodPipe(UUIDv7Schema)`
    * - Throws `NOT_FOUND` if the user does not exist
-   * - Access control is enforced by `UsersDecorator.getUsersProfile()`
+   * - Access control is enforced by `Decorators.getUsersProfile()`
    *
    * @example
    * query {
@@ -69,7 +69,7 @@ export class UserResolver {
    *   }
    * }
    */
-  @UsersDecorator.GetPublicProfileDecorators()
+  @Decorators.GetPublicProfileDecorators()
   @Query(() => Outputs.PublicProfileOutput, {name: 'publicProfile'})
   publicProfile(
     @Args(
@@ -79,7 +79,7 @@ export class UserResolver {
   ): Promise<Outputs.PublicProfileOutput> {
     return firstValueFrom<PublicProfileResponseService>(
       this.authClient.send(
-        ServiceMessages.USERS_PATTERNS.PUBLIC_PROFILE,
+        USERS_PATTERNS.PUBLIC_PROFILE,
         userId
       )
     );
@@ -96,7 +96,7 @@ export class UserResolver {
    *
    * @remarks
    *   authenticated session to prevent users from reading other users' private data
-   * - Access control is enforced by `UsersDecorator.getMyProfile()`, which requires
+   * - Access control is enforced by `Decorators.getMyProfile()`, which requires
    *   a valid authenticated session
    * - Throws `UNAUTHORIZED` if no valid session is present
    * - Throws `NOT_FOUND` if the user record no longer exists
@@ -110,14 +110,14 @@ export class UserResolver {
    *   }
    * }
    */
-  @UsersDecorator.GetMyProfileDecorators()
+  @Decorators.GetMyProfileDecorators()
   @Query(() => Outputs.GetProfileOutput, {name: 'myProfile'})
   myProfile(
     @CurrentUser() user: UserAccess
   ): Promise<GetProfileResponseService> {
     return firstValueFrom<GetProfileResponseService>(
       this.authClient.send(
-        ServiceMessages.USERS_PATTERNS.MY_PROFILE,
+        USERS_PATTERNS.MY_PROFILE,
         user.userId
       )
     );
@@ -137,7 +137,7 @@ export class UserResolver {
    * @remarks
    * - Requires a valid authenticated session
    * - `input` is validated via `ZodPipe(ZodSchemas.UpdateProfileSchema)`
-   * - Access control is enforced by `UsersDecorator.GetUpdateProfileDecorators()`
+   * - Access control is enforced by `Decorators.GetUpdateProfileDecorators()`
    * - Throws `BAD_REQUEST` (`NO_CHANGES`) if no new values are provided
    * - Throws `UNAUTHORIZED` if no valid session is present
    *
@@ -149,19 +149,19 @@ export class UserResolver {
    *   }
    * }
    */
-  @UsersDecorator.GetUpdateProfileDecorators()
+  @Decorators.GetUpdateProfileDecorators()
   @Mutation(() => Outputs.UpdateProfileOutput, {name: 'updateProfile'})
   updateProfile(
     @Args(
       'input',
       {type: () => Inputs.UpdateProfileInput},
-      new ZodPipe(ZodSchemas.UpdateProfileSchema)
-    ) input: ZodSchemas.UpdateProfileSchemaType,
+      new ZodPipe(UpdateProfileSchema)
+    ) input: UpdateProfileSchemaType,
     @CurrentUser() user: UserAccess
   ): Promise<UpdateProfileResponseService> {
     return firstValueFrom<UpdateProfileResponseService>(
       this.authClient.send(
-        ServiceMessages.USERS_PATTERNS.UPDATE_PROFILE,
+        USERS_PATTERNS.UPDATE_PROFILE,
         {
           userId: user.userId,
           updatableData: input
