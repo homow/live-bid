@@ -1,16 +1,16 @@
 import * as Inputs from "./inputs";
+import {firstValueFrom} from "rxjs";
 import * as Outputs from "./outputs";
 import {Inject} from "@nestjs/common";
-import {Args, Mutation, Resolver} from "@nestjs/graphql";
 import * as Decorators from "./decorators";
-import {ROLES_MESSAGES} from "@live-bid/services/messages";
-import {ModifyRoleSchema, type ModifyRoleSchemaType} from "@live-bid/contracts/schemas";
 import {ClientProxy} from "@nestjs/microservices";
-import type {ModifyRoleRequestService, ModifyRoleResponseService, UserAccess} from "@live-bid/services/types";
-import {CurrentUser} from "@app/gateway/common/decorators";
-import {AUTH_SERVICE_NAME} from "@live-bid/services/names";
-import {firstValueFrom} from "rxjs";
 import {ZodPipe} from "@app/gateway/common/pipes";
+import {Args, Mutation, Resolver} from "@nestjs/graphql";
+import {CurrentUser} from "@app/gateway/common/decorators";
+import {ROLES_MESSAGES} from "@live-bid/services/messages";
+import {AUTH_SERVICE_NAME} from "@live-bid/services/names";
+import {ModifyRoleSchema, type ModifyRoleSchemaType} from "@live-bid/contracts/schemas";
+import type {ModifyRoleRequestService, ModifyRoleResponseService, UserAccess} from "@live-bid/services/types";
 
 @Resolver()
 export class RolesResolver {
