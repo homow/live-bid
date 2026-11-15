@@ -1,4 +1,5 @@
 import Redis from "ioredis";
+import {PinoLogger} from "nestjs-pino";
 import {ConfigService} from "@nestjs/config";
 import {AppException, ONE_MINUTE_MS} from "../lib";
 import type {ResetTokenPayloadTypes} from "../types";
@@ -22,15 +23,18 @@ export class CacheService implements OnModuleInit, OnModuleDestroy {
     return 1
   `;
 
-  constructor(readonly config: ConfigService) {
+  constructor(
+    private readonly logger: PinoLogger,
+    private readonly config: ConfigService,
+  ) {
+    this.defaultTTL = ONE_MINUTE_MS * 5;
     this.db = Number(this.config.get<string>("REDIS_DB")) || 0;
     this.host = this.config.get<string>("REDIS_HOST") || '127.0.0.1';
-    this.prefix = (config.get<string>("REDIS_KEY_PREFIX") ?? "app") + ":";
     this.port = Number(this.config.get<string>("REDIS_PORT")) || 6379;
-    this.defaultTTL = ONE_MINUTE_MS * 5;
+    this.prefix = (config.get<string>("REDIS_KEY_PREFIX") ?? "app") + ":";
   }
 
-  onModuleInit(): void {
+  async onModuleInit(): Promise<void> {
     this.client = new Redis({
       db: this.db,
       host: this.host,
@@ -39,17 +43,19 @@ export class CacheService implements OnModuleInit, OnModuleDestroy {
       keyPrefix: this.prefix,
     });
 
-    this.client.on("connect", () => {
-      console.log("Redis Connected Successfully✅");
-    });
+    this.client.on("connect", () => this.logger.info("Redis connected"));
+    this.client.on("error", e => this.logger.error({err: e}, "Redis error"));
 
-    this.client.on("error", e => {
-      console.log("Redis Error⛔: ", e);
-    });
+    try {
+      await this.client.connect();
+    } catch (e) {
+      this.logger.error({err: e}, "Failed to connect to Redis on startup");
+      throw e;
+    }
   }
 
   async onModuleDestroy(): Promise<void> {
-    await this.client.quit();
+    if (this.client) await this.client.quit();
   }
 
   private getClient(): Redis {
