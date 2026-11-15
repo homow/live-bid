@@ -4,8 +4,8 @@ import {RolesPolicy} from "./roles-policy.service";
 import {DrizzleService} from "@live-bid/services/modules";
 import {UsersCacheService} from "@app/auth/modules/users/services";
 import {AppException, throwNotFound} from "@live-bid/services/lib";
-import type {ModifyRoleRequestService} from "@live-bid/services/types";
 import {UsersRepository} from "@app/auth/modules/users/users.repository";
+import type {ModifyRoleRequestService, ModifyRoleResponseService} from "@live-bid/services/types";
 
 @Injectable()
 export class RolesService {
@@ -19,7 +19,7 @@ export class RolesService {
     this.logger.setContext(RolesService.name);
   }
 
-  async modifyRole({target, actor}: ModifyRoleRequestService) {
+  async modifyRole({target, actor}: ModifyRoleRequestService): Promise<ModifyRoleResponseService> {
     // Check roles policy
     this.rolesPolicy.assertCanModifyRole({target, actor});
 
@@ -64,6 +64,7 @@ export class RolesService {
       }
     );
 
+    // Invalidate user cache
     await this.usersCacheService.deleteUserCache(target.id);
     return result;
   }
