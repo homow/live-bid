@@ -119,6 +119,12 @@ export class UsersCacheService {
    */
   async deleteUserCache(id: string) {
     const key = RedisKey.build('user', ...RedisKey.getUserProfileKey(id));
-    return await this.cache.delete(key);
+
+    try {
+      return await this.cache.delete(key);
+
+    } catch (e) {
+      this.logger.error({e: e as Error, userId: id}, "Failed to delete user cache (non-fatal)");
+    }
   }
 }
