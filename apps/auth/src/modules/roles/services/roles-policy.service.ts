@@ -1,18 +1,34 @@
 import {PinoLogger} from "nestjs-pino";
 import {Injectable} from "@nestjs/common";
-import {UserRoleEnum} from "@live-bid/contracts/enums";
 import {AppException} from "@live-bid/services/lib";
+import {UserRoleEnum} from "@live-bid/contracts/enums";
 import type {ModifyRoleRequestService} from "@live-bid/services/types";
 
 /**
- * RolesPolicy — pure policy checks for role modification.
- * No DB, no transaction, no side effects. Only throws or returns.
+ * **RolesPolicy**
  *
- * Policies:
- * #1: actor must be OWNER (defense in depth — RoleGuard should have caught this)
- * #2: actor cannot modify their own role
- * #3: OWNER cannot be assigned via API
- * #4: OWNER cannot be demoted via API (symmetric with #3)
+ * Pure, side-effect-free policy checks for role modifications.
+ * This service contains **no DB access** and **no transaction logic**;
+ * it only validates rules and throws `AppException` on violations.
+ *
+ * @remarks
+ * Separating policy from business logic (`RolesService`) keeps the rules
+ * easy to test, audit, and reason about in isolation.
+ *
+ * ### Enforced policies
+ * | # | Rule | When |
+ * |---|---|---|
+ * | 1 | Actor must be `OWNER` (defense in depth) | Before transaction |
+ * | 2 | Actor cannot modify their own role | Before transaction |
+ * | 3 | `OWNER` cannot be assigned via API | Before transaction |
+ * | 4 | `OWNER` cannot be demoted via API | Inside transaction (needs DB state) |
+ *
+ * @example
+ * // Before opening a transaction
+ * this.rolesPolicy.assertCanModifyRole({ actor, target });
+ *
+ * // Inside the transaction (after locking the target user)
+ * this.rolesPolicy.assertCanDemoteOwner({ id: targetUser.id, role: targetUser.role });
  */
 @Injectable()
 export class RolesPolicy {
@@ -21,8 +37,15 @@ export class RolesPolicy {
   }
 
   /**
-   * Policies that can be checked BEFORE the transaction
-   * (only need the request payload, not the DB).
+   * **Assert that the actor is allowed to modify the target's role.**
+   *
+   * Runs **before** the DB transaction, since it only needs the request payload.
+   *
+   * @param data - `{ actor, target }` with the actor's role and the target's new role.
+   *
+   * @throws {AppException} 403 `ROLE_MODIFICATION_REQUIRES_OWNER` — actor is not `OWNER`.
+   * @throws {AppException} 403 `ROLE_SELF_MODIFICATION_NOT_ALLOWED` — actor targets themselves.
+   * @throws {AppException} 403 `OWNER_ROLE_ASSIGNMENT_FORBIDDEN` — target new role is `OWNER`.
    */
   assertCanModifyRole({actor, target}: ModifyRoleRequestService): void {
     // ── 1. Defense in depth: RoleGuard should have blocked non-OWNER already.
@@ -54,7 +77,7 @@ export class RolesPolicy {
       });
     }
 
-    // ── 3.OWNER is DB/CLI only — never assignable through the API, so the highest
+    // ── 3. OWNER is DB/CLI only — never assignable through the API, so the highest
     // privilege level always requires a human operator.
     if (target.newRole === UserRoleEnum.OWNER) {
       this.logger.warn(
@@ -71,7 +94,14 @@ export class RolesPolicy {
   }
 
   /**
-   * Policies that need the current DB role, so they run INSIDE the transaction.
+   * **Assert that the target user can be demoted.**
+   *
+   * Runs **inside** the transaction because it depends on the target's
+   * current role from the database.
+   *
+   * @param targetUser - `{ id, role }` of the locked target user.
+   *
+   * @throws {AppException} 403 `OWNER_DEMOTION_FORBIDDEN` — target currently holds `OWNER`.
    */
   assertCanDemoteOwner(targetUser: { id: string; role: UserRoleEnum }): void {
     if (targetUser.role === UserRoleEnum.OWNER) {
