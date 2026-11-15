@@ -1,6 +1,7 @@
 import Redis from "ioredis";
 import {ConfigService} from "@nestjs/config";
 import {AppException, ONE_MINUTE_MS} from "../lib";
+import type {ResetTokenPayloadTypes} from "../types";
 import {Injectable, OnModuleDestroy, OnModuleInit} from '@nestjs/common';
 
 @Injectable()
@@ -11,6 +12,15 @@ export class CacheService implements OnModuleInit, OnModuleDestroy {
   private readonly host: string;
   private readonly prefix: string;
   private readonly defaultTTL: number;
+
+  private static readonly SET_PWD_TOKEN_LUA = `
+    if redis.call('EXISTS', KEYS[2]) == 1 then
+      return 0
+    end
+    redis.call('SET', KEYS[1], ARGV[1], 'PX', ARGV[3])
+    redis.call('SET', KEYS[2], ARGV[2], 'PX', ARGV[3])
+    return 1
+  `;
 
   constructor(readonly config: ConfigService) {
     this.db = Number(this.config.get<string>("REDIS_DB")) || 0;
@@ -112,6 +122,38 @@ export class CacheService implements OnModuleInit, OnModuleDestroy {
     const cleanKeys = this.cleanPrefix(keys);
 
     return await this.delete(...cleanKeys);
+  }
+
+  /** **get and delete atomically (for one-time tokens)** */
+  async getDel<T>(key: string): Promise<T | null> {
+    const value = await this.getClient().getdel(key);
+    if (!value) return null;
+    return JSON.parse(value) as T;
+  }
+
+  /**
+   * Atomically: if `userKey` does not exist, write both `tokenKey`
+   * and `userKey` with the given TTL. Returns `true` if written,
+   * `false` if `userKey` already exists.
+   */
+  async setPwdTokenAtomic(
+    tokenKey: string,
+    userKey: string,
+    value: ResetTokenPayloadTypes,
+    tokenHash: string,
+    ttlMs: number,
+  ): Promise<boolean> {
+    const result = await this.getClient().eval(
+      CacheService.SET_PWD_TOKEN_LUA,
+      2,
+      tokenKey,
+      userKey,
+      JSON.stringify(value),
+      tokenHash,
+      String(ttlMs)
+    );
+
+    return result === 1;
   }
 
   cleanPrefix(keys: string[]): string[] {

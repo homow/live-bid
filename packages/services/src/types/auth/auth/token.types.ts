@@ -1,6 +1,6 @@
 import type {Request} from "express";
-import type {SafeUser} from "./user.types";
-import type {RefreshToken} from "../../database";
+import type {SafeUser} from "../user";
+import type {RefreshToken} from "../../../database";
 import type {UserRoleEnum} from "@live-bid/contracts/enums";
 
 /** **AccessToken payload on JWT** */
@@ -10,7 +10,6 @@ export interface AccessTokenPayload {
   iat?: number;
   jti?: string;
   role: UserRoleEnum;
-  display_name?: string;
 }
 
 /** **Refresh Token Payload** */
@@ -19,6 +18,17 @@ export interface RefreshTokenPayload {
   user: SafeUser;
 }
 
+/**
+ * **Refresh Guard Data**
+ * */
+export interface RefreshGuardData {
+  userId: string;
+  tokenHash: string;
+}
+
+/**
+ * **Refresh Request**
+ * */
 export interface RefreshRequest extends Request {
-  refreshPayload: RefreshTokenPayload;
+  refreshGuardData: RefreshGuardData;
 }

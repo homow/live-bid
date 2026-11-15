@@ -1,5 +1,5 @@
 import {Injectable} from '@nestjs/common';
-import {getRequestResponse} from "@app/gateway/lib";
+import {getRequestResponse} from "@app/gateway/lib/utils";
 import {ThrottlerGuard, ThrottlerLimitDetail} from "@nestjs/throttler";
 
 @Injectable()
