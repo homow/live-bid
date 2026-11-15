@@ -1,10 +1,10 @@
 import {PinoLogger} from "nestjs-pino";
-import {UserRoleEnum} from "@live-bid/contracts/enums";
 import {Injectable} from "@nestjs/common";
 import {AppException} from "@live-bid/services/lib";
-import type {ModifyRoleRequestService} from "@live-bid/services/types";
-import {UsersCacheService} from "@app/auth/modules/users/services";
+import {UserRoleEnum} from "@live-bid/contracts/enums";
 import {DrizzleService} from "@live-bid/services/modules";
+import {UsersCacheService} from "@app/auth/modules/users/services";
+import type {ModifyRoleRequestService} from "@live-bid/services/types";
 import {UsersRepository} from "@app/auth/modules/users/users.repository";
 
 @Injectable()
