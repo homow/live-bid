@@ -1,12 +1,18 @@
 import {Module} from "@nestjs/common";
+import * as Services from "./services";
 import {UsersModule} from "@app/auth/modules";
-import {RolesService, RolesPolicy} from "./services";
+import {RolesController} from "./roles.controller";
 
 @Module({
-  imports: [UsersModule],
+  imports: [
+    UsersModule
+  ],
+  controllers: [
+    RolesController
+  ],
   providers: [
-    RolesPolicy,
-    RolesService,
+    Services.RolesPolicy,
+    Services.RolesService,
   ],
 })
 export class RolesModule {}
