@@ -1,8 +1,9 @@
 import {Reflector} from "@nestjs/core";
+import {isRoleAccess} from "@live-bid/services/lib";
 import {UserRoleEnum} from "@live-bid/contracts/enums";
 import {getRequestResponse} from "@app/gateway/lib/utils";
 import type {AccessRequest} from "@live-bid/services/types";
-import {AppException, isRoleAccess} from "@live-bid/services/lib";
+import {GatewayException} from "@app/gateway/common/filters";
 import {CanActivate, ExecutionContext, Injectable} from "@nestjs/common";
 import {IS_PUBLIC_KEY, PublicDecoratorParams, ROLE_METADATA, RoleDecoratorParams} from "@app/gateway/common/decorators";
 
@@ -44,7 +45,7 @@ export class RoleGuard implements CanActivate {
         ? " (strict mode: exact role match required)"
         : " (hierarchical mode: role must be equal or higher)";
 
-      throw new AppException({
+      throw new GatewayException({
         statusCode: 403,
         code: "ROLE_NOT_ALLOWED",
         message: `Access denied. Your role (${userRole}) does not meet the required role (${requiredRole})${strictMessage}.`,
