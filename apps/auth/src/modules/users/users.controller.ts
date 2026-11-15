@@ -1,7 +1,7 @@
 import {UsersService} from "./services";
 import {Controller} from "@nestjs/common";
+import {USERS_PATTERNS} from "@live-bid/services/messages";
 import {MessagePattern, Payload} from "@nestjs/microservices";
-import * as ServiceMessages from "@live-bid/services/messages";
 import type {GetProfileResponseService, PublicProfileResponseService, UpdateProfileRequestService} from "@live-bid/services/types";
 
 /**
@@ -32,7 +32,7 @@ export class UsersController {
    * - Sensitive fields are stripped inside the service layer, not here
    * - If the user does not exist, the service throws an RPC error (surfaced as `NOT_FOUND`)
    */
-  @MessagePattern(ServiceMessages.USERS_PATTERNS.PUBLIC_PROFILE)
+  @MessagePattern(USERS_PATTERNS.PUBLIC_PROFILE)
   getPublicProfile(
     @Payload() userId: string
   ): Promise<PublicProfileResponseService> {
@@ -54,7 +54,7 @@ export class UsersController {
    * - The `userId` is expected to come from the validated JWT/session at the Gateway
    * - If the user does not exist, the service throws an RPC error (surfaced as `NOT_FOUND`)
    */
-  @MessagePattern(ServiceMessages.USERS_PATTERNS.MY_PROFILE)
+  @MessagePattern(USERS_PATTERNS.MY_PROFILE)
   getMyProfile(
     @Payload() userId: string
   ): Promise<GetProfileResponseService> {
@@ -70,7 +70,7 @@ export class UsersController {
    * @param input - Contains `userId` and `updatableData` (username, display_name).
    * @returns The fields that were actually updated.
    */
-  @MessagePattern(ServiceMessages.USERS_PATTERNS.UPDATE_PROFILE)
+  @MessagePattern(USERS_PATTERNS.UPDATE_PROFILE)
   updateProfile(
     @Payload() input: UpdateProfileRequestService
   ) {

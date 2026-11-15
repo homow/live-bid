@@ -1,6 +1,6 @@
 import {RolesService} from "./services";
 import {Controller} from "@nestjs/common";
-import * as Messages from "@live-bid/services/messages";
+import {ROLES_MESSAGES} from "@live-bid/services/messages";
 import {MessagePattern, Payload} from "@nestjs/microservices";
 import type {ModifyRoleRequestService, ModifyRoleResponseService} from "@live-bid/services/types";
 
@@ -8,7 +8,7 @@ import type {ModifyRoleRequestService, ModifyRoleResponseService} from "@live-bi
 export class RolesController {
   constructor(private readonly rolesService: RolesService) {}
 
-  @MessagePattern(Messages.ROLES_MESSAGES.MODIFY_ROLE)
+  @MessagePattern(ROLES_MESSAGES.MODIFY_ROLE)
   modifyRole(
     @Payload() payload: ModifyRoleRequestService
   ): Promise<ModifyRoleResponseService> {

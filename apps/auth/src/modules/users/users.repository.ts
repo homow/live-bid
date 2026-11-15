@@ -1,14 +1,13 @@
 import {eq, SQL} from "drizzle-orm";
 import {Injectable} from "@nestjs/common";
 import {AppException} from "@live-bid/services/lib";
-import * as Schemas from "@live-bid/contracts/schemas";
 import {UserRoleEnum} from "@live-bid/contracts/enums";
 import {DrizzleService} from "@live-bid/services/modules";
 import {type User, user} from "@live-bid/services/database";
 import type {FindOneUserParams} from "@app/auth/types/users";
 import {USER_PUBLIC_COLUMNS} from "@app/auth/common/constants";
-import type {UpdateProfileSchemaType} from "@live-bid/contracts/schemas";
 import type {DrizzleTransaction, SafeUser} from "@live-bid/services/types";
+import type {UpdateProfileSchemaType, RegisterUserSchemaType} from "@live-bid/contracts/schemas";
 
 /**
  * **UsersRepository**
@@ -48,7 +47,7 @@ export class UsersRepository {
    * @param tx - Optional transaction; falls back to `drizzle.db`.
    * @returns The created user, safe for client exposure.
    */
-  async insertUser({password, email, display_name}: Schemas.RegisterUserSchemaType, tx?: DrizzleTransaction) {
+  async insertUser({password, email, display_name}: RegisterUserSchemaType, tx?: DrizzleTransaction) {
     const db = tx ?? this.drizzle.db;
 
     const {username: _, ...othersData} = USER_PUBLIC_COLUMNS;

@@ -18,11 +18,11 @@ import {Injectable} from "@nestjs/common";
 import {ConfigService} from "@nestjs/config";
 import {AuthRepository} from "../auth.repository";
 import {AuthMailService} from "./auth-mail.service";
-import * as ZodSchemas from "@live-bid/contracts/schemas";
 import {DrizzleService} from "@live-bid/services/modules";
 import {compareSecret, hashSecret} from "@app/auth/lib/utils";
 import {UsersCacheService} from "@app/auth/modules/users/services";
 import {UsersRepository} from "@app/auth/modules/users/users.repository";
+import type {RegisterUserSchemaType, LoginUserSchemaType} from "@live-bid/contracts/schemas";
 import {hashSecretToken, AppException, handleDrizzleError, throwNotFound, AppErrorPayload} from "@live-bid/services/lib";
 
 /**
@@ -90,7 +90,7 @@ export class AuthService {
    * @returns The created user record
    * @throws {AppException} On duplicate email or other Drizzle-level errors
    */
-  async register(userData: ZodSchemas.RegisterUserSchemaType, clientInfo: NormalizeClientInfoType): Promise<RegisterResponseService> {
+  async register(userData: RegisterUserSchemaType, clientInfo: NormalizeClientInfoType): Promise<RegisterResponseService> {
     // Hash user password
     const hashedPassword: string = await hashSecret(userData.password);
 
@@ -132,7 +132,7 @@ export class AuthService {
    *
    * @returns LoginResponseService
    *  */
-  async login(userData: ZodSchemas.LoginUserSchemaType, clientInfo: NormalizeClientInfoType): Promise<LoginResponseService> {
+  async login(userData: LoginUserSchemaType, clientInfo: NormalizeClientInfoType): Promise<LoginResponseService> {
     // Find user in database with password
     const user = await this.usersRepository.findOne(
       {
