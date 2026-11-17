@@ -49,7 +49,7 @@ export async function ask<T extends keyof typeof CreateOwnerSchema.shape>(
 ) {
   while (true) {
     const question = def
-      ? `${q} (default: "${def}")`
+      ? `${q} (default: "${def}"): `
       : q;
 
     const answer = (mask
@@ -92,7 +92,7 @@ async function main() {
       email: await ask(rl, 'Email: ', 'email'),
       username: await ask(rl, 'Username: ', 'username'),
       password: await ask(rl, 'Password: ', 'password', true),
-      display_name: await ask(rl, 'Display Name: ', 'display_name', false, 'owner'),
+      display_name: await ask(rl, 'Display Name', 'display_name', false, 'owner'),
     };
 
     console.log("\nOwner data:", {
