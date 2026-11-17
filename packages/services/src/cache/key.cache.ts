@@ -1,26 +1,51 @@
-import {AppException} from "../lib";
-import {TablesName} from "../database";
-import type {AccessRequest} from "../types";
+import type {TablesName} from "../database";
 
+/**
+ * Parameters for building a structured cache key.
+ */
 export interface ParamCacheKeyType {
-  req: AccessRequest;
-  resource: TablesName;
-  self?: boolean;
+  /** Optional extra segments prepended to the key (e.g., custom namespaces). */
   extraKeys?: string[];
-  paramsKey?: string[];
+  /** If `true`, appends the `list` segment (used for paginated collections). */
   pagination?: boolean;
-  query?: string[];
+  /** The database table/resource name (root of the key). */
+  resource: TablesName;
+  /** Optional query parameters to include in the key (e.g., `{ status: 'active' }`). */
+  inputs?: Record<string, string>;
 }
 
+/**
+ * **RedisKey**
+ *
+ * Utility for building consistent, namespaced Redis keys.
+ * All keys share the same flat structure: `<resource>:<segment1>:<segment2>:...`.
+ *
+ * @remarks
+ * - **Validation:** Undefined, null, and empty segments are filtered out
+ *   to avoid malformed keys (e.g., `user::profile`).
+ * - **Default list key:** If no parts are provided, the key resolves to
+ *   `<resource>:list`.
+ * - **Deterministic:** The same inputs always produce the same key,
+ *   which is essential for cache lookups.
+ *
+ * ### Examples
+ * | Call | Result |
+ * |---|---|
+ * | `build('user')` | `user:list` |
+ * | `build('user', 'id', 42)` | `user:id:42` |
+ * | `keyPrefix({ resource: 'user', extraKeys: ['profile'], inputs: { id: '1' } })` | `user:profile:id=1` |
+ * | `getUserProfileKey('42')` | `user:profile:user-id=42` |
+ */
 export class RedisKey {
   /**
-   * Builds a Redis key with the format: {prefix}:{resource}:{part1}:{part2}:...
-   * If no meaningful parts are provided, returns the pattern {prefix}:{resource}:list
+   * Builds a Redis key from a resource name and arbitrary segments.
+   *
+   * @param resource - Root namespace (usually a table name).
+   * @param parts - Segments appended to the key; empty values are filtered out.
+   * @returns The final key, or `<resource>:list` if no valid parts remain.
    *
    * @example
-   * RedisKey.build('users')           → "app:users:list"
-   * RedisKey.build('users', '123')    → "app:users:123"
-   * RedisKey.build('users', '')       → "app:users:list"   (empty after trim)
+   * RedisKey.build('user', 'session', 'userId=1'); // "user:session:userId=1"
    */
   static build(resource: TablesName, ...parts: (string | undefined | number)[]): string {
     const cleanParts = parts
@@ -33,62 +58,48 @@ export class RedisKey {
       : `${resource}:${cleanParts.join(':')}`;
   }
 
-  /** Builds key patterns for redis cache
+  /**
+   * Builds a cache key from structured parameters (namespace + query inputs).
+   *
+   * @param params - Structured cache parameters.
+   * @returns The final cache key.
+   *
+   * @remarks
+   * - `extraKeys` are prepended (act as a sub-namespace).
+   * - `pagination: true` appends the `list` segment.
+   * - `inputs` are serialized as `key=value` pairs.
+   *
    * @example
-   * RedisKey.keyPrefix([
-   *   {paramsKey: ["id"], resource: "users"},
-   *   {resource: "users", extraKeys: ["sale", "rent"], paramsKey: ["id"]},
-   * ]) → [
-   * "app:users:id=5b570b4b-2da6-4d7c-826b-be0f7323611b"
-   * "app:users:sale:rent:id=5b570b4b-2da6-4d7c-826b-be0f7323611b",
-   * ]
+   * RedisKey.keyPrefix({
+   *   resource: 'user',
+   *   extraKeys: ['profile'],
+   *   inputs: { role: 'admin' },
+   * }); // "user:profile:role=admin"
    */
-  static keyPrefix({req, resource, extraKeys, self = false, paramsKey, pagination = false, query}: ParamCacheKeyType): string {
+  static keyPrefix({resource, extraKeys, inputs, pagination = false}: ParamCacheKeyType): string {
     const parts: (string | undefined)[] = [];
 
-    if (extraKeys !== undefined && extraKeys.length) {
-      parts.push(...extraKeys);
-    }
+    if (extraKeys?.length) parts.push(...extraKeys);
+    if (pagination) parts.push('list');
 
-    if (self) {
-      const selfId = req.user.userId;
-
-      if (!selfId) throw new AppException({
-        statusCode: 500,
-        code: "User id not found in request",
-        message: `in ${this.keyPrefix.name} function. when create a cache key`,
+    if (inputs && Object.keys(inputs).length) {
+      Object.entries(inputs).forEach(([key, value]) => {
+        if (value === undefined || value === null || value === '') return;
+        parts.push(`${key}=${value}`);
       });
-
-      parts.push(...RedisKey.getUserProfileKey(selfId));
-    }
-
-    if (paramsKey !== undefined && paramsKey.length) {
-      const params: (string | undefined)[] = paramsKey.map(p => Array.isArray(req.params[p])
-        ? req.params[p][0] !== undefined ? `${p}=${req.params[p][0]}` : undefined
-        : req.params[p] !== undefined ? `${p}=${req.params[p]}` : undefined
-      );
-      parts.push(...params);
-    }
-
-    if (pagination) {
-      const page = (req.query.page === undefined || req.query.page === null) ? "1" : req.query.page as string;
-      const limit = (req.query.limit === undefined || req.query.limit === null) ? "10" : req.query.limit as string;
-      const sort = (req.query.sort === undefined || req.query.sort === null) ? "desc" : req.query.sort as string;
-      parts.push('list', `page=${page}`, `limit=${limit}`, `sort=${sort}`);
-    }
-
-    if (query !== undefined && query.length) {
-      const allQuery: (string | undefined)[] = query.map(q =>
-        typeof req.query[q] === 'string'
-          ? `${q}=${req.query[q]}`
-          : undefined
-      );
-      parts.push(...allQuery);
     }
 
     return RedisKey.build(resource, ...parts);
   }
 
+  /**
+   * Returns the canonical key segments for a user's cached profile.
+   *
+   * Intended to be used with `RedisKey.build('user', ...RedisKey.getUserProfileKey(id))`.
+   *
+   * @param id - User ID.
+   * @returns The segments `['profile', 'user-id=<id>']`.
+   */
   static getUserProfileKey(id: string) {
     return ["profile", `user-id=${id}`];
   }
