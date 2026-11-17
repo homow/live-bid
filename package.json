@@ -37,7 +37,8 @@
     "db:migrate-dev": "npx drizzle-kit migrate",
     "db:migrate-prod": "node ./packages/services/dist/database/seed/migrate.js",
     "db:generate": "npx drizzle-kit generate",
-    "db:sync": "npm run db:generate && npm run db:migrate-dev"
+    "db:sync": "npm run db:generate && npm run db:migrate-dev",
+    "seed:owner": "node ./packages/services/dist/database/seed/owner.js"
   },
   "dependencies": {
     "@apollo/server": "^5.5.1",
