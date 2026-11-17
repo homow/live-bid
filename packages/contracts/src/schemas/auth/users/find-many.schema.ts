@@ -2,7 +2,7 @@ import {z} from "zod";
 import {UserRoleEnum} from "../../../enums";
 import {paginationOffsetSchema, PaginationSchema} from "../../common";
 
-export const FindManyUserSchema = paginationOffsetSchema(PaginationSchema.extend({
+export const FindManyUsersSchema = paginationOffsetSchema(PaginationSchema.extend({
   role: z
     .enum(UserRoleEnum)
     .optional(),
@@ -12,4 +12,4 @@ export const FindManyUserSchema = paginationOffsetSchema(PaginationSchema.extend
     .optional()
 }));
 
-export type FindManyUserSchemaType = z.infer<typeof FindManyUserSchema>;
+export type FindManyUsersSchemaType = z.infer<typeof FindManyUsersSchema>;

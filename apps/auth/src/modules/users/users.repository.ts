@@ -7,7 +7,7 @@ import {type User, user} from "@live-bid/services/database";
 import type {FindOneUserParams} from "@app/auth/types/users";
 import {USER_SAFE_COLUMNS} from "@app/auth/common/constants";
 import type {DrizzleTransaction, SafeUser} from "@live-bid/services/types";
-import type {UpdateProfileSchemaType, RegisterUserSchemaType, FindManyUserSchemaType} from "@live-bid/contracts/schemas";
+import type {UpdateProfileSchemaType, RegisterUserSchemaType, FindManyUsersSchemaType} from "@live-bid/contracts/schemas";
 
 /**
  * **UsersRepository**
@@ -220,9 +220,9 @@ export class UsersRepository {
    * @param options - Pagination, sorting, and filtering options.
    * @returns A query resolving to a list of safe user records.
    *
-   * @see {@link FindManyUserSchemaType}
+   * @see {@link FindManyUsersSchemaType}
    */
-  findMany({limit, orderBy, offset, role, sort, is_active}: FindManyUserSchemaType) {
+  findMany({limit, orderBy, offset, role, sort, is_active}: FindManyUsersSchemaType) {
     const conditions: SQL[] = [];
 
     if (is_active !== undefined) {

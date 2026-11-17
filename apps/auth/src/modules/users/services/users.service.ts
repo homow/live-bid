@@ -3,7 +3,7 @@ import {UsersCacheService} from "./users-cache.service";
 import {AppException, handleDrizzleError} from "@live-bid/services/lib";
 import type {UpdateProfileSchemaType} from "@live-bid/contracts/schemas";
 import {UsersRepository} from "@app/auth/modules/users/users.repository";
-import type {GetProfileResponseService, PublicProfileResponseService, UpdateProfileRequestService, UpdateProfileResponseService} from "@live-bid/services/types";
+import type {FindManyUsersRequestService, GetProfileResponseService, PublicProfileResponseService, UpdateProfileRequestService, UpdateProfileResponseService} from "@live-bid/services/types";
 
 /**
  * **UsersService**
@@ -142,5 +142,9 @@ export class UsersService {
         conflictField: 'username',
       });
     }
+  }
+
+  async findMany(options: FindManyUsersRequestService) {
+    return await this.usersRepository.findMany(options);
   }
 }
