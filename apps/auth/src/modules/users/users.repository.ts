@@ -1,13 +1,13 @@
-import {eq, SQL} from "drizzle-orm";
 import {Injectable} from "@nestjs/common";
+import {and, asc, desc, eq, SQL} from "drizzle-orm";
 import {AppException} from "@live-bid/services/lib";
 import {UserRoleEnum} from "@live-bid/contracts/enums";
 import {DrizzleService} from "@live-bid/services/modules";
 import {type User, user} from "@live-bid/services/database";
 import type {FindOneUserParams} from "@app/auth/types/users";
-import {USER_PUBLIC_COLUMNS} from "@app/auth/common/constants";
+import {USER_SAFE_COLUMNS} from "@app/auth/common/constants";
 import type {DrizzleTransaction, SafeUser} from "@live-bid/services/types";
-import type {UpdateProfileSchemaType, RegisterUserSchemaType} from "@live-bid/contracts/schemas";
+import type {UpdateProfileSchemaType, RegisterUserSchemaType, FindManyUserSchemaType} from "@live-bid/contracts/schemas";
 
 /**
  * **UsersRepository**
@@ -50,7 +50,7 @@ export class UsersRepository {
   async insertUser({password, email, display_name}: RegisterUserSchemaType, tx?: DrizzleTransaction) {
     const db = tx ?? this.drizzle.db;
 
-    const {username: _, ...othersData} = USER_PUBLIC_COLUMNS;
+    const {username: _, ...othersData} = USER_SAFE_COLUMNS;
 
     return await db
       .insert(user)
@@ -194,6 +194,13 @@ export class UsersRepository {
       .where(eq(user.id, userId));
   }
 
+  /**
+   * Updates the role assigned to a user.
+   *
+   * @param userID - ID of the user whose role is being updated.
+   * @param role - New role to assign to the user.
+   * @param tx - Optional transaction; falls back to `drizzle.db`.
+   */
   async updateRole(userID: string, role: UserRoleEnum, tx?: DrizzleTransaction) {
     const db = tx ?? this.drizzle.db;
 
@@ -201,5 +208,41 @@ export class UsersRepository {
       .update(user)
       .set({role})
       .where(eq(user.id, userID));
+  }
+
+  /**
+   * Retrieves a filtered and paginated list of users.
+   *
+   * - Only safe user columns are selected (password is excluded).
+   * - Filters can be combined using `AND`.
+   * - Results are ordered by the requested field and direction.
+   *
+   * @param options - Pagination, sorting, and filtering options.
+   * @returns A query resolving to a list of safe user records.
+   *
+   * @see {@link FindManyUserSchemaType}
+   */
+  findMany({limit, orderBy, offset, role, sort, is_active}: FindManyUserSchemaType) {
+    const conditions: SQL[] = [];
+
+    if (is_active !== undefined) {
+      conditions.push(eq(user.is_active, is_active));
+    }
+
+    if (role) {
+      conditions.push(eq(user.role, role));
+    }
+
+    return this.drizzle.db
+      .select(USER_SAFE_COLUMNS)
+      .from(user)
+      .limit(limit)
+      .offset(offset)
+      .orderBy(
+        sort === 'desc'
+          ? desc(user[orderBy])
+          : asc(user[orderBy])
+      )
+      .where(and(...conditions));
   }
 }
