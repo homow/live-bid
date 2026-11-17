@@ -16,14 +16,14 @@ import {PinoLogger} from "nestjs-pino";
 import {randomUUID} from "node:crypto";
 import {Injectable} from "@nestjs/common";
 import {ConfigService} from "@nestjs/config";
+import {compareSecret} from "@app/auth/lib/utils";
 import {AuthRepository} from "../auth.repository";
 import {AuthMailService} from "./auth-mail.service";
 import {DrizzleService} from "@live-bid/services/modules";
-import {compareSecret, hashSecret} from "@app/auth/lib/utils";
 import {UsersCacheService} from "@app/auth/modules/users/services";
 import {UsersRepository} from "@app/auth/modules/users/users.repository";
 import type {RegisterUserSchemaType, LoginUserSchemaType} from "@live-bid/contracts/schemas";
-import {hashSecretToken, AppException, handleDrizzleError, throwNotFound, AppErrorPayload} from "@live-bid/services/lib";
+import {hashSecret, hashSecretToken, AppException, handleDrizzleError, throwNotFound, AppErrorPayload} from "@live-bid/services/lib";
 
 /**
  * **AuthService**
