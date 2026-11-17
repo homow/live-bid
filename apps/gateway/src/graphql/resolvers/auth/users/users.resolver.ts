@@ -169,4 +169,10 @@ export class UserResolver {
       )
     );
   }
+
+  @Decorators.GetUserListDecorators()
+  @Query(() => String)
+  users() {
+    return 'user list';
+  }
 }
