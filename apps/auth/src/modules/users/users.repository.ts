@@ -130,7 +130,7 @@ export class UsersRepository {
 
     if (!findUser) return null;
 
-    if (!safe) {
+    if (safe) {
       const {password: _, ...data} = findUser;
       return data satisfies SafeUser;
     }
