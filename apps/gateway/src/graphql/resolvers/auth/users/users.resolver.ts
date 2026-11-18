@@ -10,7 +10,7 @@ import {AUTH_SERVICE_NAME} from "@live-bid/services/names";
 import {USERS_PATTERNS} from "@live-bid/services/messages";
 import {Args, ID, Mutation, Query, Resolver} from "@nestjs/graphql";
 import {type UpdateProfileSchemaType, UpdateProfileSchema, UUIDv7Schema, type FindManyUsersSchemaType, FindManyUsersSchema} from "@live-bid/contracts/schemas";
-import type {FindManyUsersRequestService, GetProfileResponseService, PublicProfileResponseService, UpdateProfileRequestService, UpdateProfileResponseService, UserAccess} from "@live-bid/services/types";
+import type {FindManyUsersRequestService, GetProfileResponseService, PublicProfileResponseService, SafeUser, UpdateProfileRequestService, UpdateProfileResponseService, UserAccess} from "@live-bid/services/types";
 
 /**
  * **UserResolver**
@@ -170,10 +170,29 @@ export class UserResolver {
   }
 
   /**
-   * Resolves a GraphQL query for retrieving a list of users.
+   * Resolves a GraphQL query for retrieving a paginated list of users.
+   *
+   * @remarks
+   * **Input Validation**
+   * - Validates filtering, sorting, and pagination parameters using
+   *   `ZodPipe(FindManyUsersSchema)`.
+   * - Ensures the incoming arguments conform to the shared user list schema.
+   *
+   * **Microservice Communication**
+   * - Delegates the request to the Auth microservice using
+   *   `USERS_PATTERNS.FIND_MANY`.
+   * - Uses `ClientProxy.send()` to dispatch the request and receive
+   *   the corresponding response as an Observable.
+   * - Converts the Observable into a Promise using `firstValueFrom()`.
+   *
+   * **Caching**
+   * - The Auth microservice handles the underlying retrieval through
+   *   its versioned Cache-Aside strategy.
+   * - Cached results are reused when available, reducing unnecessary
+   *   database queries.
    *
    * @param input - Validated filtering, sorting, and pagination parameters.
-   * @returns A promise resolving to the list of users.
+   * @returns A promise resolving to the requested list of users.
    */
   @Decorators.GetUserListDecorators()
   @Query(() => [Outputs.FindManyOutput])
@@ -183,8 +202,8 @@ export class UserResolver {
       {type: () => Inputs.FindManyInput},
       new ZodPipe(FindManyUsersSchema)
     ) input: FindManyUsersSchemaType
-  ) {
-    return firstValueFrom(
+  ): Promise<SafeUser[]> {
+    return firstValueFrom<SafeUser[]>(
       this.authClient.send(
         USERS_PATTERNS.FIND_MANY,
         {

@@ -3,7 +3,7 @@ import {UsersCacheService} from "./users-cache.service";
 import {AppException, handleDrizzleError} from "@live-bid/services/lib";
 import type {UpdateProfileSchemaType} from "@live-bid/contracts/schemas";
 import {UsersRepository} from "@app/auth/modules/users/users.repository";
-import type {FindManyUsersRequestService, GetProfileResponseService, PublicProfileResponseService, UpdateProfileRequestService, UpdateProfileResponseService} from "@live-bid/services/types";
+import type {FindManyUsersRequestService, GetProfileResponseService, PublicProfileResponseService, SafeUser, UpdateProfileRequestService, UpdateProfileResponseService} from "@live-bid/services/types";
 
 /**
  * **UsersService**
@@ -150,10 +150,21 @@ export class UsersService {
   /**
    * Retrieves a list of users through the caching layer.
    *
+   * @remarks
+   * **Caching Strategy**
+   * - Delegates cache retrieval and population to `UsersCacheService`.
+   * - Uses a versioned cache key to support invalidation of all cached
+   *   user list variations without explicitly deleting individual entries.
+   *
+   * **Supported Operations**
+   * - Filtering
+   * - Sorting
+   * - Pagination
+   *
    * @param options - Filtering, sorting, and pagination options.
-   * @returns A promise resolving to the requested user list.
+   * @returns A promise resolving to the requested list of users.
    */
-  findMany(options: FindManyUsersRequestService) {
+  findMany(options: FindManyUsersRequestService): Promise<SafeUser[]> {
     return this.usersCacheService.getOrSetCacheUserList(options);
   }
 }

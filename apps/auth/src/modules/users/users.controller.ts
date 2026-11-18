@@ -2,7 +2,7 @@ import {UsersService} from "./services";
 import {Controller} from "@nestjs/common";
 import {USERS_PATTERNS} from "@live-bid/services/messages";
 import {MessagePattern, Payload} from "@nestjs/microservices";
-import type {FindManyUsersRequestService, GetProfileResponseService, PublicProfileResponseService, UpdateProfileRequestService} from "@live-bid/services/types";
+import type {FindManyUsersRequestService, GetProfileResponseService, PublicProfileResponseService, SafeUser, UpdateProfileRequestService} from "@live-bid/services/types";
 
 /**
  * **UsersController**
@@ -86,7 +86,7 @@ export class UsersController {
   @MessagePattern(USERS_PATTERNS.FIND_MANY)
   findMany(
     @Payload() payload: FindManyUsersRequestService
-  ) {
+  ): Promise<SafeUser[]> {
     return this.usersService.findMany(payload);
   }
 }
