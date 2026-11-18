@@ -5,7 +5,7 @@ import {BaseOrderByEnum, BaseSortByEnum} from "@app/gateway/common/enums";
   isAbstract: true
 })
 export class BasePaginationInputs {
-  @Field(() => Number, {defaultValue: 2, nullable: true})
+  @Field(() => Number, {defaultValue: 10, nullable: true})
   limit?: number;
 
   @Field(() => Number, {defaultValue: 1, nullable: true})

@@ -1,11 +1,11 @@
 import {Injectable} from "@nestjs/common";
 import {and, asc, desc, eq, SQL} from "drizzle-orm";
 import {AppException} from "@live-bid/services/lib";
-import {UserRoleEnum} from "@live-bid/contracts/enums";
 import {DrizzleService} from "@live-bid/services/modules";
 import {type User, user} from "@live-bid/services/database";
 import type {FindOneUserParams} from "@app/auth/types/users";
 import {USER_SAFE_COLUMNS} from "@app/auth/common/constants";
+import {BaseSortByEnum, UserRoleEnum} from "@live-bid/contracts/enums";
 import type {DrizzleTransaction, SafeUser} from "@live-bid/services/types";
 import type {UpdateProfileSchemaType, RegisterUserSchemaType, FindManyUsersSchemaType} from "@live-bid/contracts/schemas";
 
@@ -222,7 +222,7 @@ export class UsersRepository {
    *
    * @see {@link FindManyUsersSchemaType}
    */
-  findMany({limit, orderBy, offset, role, sort, is_active}: FindManyUsersSchemaType) {
+  findMany({limit, orderBy, offset, role, sortBy, is_active}: FindManyUsersSchemaType) {
     const conditions: SQL[] = [];
 
     if (is_active !== undefined) {
@@ -239,7 +239,7 @@ export class UsersRepository {
       .limit(limit)
       .offset(offset)
       .orderBy(
-        sort === 'desc'
+        sortBy === BaseSortByEnum.desc
           ? desc(user[orderBy])
           : asc(user[orderBy])
       )

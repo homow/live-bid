@@ -1,5 +1,8 @@
 import type {TablesName} from "../database";
 
+type CacheKeyValue = string | number | boolean | null | undefined;
+type InputKeys = Record<string, CacheKeyValue>;
+
 /**
  * Parameters for building a structured cache key.
  */
@@ -11,7 +14,7 @@ export interface ParamCacheKeyType {
   /** The database table/resource name (root of the key). */
   resource: TablesName;
   /** Optional query parameters to include in the key (e.g., `{ status: 'active' }`). */
-  inputs?: Record<string, string>;
+  inputs?: InputKeys;
 }
 
 /**
@@ -47,15 +50,13 @@ export class RedisKey {
    * @example
    * RedisKey.build('user', 'session', 'userId=1'); // "user:session:userId=1"
    */
-  static build(resource: TablesName, ...parts: (string | undefined | number)[]): string {
+  static build(resource: TablesName, ...parts: CacheKeyValue[]): string {
     const cleanParts = parts
-      .filter(p => p !== undefined && p !== null)
-      .map(p => p.toString().trim())
+      .filter(p => p !== undefined && p !== null && p !== '')
+      .map(p => (p as string | number | boolean).toString().trim())
       .filter(Boolean);
 
-    return cleanParts.length === 0
-      ? `${resource}:list`
-      : `${resource}:${cleanParts.join(':')}`;
+    return `${resource}:${cleanParts.join(':')}`;
   }
 
   /**
@@ -83,10 +84,12 @@ export class RedisKey {
     if (pagination) parts.push('list');
 
     if (inputs && Object.keys(inputs).length) {
-      Object.entries(inputs).forEach(([key, value]) => {
-        if (value === undefined || value === null || value === '') return;
-        parts.push(`${key}=${value}`);
-      });
+      Object.entries(inputs)
+        .sort((a, b) => a[0].localeCompare(b[0]))
+        .forEach(([key, value]) => {
+          if (value === undefined || value === null || value === '') return;
+          parts.push(`${key}=${String(value)}`);
+        });
     }
 
     return RedisKey.build(resource, ...parts);
@@ -101,6 +104,24 @@ export class RedisKey {
    * @returns The segments `['profile', 'user-id=<id>']`.
    */
   static getUserProfileKey(id: string) {
-    return ["profile", `user-id=${id}`];
+    return this.build('user', "profile", `user-id=${id}`);
+  }
+
+  static buildVersionedListKey(
+    {
+      resource,
+      version,
+      inputs,
+      extraKeys,
+    }: Omit<ParamCacheKeyType, 'pagination'> & {
+      version: number;
+    }
+  ): string {
+    return RedisKey.keyPrefix({
+      resource,
+      inputs,
+      pagination: true,
+      extraKeys: [...(extraKeys ?? []), `v:${version}`],
+    });
   }
 }

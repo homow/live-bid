@@ -7,7 +7,7 @@ import {BaseOrderByEnum, BaseSortByEnum} from "../../enums";
 export const PaginationSchema = z.object({
     limit: z
       .number()
-      .min(2)
+      .min(1)
       .max(100)
       .optional()
       .default(10),
@@ -23,7 +23,7 @@ export const PaginationSchema = z.object({
       .optional()
       .default(BaseOrderByEnum.created_at),
 
-    sort: z
+    sortBy: z
       .enum(BaseSortByEnum)
       .optional()
       .default(BaseSortByEnum.desc),
