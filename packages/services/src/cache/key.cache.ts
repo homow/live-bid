@@ -118,10 +118,10 @@ export class RedisKey {
     }
   ): string {
     return RedisKey.keyPrefix({
-      resource,
       inputs,
+      resource,
       pagination: true,
-      extraKeys: [...(extraKeys ?? []), `v:${version}`],
+      extraKeys: [...(extraKeys ?? []), `v=${version}`],
     });
   }
 }

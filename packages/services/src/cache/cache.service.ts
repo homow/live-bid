@@ -162,7 +162,7 @@ export class CacheService implements OnModuleInit, OnModuleDestroy {
     return result === 1;
   }
 
-  cleanPrefix(keys: string[]): string[] {
+  private cleanPrefix(keys: string[]): string[] {
     return keys.map(k =>
       k.startsWith(this.prefix)
         ? k.slice(this.prefix.length)
@@ -192,7 +192,7 @@ export class CacheService implements OnModuleInit, OnModuleDestroy {
   /**
    * Atomically increments the cache version.
    */
-  async incrementCacheVersion(key: string): Promise<number> {
+  incrementCacheVersion(key: string): Promise<number> {
     return this.getClient().incr(key);
   }
 }

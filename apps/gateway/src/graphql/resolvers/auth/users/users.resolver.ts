@@ -169,6 +169,12 @@ export class UserResolver {
     );
   }
 
+  /**
+   * Resolves a GraphQL query for retrieving a list of users.
+   *
+   * @param input - Validated filtering, sorting, and pagination parameters.
+   * @returns A promise resolving to the list of users.
+   */
   @Decorators.GetUserListDecorators()
   @Query(() => [Outputs.FindManyOutput])
   users(

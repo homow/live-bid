@@ -77,6 +77,12 @@ export class UsersController {
     return this.usersService.updateProfile(input);
   }
 
+  /**
+   * Handles incoming requests to retrieve a list of users.
+   *
+   * @param payload - User list query parameters received from the message payload.
+   * @returns A promise resolving to the requested user list.
+   */
   @MessagePattern(USERS_PATTERNS.FIND_MANY)
   findMany(
     @Payload() payload: FindManyUsersRequestService

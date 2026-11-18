@@ -144,7 +144,13 @@ export class UsersService {
     }
   }
 
-  async findMany(options: FindManyUsersRequestService) {
-    return await this.usersRepository.findMany(options);
+  /**
+   * Retrieves a list of users through the caching layer.
+   *
+   * @param options - Filtering, sorting, and pagination options.
+   * @returns A promise resolving to the requested user list.
+   */
+  findMany(options: FindManyUsersRequestService) {
+    return this.usersCacheService.getOrSetCacheUserList(options);
   }
 }

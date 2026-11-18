@@ -5,6 +5,7 @@ import {UsersRepository} from "../users.repository";
 import {CacheService} from "@live-bid/services/cache";
 import type {SafeUser} from "@live-bid/services/types";
 import {throwNotFound, ONE_HOUR_MS} from "@live-bid/services/lib";
+import {FindManyUsersSchemaType} from "@live-bid/contracts/schemas";
 
 /**
  * **UsersCacheService**
@@ -31,6 +32,8 @@ import {throwNotFound, ONE_HOUR_MS} from "@live-bid/services/lib";
  */
 @Injectable()
 export class UsersCacheService {
+  private readonly userListVersionKey = 'user:list:version';
+
   constructor(
     private readonly logger: PinoLogger,
     private readonly cache: CacheService,
@@ -47,7 +50,7 @@ export class UsersCacheService {
    * @param userResponse - Safe user object (without sensitive fields)
    */
   setCacheUserInfo(userResponse: SafeUser) {
-    const key = RedisKey.build('user', ...RedisKey.getUserProfileKey(userResponse.id));
+    const key = RedisKey.getUserProfileKey(userResponse.id);
     void this.cache.set<SafeUser>(key, userResponse, ONE_HOUR_MS).catch(reason => {
       this.logger.error('Failed to cache user: ', reason);
     });
@@ -63,7 +66,7 @@ export class UsersCacheService {
    * @returns The cached user, or `null` if not found
    */
   getCachedUserInfo(id: string): Promise<SafeUser | null> {
-    const key = RedisKey.build('user', ...RedisKey.getUserProfileKey(id));
+    const key = RedisKey.getUserProfileKey(id);
     return this.cache.get<SafeUser>(key);
   }
 
@@ -118,7 +121,7 @@ export class UsersCacheService {
    *          (typically the number of keys removed: `0` or `1`).
    */
   async deleteUserCache(id: string) {
-    const key = RedisKey.build('user', ...RedisKey.getUserProfileKey(id));
+    const key = RedisKey.getUserProfileKey(id);
 
     try {
       return await this.cache.delete(key);
@@ -126,5 +129,77 @@ export class UsersCacheService {
     } catch (e) {
       this.logger.error({e: e as Error, userId: id}, "Failed to delete user cache (non-fatal)");
     }
+  }
+
+  /**
+   * Retrieves a paginated user list using a versioned Cache-Aside strategy.
+   *
+   * @remarks
+   * - **Versioned Cache:** Uses the current user list cache version to build
+   *   the cache key. Incrementing the version invalidates all previously
+   *   cached list variations without explicitly deleting them.
+   * - **Cache Hit:** Returns the cached user list immediately when available.
+   * - **Cache Miss:** Fetches the user list from the database and schedules
+   *   an asynchronous Redis write.
+   * - **Fire-and-forget:** Cache writes do not block the response. Failures
+   *   are logged and do not affect the database result.
+   * - **Cache Key:** Excludes `offset` because it is derived from pagination
+   *   parameters and is not independently required to identify the result.
+   *
+   * @param options - Filtering, sorting, and pagination options.
+   * @returns The requested user list.
+   */
+  async getOrSetCacheUserList(options: FindManyUsersSchemaType): Promise<SafeUser[]> {
+    const version: number = await this.cache.getCacheVersion(this.userListVersionKey);
+
+    const {offset: _, ...inputs} = options;
+
+    const key: string = RedisKey.buildVersionedListKey({
+      inputs,
+      version,
+      resource: 'user',
+    });
+
+    const cacheResult = await this.cache.get<SafeUser[]>(key);
+
+    if (cacheResult !== null) return cacheResult;
+
+    const dbResult = await this.userRepository.findMany(options);
+
+    void this.cache
+      .set<SafeUser[]>(key, dbResult, ONE_HOUR_MS)
+      .catch(reason => {
+        this.logger.error(
+          {err: reason as Error},
+          'Failed to cache user list',
+        );
+      });
+
+    return dbResult;
+  }
+
+  /**
+   * Invalidates all cached user list variations by incrementing their version.
+   *
+   * @remarks
+   * - **Versioned Cache:** Existing list cache entries become unreachable
+   *   because subsequent requests use the new version in their cache keys.
+   * - **Fire-and-forget:** The version increment does not block the caller.
+   * - **Error Handling:** Redis failures are caught and logged without
+   *   propagating an exception to the caller.
+   * - Old cache entries are left in Redis and expire naturally according
+   *   to their configured TTL.
+   *
+   * @returns `void`.
+   */
+  incrementUserListVersion() {
+    void this.cache
+      .incrementCacheVersion(this.userListVersionKey)
+      .catch(reason => {
+        this.logger.error(
+          {err: reason as Error},
+          'Failed to increment user list cache version',
+        );
+      });
   }
 }
