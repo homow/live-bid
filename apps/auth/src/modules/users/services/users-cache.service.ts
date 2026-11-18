@@ -125,7 +125,6 @@ export class UsersCacheService {
 
     try {
       return await this.cache.delete(key);
-
     } catch (e) {
       this.logger.error({e: e as Error, userId: id}, "Failed to delete user cache (non-fatal)");
     }

@@ -106,6 +106,9 @@ export class AuthService {
         "User registered successfully",
       );
 
+      // Increment users list version
+      this.usersCacheService.incrementUserListVersion();
+
       const dashboardLink: string = this.config.get<string>("APPLICATION_DASHBOARD_URL") ?? "http://127.0.0.1:3000/dashboard";
 
       void this.authMail.authNotification(

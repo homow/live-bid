@@ -134,6 +134,9 @@ export class UsersService {
       // Delete user cache(fire-and-forget)
       void this.usersCacheService.deleteUserCache(userId);
 
+      // Increment users list version
+      this.usersCacheService.incrementUserListVersion();
+
       return finalData;
     } catch (e) {
       handleDrizzleError({
