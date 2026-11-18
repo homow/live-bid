@@ -169,4 +169,30 @@ export class CacheService implements OnModuleInit, OnModuleDestroy {
         : k
     );
   }
+
+  /**
+   * Gets the current cache version.
+   * Initializes the version to 1 if the key does not exist.
+   */
+  async getCacheVersion(key: string): Promise<number> {
+    await this.getClient().set(key, '1', 'NX');
+
+    const version = await this.getClient().get(key);
+    const parsedVersion = Number(version);
+
+    if (!Number.isSafeInteger(parsedVersion) || parsedVersion < 1) throw new AppException({
+      statusCode: 500,
+      code: 'Redis cache version error',
+      message: `Invalid cache version for key: ${key}`,
+    });
+
+    return parsedVersion;
+  }
+
+  /**
+   * Atomically increments the cache version.
+   */
+  async incrementCacheVersion(key: string): Promise<number> {
+    return this.getClient().incr(key);
+  }
 }
