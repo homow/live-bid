@@ -3,7 +3,7 @@ import {UserRoleEnum} from "@live-bid/contracts/enums";
 import {BasePaginationInputs} from "@app/gateway/common/inputs";
 
 @InputType()
-export class FindManyUsersInput extends BasePaginationInputs {
+export class FindManyInput extends BasePaginationInputs {
   @Field(() => UserRoleEnum, {nullable: true})
   role?: UserRoleEnum;
 

@@ -5,13 +5,12 @@ import {Inject} from "@nestjs/common";
 import * as Decorators from "./decorators";
 import {ZodPipe} from "@app/gateway/common/pipes";
 import {ClientProxy} from "@nestjs/microservices";
-import {UUIDv7Schema} from "@live-bid/contracts/schemas";
 import {CurrentUser} from "@app/gateway/common/decorators";
 import {AUTH_SERVICE_NAME} from "@live-bid/services/names";
 import {USERS_PATTERNS} from "@live-bid/services/messages";
 import {Args, ID, Mutation, Query, Resolver} from "@nestjs/graphql";
-import {type UpdateProfileSchemaType, UpdateProfileSchema} from "@live-bid/contracts/schemas";
-import type {GetProfileResponseService, PublicProfileResponseService, UpdateProfileRequestService, UpdateProfileResponseService, UserAccess} from "@live-bid/services/types";
+import {type UpdateProfileSchemaType, UpdateProfileSchema, UUIDv7Schema, type FindManyUsersSchemaType, FindManyUsersSchema} from "@live-bid/contracts/schemas";
+import type {FindManyUsersRequestService, GetProfileResponseService, PublicProfileResponseService, UpdateProfileRequestService, UpdateProfileResponseService, UserAccess} from "@live-bid/services/types";
 
 /**
  * **UserResolver**
@@ -171,12 +170,21 @@ export class UserResolver {
   }
 
   @Decorators.GetUserListDecorators()
-  @Query(() => String)
+  @Query(() => [Outputs.FindManyOutput])
   users(
     @Args(
       'input',
-    ) input: string
+      {type: () => Inputs.FindManyInput},
+      new ZodPipe(FindManyUsersSchema)
+    ) input: FindManyUsersSchemaType
   ) {
-    return input;
+    return firstValueFrom(
+      this.authClient.send(
+        USERS_PATTERNS.FIND_MANY,
+        {
+          ...input
+        } satisfies FindManyUsersRequestService
+      )
+    );
   }
 }
