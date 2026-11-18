@@ -1,7 +1,5 @@
 import {z} from "zod";
-
-export const BASE_SORT_BY_ENUM = ['asc', 'desc'] as const;
-export const BASE_ORDER_BY_ENUM = ['created_at', 'updated_at'] as const;
+import {BaseOrderByEnum, BaseSortByEnum} from "../../enums";
 
 /**
  * Validates pagination and sorting options for user queries.
@@ -21,20 +19,20 @@ export const PaginationSchema = z.object({
       .default(1),
 
     orderBy: z
-      .enum(BASE_ORDER_BY_ENUM)
+      .enum(BaseOrderByEnum)
       .optional()
-      .default('created_at'),
+      .default(BaseOrderByEnum.created_at),
 
     sort: z
-      .enum(BASE_SORT_BY_ENUM)
+      .enum(BaseSortByEnum)
       .optional()
-      .default('desc'),
+      .default(BaseSortByEnum.desc),
   }
 );
 
 export type PaginationSchemaType = z.infer<typeof PaginationSchema>;
 
-export const paginationOffsetSchema = <T extends z.ZodType<PaginationSchemaType>>(schema: T): z.ZodPipe<T, z.ZodTransform<Awaited<z.core.output<T> & {
+export const getPaginationWithOffsetSchema = <T extends z.ZodType<PaginationSchemaType>>(schema: T): z.ZodPipe<T, z.ZodTransform<Awaited<z.core.output<T> & {
   offset: number;
 }>, z.core.output<T>>> => {
   return schema.transform((args) => ({
