@@ -172,7 +172,11 @@ export class UserResolver {
 
   @Decorators.GetUserListDecorators()
   @Query(() => String)
-  users() {
-    return 'user list';
+  users(
+    @Args(
+      'input',
+    ) input: string
+  ) {
+    return input;
   }
 }

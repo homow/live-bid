@@ -1,5 +1,5 @@
 import {Field, ID, InputType} from "@nestjs/graphql";
-import {UserRoleEnum} from "@app/gateway/graphql/resolvers/auth/enums";
+import {UserRoleEnum} from "@app/gateway/common/enums";
 
 @InputType()
 export class ModifyRoleInput {

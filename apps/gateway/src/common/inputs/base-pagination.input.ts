@@ -1,7 +1,9 @@
 import {Field, InputType} from "@nestjs/graphql";
 import {BaseOrderByEnum, BaseSortByEnum} from "@app/gateway/common/enums";
 
-@InputType()
+@InputType({
+  isAbstract: true
+})
 export class BasePaginationInputs {
   @Field(() => Number, {defaultValue: 2, nullable: true})
   limit?: number;
