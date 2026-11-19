@@ -4,7 +4,7 @@ The **core** microservice of Live Bid — a **skeleton** at the moment, reserved
 Redis, Postgres, and the cache layer, so implementing the domain is a matter of adding modules, not infrastructure.
 
 > 📖 For overall backend architecture, see [`apps/README.md`](../README.md).
-> 📖 For full backend setup and environment, see [`README.server.md`](../../README.server.md).
+> 📖 For full backend setup and environment, see [`../../README.SERVER.md`](../../README.SERVER.md).
 > 📖 For a fully-implemented microservice example, see [`apps/auth/README.md`](../auth/README.md).
 
 ---
@@ -321,4 +321,4 @@ When implementing, mirror these files from `auth`:
 
 ---
 
-_See the [main README](../../README.md), [`README.server.md`](../../README.server.md), and [`apps/README.md`](../README.md) for the bigger picture._
+_See the [main README](../../README.md), [`../../README.SERVER.md`](../../README.SERVER.md), and [`apps/README.md`](../README.md) for the bigger picture._

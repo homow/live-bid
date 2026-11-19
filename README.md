@@ -104,7 +104,7 @@ The backend follows a **NestJS microservices architecture** composed of three in
 The Gateway exposes the public GraphQL API and communicates with internal services through NestJS `ClientProxy` using message patterns. Redis provides caching and Pub/Sub
 capabilities, while PostgreSQL serves as the primary datastore.
 
-> 📖 For full backend documentation, see [`README.server.md`](./README.server.md).  
+> 📖 For full backend documentation, see [`README.SERVER.md`](README.SERVER.md).  
 > 📖 For the service map, see [`apps/README.md`](./apps/README.md).
 
 ## 🏗️ Architecture
@@ -392,5 +392,30 @@ export const user = pgTable("users", {
 
 ---
 
-> 📖 For full backend documentation, see [`README.server.md`](./README.server.md).  
+> 📖 For full backend documentation, see [`README.SERVER.md`](README.SERVER.md).  
 > 📖 For the service map, see [`apps/README.md`](./apps/README.md).
+
+## **Contributors**
+
+### 👨‍💻 Project Contributors
+
+A clean and modern full‑stack collaboration.
+
+<br>
+
+<table>
+  <tr>
+    <td align="center">
+      <img src="https://github.com/homow.png" width="90" style="border-radius: 50%;"  alt=""/><br>
+      <b>Homayoun</b><br>
+      <sub>Backend Developer · Server‑Side</sub><br>
+      <a href="https://github.com/homow">github.com/homow</a>
+    </td>
+    <td align="center">
+      <img src="https://github.com/mardi-niyayesh.png" width="90" style="border-radius: 50%;"  alt=""/><br>
+      <b>mardi‑niyayesh</b><br>
+      <sub>Frontend Developer · Client‑Side</sub><br>
+      <a href="https://github.com/mardi-niyayesh">github.com/mardi-niyayesh</a>
+    </td>
+  </tr>
+</table>

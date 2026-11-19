@@ -130,7 +130,7 @@ Backend پروژه بر پایه معماری Microservices و با استفاد
 
 برای مشاهده مستندات کامل Backend:
 
-- [README.server.md](README.server.md) — مستندات کامل Backend
+- [README.server.md](README.SERVER.md) — مستندات کامل Backend
 - [apps/README.md](apps/README.md) — معرفی سرویس‌ها و ساختار آن‌ها
 
 ### 🏗️ Architecture
@@ -462,7 +462,7 @@ export const user = pgTable("users", {
 
 برای مطالعه جزئیات بیشتر درباره ساختار و معماری Backend، مستندات زیر را بررسی کنید:
 
-- [README.server.md](README.server.md) — مستندات کامل Backend و معماری آن
+- [README.server.md](README.SERVER.md) — مستندات کامل Backend و معماری آن
 - [apps/README.md](apps/README.md) — راهنمای سرویس‌ها و ساختار داخلی آن‌ها
 
 ---

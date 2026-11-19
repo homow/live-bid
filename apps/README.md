@@ -3,7 +3,7 @@
 Backend services overview for the Live Bid monorepo. This folder contains three NestJS applications forming a single system: one public **gateway** and two internal
 **microservices** communicating over Redis.
 
-> 📖 For full backend setup, environment, and database details, see [`README.server.md`](../README.server.md).
+> 📖 For full backend setup, environment, and database details, see [`../README.SERVER.md`](../README.SERVER.md).
 > 📖 For project overview and client, see the [main README](../README.md).
 
 ---
