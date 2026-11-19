@@ -4,7 +4,7 @@ The public GraphQL gateway of Live Bid. Owns the API surface, enforces authentic
 over Redis.
 
 > 📖 For overall backend architecture, see [`apps/README.md`](../README.md).
-> 📖 For full backend setup and environment, see [`README.server.md`](../../README.server.md).
+> 📖 For full backend setup and environment, see [`../../README.SERVER.md`](../../README.SERVER.md).
 > 📖 For auth service internals, see [`apps/auth/README.md`](../auth/README.md).
 
 ---

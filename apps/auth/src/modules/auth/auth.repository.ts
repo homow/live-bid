@@ -5,7 +5,7 @@ import {AppException} from "@live-bid/services/lib";
 import {DrizzleService} from "@live-bid/services/modules";
 import {refreshToken, user} from "@live-bid/services/database";
 import type {DrizzleTransaction} from "@live-bid/services/types";
-import {REFRESH_TOKEN_PUBLIC_COLUMNS, USER_PUBLIC_COLUMNS} from "@app/auth/common/constants";
+import {REFRESH_TOKEN_PUBLIC_COLUMNS, USER_SAFE_COLUMNS} from "@app/auth/common/constants";
 import type {ChangePasswordRepositoryParams, RefreshTokenInsert} from "@app/auth/types/auth";
 
 /**
@@ -87,7 +87,7 @@ export class AuthRepository {
         ...REFRESH_TOKEN_PUBLIC_COLUMNS,
 
         // Public User Record
-        user: USER_PUBLIC_COLUMNS,
+        user: USER_SAFE_COLUMNS,
       })
       .from(refreshToken)
       .where(eq(refreshToken.token_hash, tokenHash))

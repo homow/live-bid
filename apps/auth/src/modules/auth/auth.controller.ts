@@ -12,8 +12,8 @@ import type {
 
 import {Controller} from "@nestjs/common";
 import {AuthService} from "./services/auth.service";
+import {AUTH_PATTERNS} from "@live-bid/services/messages";
 import {MessagePattern, Payload} from "@nestjs/microservices";
-import * as ServiceMessages from "@live-bid/services/messages";
 
 /**
  * **AuthController**
@@ -54,7 +54,7 @@ export class AuthController {
    * @returns The created user record without sensitive fields
    * @param data
    */
-  @MessagePattern(ServiceMessages.AUTH_PATTERNS.REGISTER)
+  @MessagePattern(AUTH_PATTERNS.REGISTER)
   register(
     @Payload() data: RegisterRequestService
   ): Promise<RegisterResponseService> {
@@ -68,7 +68,7 @@ export class AuthController {
    * @returns User data + access/refresh tokens with cookie options
    * @param data
    */
-  @MessagePattern(ServiceMessages.AUTH_PATTERNS.LOGIN)
+  @MessagePattern(AUTH_PATTERNS.LOGIN)
   login(
     @Payload() data: LoginRequestService,
   ): Promise<LoginResponseService> {
@@ -82,7 +82,7 @@ export class AuthController {
    * @returns New access/refresh tokens with cookie options
    * @param data
    */
-  @MessagePattern(ServiceMessages.AUTH_PATTERNS.REFRESH)
+  @MessagePattern(AUTH_PATTERNS.REFRESH)
   refresh(
     @Payload() data: RefreshRequestService,
   ): Promise<LoginResponseService> {
@@ -99,7 +99,7 @@ export class AuthController {
    * - Token is hashed and marked as revoked in the database
    * - No response is expected from the client side
    */
-  @MessagePattern(ServiceMessages.AUTH_PATTERNS.LOGOUT)
+  @MessagePattern(AUTH_PATTERNS.LOGOUT)
   logout(
     @Payload() data: LogoutRequestService,
   ): void {
@@ -116,7 +116,7 @@ export class AuthController {
    * @param data - `{ userId, oldPassword, newPassword, clientInfo }`
    * @returns Success message asking the user to log in again.
    */
-  @MessagePattern(ServiceMessages.AUTH_PATTERNS.CHANGE_PASSWORD)
+  @MessagePattern(AUTH_PATTERNS.CHANGE_PASSWORD)
   changePassword(
     @Payload() data: ChangePasswordRequestService,
   ): Promise<string> {
@@ -132,7 +132,7 @@ export class AuthController {
    * @param data - Contains the user's `email` and normalized `clientInfo`.
    * @returns A generic success message (prevents email enumeration).
    */
-  @MessagePattern(ServiceMessages.AUTH_PATTERNS.FORGOT_PASSWORD)
+  @MessagePattern(AUTH_PATTERNS.FORGOT_PASSWORD)
   forgotPassword(
     @Payload() data: ForgotPasswordRequestService
   ): Promise<string> {
@@ -148,7 +148,7 @@ export class AuthController {
    * @param data - Contains the reset `token`, `newPassword`, and `clientInfo`.
    * @returns A success message from the auth service.
    */
-  @MessagePattern(ServiceMessages.AUTH_PATTERNS.RESET_PASSWORD)
+  @MessagePattern(AUTH_PATTERNS.RESET_PASSWORD)
   resetPassword(
     @Payload() data: ResetPasswordRequestService
   ): Promise<string> {

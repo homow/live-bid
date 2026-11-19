@@ -4,7 +4,7 @@ The authentication microservice of Live Bid. Handles user registration, login, J
 transport — no HTTP, no GraphQL.
 
 > 📖 For overall backend architecture, see [`apps/README.md`](../README.md).
-> 📖 For full backend setup and environment, see [`README.server.md`](../../README.server.md).
+> 📖 For full backend setup and environment, see [`../../README.SERVER.md`](../../README.SERVER.md).
 
 ---
 

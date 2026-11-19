@@ -28,23 +28,44 @@ Detailed documentation for the Live Bid backend: a **NestJS microservices** syst
 
 ## 🏗️ Architecture
 
+<!-- @formatter:off -->
+```mermaid
+flowchart TB
+    subgraph SERVICES["⚙️ Backend Microservices"]
+        direction LR
+
+        Gateway["<b>Gateway</b><br/>GraphQL API<br/><b>:3001</b>"]
+        Auth["<b>Auth</b><br/>Users · Tokens"]
+        Core["<b>Core</b><br/>Auctions · Wallet"]
+    end
+
+    Redis[("<b>Redis</b><br/>Transport · Cache · Pub/Sub")]
+    DB[("<b>PostgreSQL</b><br/>Drizzle ORM")]
+
+    Gateway -->|ClientProxy| Auth
+    Gateway -->|ClientProxy| Core
+
+    Gateway <-->|Transport| Redis
+    Auth <-->|Transport| Redis
+    Core <-->|Transport| Redis
+
+    Gateway -->|Database| DB
+    Auth -->|Database| DB
+    Core -->|Database| DB
+
+    classDef gateway fill:#1E3A5F,stroke:#60A5FA,color:#EFF6FF,stroke-width:2px;
+    classDef service fill:#263449,stroke:#64748B,color:#E2E8F0,stroke-width:1.5px;
+    classDef cache fill:#352B52,stroke:#A78BFA,color:#F3E8FF,stroke-width:2px;
+    classDef database fill:#1F3D35,stroke:#34D399,color:#D1FAE5,stroke-width:2px;
+
+    class Gateway gateway;
+    class Auth,Core service;
+    class Redis cache;
+    class DB database;
+
+    linkStyle default stroke:#94A3B8,stroke-width:1.5px;
 ```
-┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-│   Gateway   │────▶│    Auth     │     │    Core     │
-│  (GraphQL)  │     │  (Users,    │     │  (Auctions, │
-│  :3001      │────▶│   Tokens)   │     │   Wallet)   │
-└─────────────┘     └─────────────┘     └─────────────┘
-       │                   │                   │
-       └───────────────────┴───────────────────┘
-                           │
-                    ┌──────┴──────┐
-                    │    Redis    │  (transport + cache + pub/sub)
-                    └──────┬──────┘
-                           │
-                    ┌──────┴──────┐
-                    │  PostgreSQL │  (via Drizzle ORM)
-                    └─────────────┘
-```
+<!-- @formatter:on -->
 
 - **Gateway** exposes a public GraphQL API and communicates with internal services via **Redis transport** (`Transport.REDIS`).
 - **Auth** and **Core** are pure microservices — no HTTP ports, no GraphQL. They listen on Redis channels for message patterns.
@@ -425,21 +446,21 @@ The generated schema is written to `./schema.graphql` at the project root on eac
 
 ```graphql
 type Query {
-  health: String!
-  healthCheck: HealthCheckOutput!
+    health: String!
+    healthCheck: HealthCheckOutput!
 }
 
 type Mutation {
-  register(input: RegisterUserInput!): RegisterUserOutput!
-  login(input: LoginUserInput!): LoginUserOutput!
-  refresh: LoginUserOutput!
-  logout: String!
+    register(input: RegisterUserInput!): RegisterUserOutput!
+    login(input: LoginUserInput!): LoginUserOutput!
+    refresh: LoginUserOutput!
+    logout: String!
 }
 
 enum UserRoleEnum {
-  ADMIN
-  OWNER
-  USER
+    ADMIN
+    OWNER
+    USER
 }
 ```
 
@@ -484,10 +505,18 @@ From `apps/auth/src/modules/auth/utils/token.util.ts`:
 ```typescript
 {
   httpOnly: true,
-  sameSite: isProduction ? "strict" : "lax",
-  secure: isProduction,
-  path: "/",
-  maxAge: <token-specific>,
+    sameSite
+:
+  isProduction ? "strict" : "lax",
+    secure
+:
+  isProduction,
+    path
+:
+  "/",
+    maxAge
+:
+  <token-specific >,
 }
 ```
 
@@ -591,13 +620,24 @@ From `apps/gateway/src/graphql/graphql.module.ts`:
 ```typescript
 {
   transport: Transport.REDIS,
-  options: {
+    options
+:
+  {
     host: config.get<string>("REDIS_HOST"),
-    port: Number(config.get<string>("REDIS_PORT") || 6973),
-    retryAttempts: 5,
-    retryDelay: 1000,
-    retryStrategy: () => 1000,
-  },
+      port
+  :
+    Number(config.get<string>("REDIS_PORT") || 6973),
+      retryAttempts
+  :
+    5,
+      retryDelay
+  :
+    1000,
+      retryStrategy
+  :
+    () => 1000,
+  }
+,
 }
 ```
 

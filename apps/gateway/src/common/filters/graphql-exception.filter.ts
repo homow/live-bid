@@ -5,8 +5,44 @@ import {type AppErrorPayload} from "@live-bid/services/lib";
 import {GqlArgumentsHost, GqlExceptionFilter} from "@nestjs/graphql";
 import {ACCESS_TOKEN_NAME, REFRESH_TOKEN_NAME} from "@live-bid/services/names";
 
+/**
+ * **GraphqlExceptionFilter**
+ *
+ * Global exception filter for the GraphQL Gateway.
+ * Normalizes all thrown errors into a consistent `GraphQLError` shape
+ * and handles auth-cookie cleanup when required.
+ *
+ * @remarks
+ * - **Passthrough:** If the exception is already a `GraphQLError`, it is
+ *   returned as-is (no re-wrapping).
+ * - **Cookie cleanup:** If the exception payload contains
+ *   `meta.clearAuthCookies = true`, both `ACCESS_TOKEN` and `REFRESH_TOKEN`
+ *   cookies are cleared on the response before returning the error.
+ * - **Known app errors:** Exceptions with `code` and `message` (i.e.,
+ *   `AppErrorPayload`) are mapped to a `GraphQLError` preserving
+ *   `extensions.code` and `extensions.statusCode`.
+ * - **Unknown errors:** Any other exception is returned as a generic
+ *   `500 INTERNAL_SERVER_ERROR`, hiding implementation details from clients.
+ *
+ * @example
+ * Client receives:
+ * {
+ *   "errors": [{
+ *     "message": "Your session has been revoked...",
+ *     "extensions": { "code": "REFRESH_TOKEN_REVOKED", "statusCode": 401 }
+ *   }]
+ * }
+ */
 @Catch()
 export class GraphqlExceptionFilter implements GqlExceptionFilter {
+  /**
+   * Entry point for the filter. Transforms any thrown exception into a
+   * well-structured `GraphQLError` response.
+   *
+   * @param exception - The thrown exception (may be `AppErrorPayload`, `GraphQLError`, or unknown).
+   * @param host      - The NestJS `ArgumentsHost` (GraphQL context).
+   * @returns A normalized `GraphQLError`.
+   */
   catch(exception: unknown, host: ArgumentsHost) {
     if (exception instanceof GraphQLError) {
       return exception;
@@ -30,7 +66,7 @@ export class GraphqlExceptionFilter implements GqlExceptionFilter {
       });
     }
 
-    return new GraphQLError(payload.message, {
+    return new GraphQLError('Internal Server Error', {
       extensions: {
         statusCode: 500,
         code: 'INTERNAL_SERVER_ERROR',

@@ -3,7 +3,7 @@
 Thanks for contributing to **Live Bid** — a real-time auction platform built by a small team. This document explains how we work: branch naming, commits, pull requests, and code
 conventions.
 
-> 📖 New to the project? Start with the [main README](./README.md) and [`README.server.md`](./README.server.md).
+> 📖 New to the project? Start with the [main README](./README.md) and [`README.SERVER.md`](README.SERVER.md).
 
 ---
 
@@ -178,7 +178,7 @@ Full setup instructions live in the main Readmes:
 | Doc                                                  | Covers                            |
 |------------------------------------------------------|-----------------------------------|
 | [`README.md`](./README.md)                           | Project overview, client setup    |
-| [`README.server.md`](./README.server.md)             | Backend setup, env vars, database |
+| [`README.SERVER.md`](README.SERVER.md)             | Backend setup, env vars, database |
 | [`apps/README.md`](./apps/README.md)                 | Service architecture overview     |
 | [`apps/gateway/README.md`](./apps/gateway/README.md) | GraphQL gateway internals         |
 | [`apps/auth/README.md`](./apps/auth/README.md)       | Auth microservice internals       |
