@@ -136,29 +136,37 @@ Backend پروژه بر پایه معماری Microservices و با استفاد
 
 ### 🏗️ Architecture
 
+<!-- @formatter:off -->
 ```mermaid
 flowchart TB
-    Gateway["Gateway<br/>GraphQL API"]
-    Auth["Auth<br/>Users · Tokens"]
-    Core["Core<br/>Auctions · Wallet"]
-    Gateway --> Auth
-    Gateway --> Core
-    Gateway --> Redis[("Redis<br/>Cache · Pub/Sub")]
-    Auth --> Redis
-    Core --> Redis
-    Gateway --> DB[("PostgreSQL<br/>Drizzle ORM")]
-    Auth --> DB
-    Core --> DB
-    classDef service fill: #202B3C, stroke: #64748B, color: #E2E8F0, stroke-width: 1.5px;
-    classDef gateway fill: #243B53, stroke: #60A5FA, color: #F0F9FF, stroke-width: 2px;
-    classDef cache fill: #292F46, stroke: #A78BFA, color: #EDE9FE, stroke-width: 1.5px;
-    classDef database fill: #263B35, stroke: #6EE7B7, color: #D1FAE5, stroke-width: 1.5px;
-    class Gateway gateway;
-    class Auth, Core service;
-    class Redis cache;
-    class DB database;
-    linkStyle default stroke: #94A3B8, stroke-width: 1.5px;
+   Gateway["Gateway<br/>GraphQL API"]
+   Auth["Auth<br/>Users · Tokens"]
+   Core["Core<br/>Auctions · Wallet"]
+
+   Gateway --> Auth
+   Gateway --> Core
+
+   Gateway --> Redis[("Redis<br/>Cache · Pub/Sub")]
+   Auth --> Redis
+   Core --> Redis
+
+   Gateway --> DB[("PostgreSQL<br/>Drizzle ORM")]
+   Auth --> DB
+   Core --> DB
+
+   classDef service fill:#202B3C,stroke:#64748B,color:#E2E8F0,stroke-width:1.5px;
+   classDef gateway fill:#243B53,stroke:#60A5FA,color:#F0F9FF,stroke-width:2px;
+   classDef cache fill:#292F46,stroke:#A78BFA,color:#EDE9FE,stroke-width:1.5px;
+   classDef database fill:#263B35,stroke:#6EE7B7,color:#D1FAE5,stroke-width:1.5px;
+
+   class Gateway gateway;
+   class Auth,Core service;
+   class Redis cache;
+   class DB database;
+
+   linkStyle default stroke:#94A3B8,stroke-width:1.5px;
 ```
+<!-- @formatter:on -->
 
 ### 🧩 Backend Services
 
