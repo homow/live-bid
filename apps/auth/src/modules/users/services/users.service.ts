@@ -43,7 +43,6 @@ export class UsersService {
    * // => { username, display_name, role, is_active }
    */
   async getPublicProfile(userId: string): Promise<PublicProfileResponseService> {
-
     const user = await this.usersCacheService.getOrSetUserCache(userId);
 
     return {
