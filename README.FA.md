@@ -474,7 +474,8 @@ export const user = pgTable("users", {
 
 <table>
   <tr>
-    <td style="text-align: center;">
+   <!--suppress HtmlDeprecatedAttribute -->
+    <td align="center">
       <img src="https://github.com/homow.png" width="90" alt="همایون"/>
       <br/>
       <b>همایون</b>
@@ -483,7 +484,8 @@ export const user = pgTable("users", {
       <br/>
       <a href="https://github.com/homow">github.com/homow</a>
     </td>
-    <td style="text-align: center;">
+   <!--suppress HtmlDeprecatedAttribute -->
+    <td align="center">
       <img src="https://github.com/mardi-niyayesh.png" width="90" alt="نیایش"/>
       <br/>
       <b>نیایش</b>
