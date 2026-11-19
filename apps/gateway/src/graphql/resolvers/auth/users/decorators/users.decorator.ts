@@ -1,5 +1,5 @@
-import {Role} from "@app/gateway/common";
 import {applyDecorators} from "@nestjs/common";
+import {Role} from "@app/gateway/common/decorators";
 import {UserRoleEnum} from "@live-bid/contracts/enums";
 
 export const GetPublicProfileDecorators = () => applyDecorators(
@@ -12,4 +12,16 @@ export const GetMyProfileDecorators = () => applyDecorators(
   Role({
     requiredRole: UserRoleEnum.USER
   }),
+);
+
+export const GetUpdateProfileDecorators = () => applyDecorators(
+  Role({
+    requiredRole: UserRoleEnum.USER
+  })
+);
+
+export const GetUserListDecorators = () => applyDecorators(
+  Role({
+    requiredRole: UserRoleEnum.ADMIN
+  })
 );

@@ -1,0 +1,199 @@
+services:
+  # PostgresQL
+  postgres:
+    image: postgres:16-alpine
+    container_name: live-bid-postgres-dev
+    restart: on-failure
+    environment:
+      POSTGRES_DB: live_bid
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+    ports:
+      - "5432:5432"
+    networks:
+      - live-bid-dev-network
+    volumes:
+      - live_bid_postgres_dev_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U admin -d live_bid" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Redis
+  redis:
+    image: redis:7-alpine
+    container_name: live-bid-redis-dev
+    restart: on-failure
+    ports:
+      - "6379:6379"
+    networks:
+      - live-bid-dev-network
+    volumes:
+      - live_bid_redis_dev_data:/data
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Package Installer
+  installer:
+    image: node:26-alpine
+    container_name: live-bid-package-installer-dev
+    working_dir: /app
+    volumes:
+      - ../:/app
+      - live_bid_node_modules_volume_dev:/app/node_modules
+    command: npm ci
+
+  # Contracts Package
+  builder-contracts:
+    image: node:26-alpine
+    container_name: live-bid-builder-contracts-dev
+    restart: on-failure
+    working_dir: /app
+    volumes:
+      - ../:/app
+      - live_bid_node_modules_volume_dev:/app/node_modules
+    command: sh -c "rm -f /app/packages/contracts/.built-docker && npm run build:contracts && touch /app/packages/contracts/.built-docker && npm run dev:contracts"
+    depends_on:
+      installer:
+        condition: service_completed_successfully
+    healthcheck:
+      test: [ "CMD-SHELL", "test -f /app/packages/contracts/.built-docker" ]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  # Services Package
+  builder-services:
+    image: node:26-alpine
+    container_name: live-bid-builder-services-dev
+    restart: on-failure
+    working_dir: /app
+    volumes:
+      - ../:/app
+      - live_bid_node_modules_volume_dev:/app/node_modules
+    command: sh -c "rm -f /app/packages/services/.built-docker && npm run build:services && touch /app/packages/services/.built-docker  && npm run dev:services"
+    depends_on:
+      installer:
+        condition: service_completed_successfully
+      builder-contracts:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD-SHELL", "test -f /app/packages/services/.built-docker" ]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  # Gateway Service
+  gateway:
+    image: node:26-alpine
+    container_name: live-bid-gateway-dev
+    restart: on-failure
+    networks:
+      - live-bid-dev-network
+    working_dir: /app
+    volumes:
+      - ../:/app
+      - live_bid_node_modules_volume_dev:/app/node_modules
+    command: npm run dev:gateway
+    ports:
+      - "3001:3001"
+    depends_on:
+      installer:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      builder-contracts:
+        condition: service_healthy
+      builder-services:
+        condition: service_healthy
+    env_file:
+      - ../apps/gateway/.env
+    environment:
+      - REDIS_HOST=redis
+      - APP_URL=http://web:3000
+    healthcheck:
+      test: [ "CMD", "node", "-e", "fetch('http://127.0.0.1:3001/api/health').then(r => { if (!r.ok) process.exit(1) }).catch(() => process.exit(1))" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Auth Service
+  auth:
+    image: node:26-alpine
+    container_name: live-bid-auth-dev
+    restart: on-failure
+    networks:
+      - live-bid-dev-network
+    working_dir: /app
+    volumes:
+      - ../:/app
+      - live_bid_node_modules_volume_dev:/app/node_modules
+    command: npm run dev:auth
+    depends_on:
+      installer:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      gateway:
+        condition: service_healthy
+      builder-contracts:
+        condition: service_healthy
+      builder-services:
+        condition: service_healthy
+    env_file:
+      - ../apps/auth/.env
+    environment:
+      REDIS_HOST: redis
+      APPLICATION_URL: http://web:3000
+      APPLICATION_DASHBOARD_URL: http://web:3000/dashboard
+      APPLICATION_LOGIN_URL: http://web:3000/login
+      APPLICATION_FORGOT_PASSWORD_URL: http://web:3000/forgot-password
+      DATABASE_URL: postgresql://admin:admin@postgres:5432/live_bid
+
+  # Core Service
+  core:
+    image: node:26-alpine
+    container_name: live-bid-core-dev
+    restart: on-failure
+    networks:
+      - live-bid-dev-network
+    working_dir: /app
+    volumes:
+      - ../:/app
+      - live_bid_node_modules_volume_dev:/app/node_modules
+    command: npm run dev:core
+    depends_on:
+      installer:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      gateway:
+        condition: service_healthy
+      builder-contracts:
+        condition: service_healthy
+      builder-services:
+        condition: service_healthy
+    env_file:
+      - ../apps/core/.env
+    environment:
+      REDIS_HOST: redis
+      APPLICATION_URL: http://web:3000
+      DATABASE_URL: postgresql://admin:admin@postgres:5432/live_bid
+
+volumes:
+  live_bid_postgres_dev_data:
+  live_bid_redis_dev_data:
+  live_bid_node_modules_volume_dev:
+
+networks:
+  live-bid-dev-network:

@@ -1,40 +1,77 @@
+import {
+  LoginUserSchema,
+  RegisterUserSchema,
+  ResetPasswordSchema,
+  ChangePasswordSchema,
+  type LoginUserSchemaType,
+  type RegisterUserSchemaType,
+  type ResetPasswordSchemaType,
+  type ChangePasswordSchemaType,
+} from "@live-bid/contracts/schemas";
+
 import type {
   SafeUser,
+  UserAccess,
+  AccessRequest,
   RefreshRequest,
   LoginRequestService,
   LoginResponseService,
   LogoutRequestService,
   RefreshRequestService,
+  RegisterRequestService,
   RegisterResponseService,
   NormalizeClientInfoType,
+  ResetPasswordRequestService,
+  ChangePasswordRequestService,
+  ForgotPasswordRequestService,
 } from "@live-bid/services/types";
 
+import * as Inputs from "./inputs";
 import {firstValueFrom} from "rxjs";
+import * as Outputs from "./outputs";
 import {Inject} from "@nestjs/common";
-import * as AuthInputs from "./inputs";
-import * as AuthOutputs from "./outputs";
+import type {Response} from "express";
 import * as Decorators from "./decorators";
+import {ZodPipe} from "@app/gateway/common/pipes";
 import {ClientProxy} from "@nestjs/microservices";
 import type {GraphQLContext} from "@app/gateway/types";
-import * as ZodSchemas from "@live-bid/contracts/schemas";
-import * as ServiceMessages from "@live-bid/services/messages";
+import {RefreshGuard} from "@app/gateway/common/guards";
+import {AUTH_PATTERNS} from "@live-bid/services/messages";
 import {Resolver, Mutation, Args, Context} from "@nestjs/graphql";
-import {NormalizeClientInfo, RefreshGuard, ZodPipe} from "@app/gateway/common";
+import {CurrentUser, NormalizeClientInfo} from "@app/gateway/common/decorators";
 import {ACCESS_TOKEN_NAME, AUTH_SERVICE_NAME, REFRESH_TOKEN_NAME} from "@live-bid/services/names";
 
 /**
  * **AuthResolver**
  *
- * Handles authentication operations for the GraphQL API.
- * This resolver communicates with the Auth microservice via the `ClientProxy` transport layer.
+ * GraphQL resolver for all authentication operations.
+ * Delegates every request to the **Auth microservice** over the `ClientProxy`
+ * transport and, where relevant, manages the auth cookies on the HTTP response.
  *
  * @remarks
- * - All mutations are decorated with custom security decorators (RegisterDecorators, LoginDecorators)
- * - Input validation is performed using ZodPipe with predefined schemas
- * - Authentication tokens are set as HTTP-only cookies on login
+ * - **Transport:** each mutation sends a message (`send`) or emits a fire-and-forget
+ *   event (`emit`) to the auth service using `AUTH_PATTERNS`.
+ * - **Validation:** inputs are validated at the edge with `ZodPipe` + schemas.
+ * - **Cookies:** `ACCESS_TOKEN` and `REFRESH_TOKEN` are HTTP-only; they are set on
+ *   login/refresh and cleared on logout, password change, and password reset.
+ * - **Security decorators:** public or guarded mutations are annotated via
+ *   `RegisterDecorators`, `LoginDecorators`, `RefreshDecorators`, `LogoutDecorators`,
+ *   `ForgotPasswordDecorators`, and `ResetPasswordDecorators`.
+ * - **Client metadata:** `@NormalizeClientInfo()` attaches IP, User-Agent, Geo, and
+ *   language to requests (and to the security-alert emails they trigger).
+ *
+ * ### Exposed mutations
+ * | Mutation | Auth required | Side effects |
+ * |---|---|---|
+ * | `register` | ❌ | creates user |
+ * | `login` | ❌ | sets auth cookies |
+ * | `refresh` | ✅ (refresh token) | rotates cookies |
+ * | `logout` | ❌ | revokes refresh token, clears cookies |
+ * | `changePassword` | ✅ | revokes all sessions, clears cookies, sends alert email |
+ * | `forgotPassword` | ❌ | sends reset-link email |
+ * | `resetPassword` | ❌ | revokes all sessions, clears cookies, sends alert email |
  *
  * @example
- * // In your GraphQL client:
  * mutation Register {
  *   register(input: { email: "test@example.com", username: "john", password: "secret" }) {
  *     id
@@ -61,6 +98,7 @@ export class AuthResolver {
    *
    * @param input - Registration data (email, username, password)
    *
+   * @param clientInfo - Client Information(IP, Device...)
    * @returns RegisterResponseService - Contains user info and status
    *
    * @example
@@ -72,19 +110,23 @@ export class AuthResolver {
    * }
    */
   @Decorators.RegisterDecorators()
-  @Mutation(() => AuthOutputs.RegisterUserOutput)
+  @Mutation(() => Outputs.RegisterUserOutput)
   register(
     @Args(
       "input",
-      {type: () => AuthInputs.RegisterUserInput},
-      new ZodPipe(ZodSchemas.RegisterUserSchema)
+      {type: () => Inputs.RegisterUserInput},
+      new ZodPipe(RegisterUserSchema),
     )
-    input: ZodSchemas.RegisterUserSchemaType
+    input: RegisterUserSchemaType,
+    @NormalizeClientInfo() clientInfo: NormalizeClientInfoType
   ): Promise<RegisterResponseService> {
     return firstValueFrom<RegisterResponseService>(
       this.authClient.send(
-        ServiceMessages.AUTH_PATTERNS.REGISTER,
-        input satisfies ZodSchemas.RegisterUserSchemaType
+        AUTH_PATTERNS.REGISTER,
+        {
+          input,
+          clientInfo,
+        } satisfies RegisterRequestService
       )
     );
   }
@@ -112,19 +154,19 @@ export class AuthResolver {
    * }
    */
   @Decorators.LoginDecorators()
-  @Mutation(() => AuthOutputs.LoginUserOutput)
+  @Mutation(() => Outputs.LoginUserOutput)
   async login(
     @Args(
       "input",
-      {type: () => AuthInputs.LoginUserInput},
-      new ZodPipe(ZodSchemas.LoginUserSchema)
-    ) input: ZodSchemas.LoginUserSchemaType,
+      {type: () => Inputs.LoginUserInput},
+      new ZodPipe(LoginUserSchema)
+    ) input: LoginUserSchemaType,
     @Context() context: GraphQLContext,
     @NormalizeClientInfo() clientInfo: NormalizeClientInfoType
   ): Promise<SafeUser> {
     const result = await firstValueFrom<LoginResponseService>(
       this.authClient.send(
-        ServiceMessages.AUTH_PATTERNS.LOGIN,
+        AUTH_PATTERNS.LOGIN,
         {
           clientInfo,
           userData: input
@@ -165,7 +207,7 @@ export class AuthResolver {
    * }
    */
   @Decorators.RefreshDecorators()
-  @Mutation(() => AuthOutputs.LoginUserOutput)
+  @Mutation(() => Outputs.LoginUserOutput)
   async refresh(
     @Context() context: GraphQLContext<RefreshRequest>,
     @NormalizeClientInfo() client_info: NormalizeClientInfoType,
@@ -174,10 +216,11 @@ export class AuthResolver {
 
     const result = await firstValueFrom<LoginResponseService>(
       this.authClient.send(
-        ServiceMessages.AUTH_PATTERNS.REFRESH,
+        AUTH_PATTERNS.REFRESH,
         {
           client_info,
-          refreshPayload: req.refreshPayload
+          userId: req.refreshGuardData.userId,
+          tokenHash: req.refreshGuardData.tokenHash,
         } satisfies RefreshRequestService
       )
     );
@@ -213,20 +256,192 @@ export class AuthResolver {
   @Decorators.LogoutDecorators()
   @Mutation(() => String)
   logout(
-    @Context() context: GraphQLContext<RefreshRequest>,
+    @Context() context: GraphQLContext,
   ) {
     const {res, req} = context;
 
     const rawRefreshTokenId = RefreshGuard.getTokenFromReq(req);
 
-    this.authClient.emit(ServiceMessages.AUTH_PATTERNS.LOGOUT, {
+    this.authClient.emit(AUTH_PATTERNS.LOGOUT, {
       rawRefreshTokenId,
     } satisfies LogoutRequestService);
 
     // Clear Cookies
-    res.clearCookie(ACCESS_TOKEN_NAME);
-    res.clearCookie(REFRESH_TOKEN_NAME);
+    this.clearCookies(res);
 
     return "User logged out successfully.";
+  }
+
+  /**
+   * **Change the authenticated user's password.**
+   *
+   * Forwards the request to the auth microservice, then clears the access and
+   * refresh token cookies so the user must log in again with the new password.
+   *
+   * @param input      - `{ oldPassword, newPassword }` (validated by Zod).
+   * @param user       - Authenticated user injected by `@CurrentUser()`.
+   * @param context    - GraphQL context; `res` is used to clear auth cookies.
+   * @param clientInfo - Normalized client metadata attached to the security email.
+   * @returns Success message from the auth service.
+   *
+   * @throws {GatewayException} 401 — no authenticated session.
+   * @throws {GatewayException} 400 — `oldPassword` mismatch (propagated).
+   *
+   * @remarks
+   * - Requires an authenticated session.
+   * - Revokes **all** refresh tokens server-side and clears both
+   *   `ACCESS_TOKEN` and `REFRESH_TOKEN` cookies client-side.
+   * - Triggers a "password changed" security-alert email.
+   *
+   * @example
+   * mutation ChangePassword($input: ChangePasswordInput!) {
+   *   changePassword(input: $input)
+   * }
+   * // variables: { "input": { "oldPassword": "old", "newPassword": "new" } }
+   */
+  @Mutation(() => String)
+  async changePassword(
+    @Args(
+      "input",
+      {type: () => Inputs.ChangePasswordInput},
+      new ZodPipe(ChangePasswordSchema)
+    ) input: ChangePasswordSchemaType,
+    @CurrentUser() user: UserAccess,
+    @Context() context: GraphQLContext<AccessRequest>,
+    @NormalizeClientInfo() clientInfo: NormalizeClientInfoType,
+  ): Promise<string> {
+    const {res} = context;
+
+    const result = await firstValueFrom<string>(
+      this.authClient.send(
+        AUTH_PATTERNS.CHANGE_PASSWORD,
+        {
+          ...input,
+          clientInfo,
+          userId: user.userId,
+        } satisfies ChangePasswordRequestService
+      )
+    );
+
+    // Remove cookies
+    this.clearCookies(res);
+
+    return result;
+  }
+
+  /**
+   * **Initiate the password-reset flow.**
+   *
+   * Forwards the request to the auth microservice, which sends a reset-link
+   * email to the given address (if the account exists).
+   *
+   * @param email      - Target email address (validated by Zod).
+   * @param clientInfo - Normalized client metadata attached to the email.
+   * @returns Success message from the auth service.
+   *
+   * @remarks
+   * - Public endpoint (no session required).
+   * - Always returns a generic success message to avoid leaking account existence.
+   *
+   * @example
+   * mutation ForgotPassword($email: String!) {
+   *   forgotPassword(email: $email)
+   * }
+   * // variables: { "email": "user@example.com" }
+   */
+  @Decorators.ForgotPasswordDecorators()
+  @Mutation(() => String)
+  forgotPassword(
+    @Args(
+      'email',
+      {type: () => String, name: 'email'},
+      new ZodPipe(RegisterUserSchema.shape.email)
+    ) email: string,
+    @NormalizeClientInfo() clientInfo: NormalizeClientInfoType,
+  ) {
+    return firstValueFrom<string>(
+      this.authClient.send(
+        AUTH_PATTERNS.FORGOT_PASSWORD,
+        {
+          email,
+          clientInfo,
+        } satisfies ForgotPasswordRequestService
+      )
+    );
+  }
+
+  /**
+   * **Reset the user's password using a valid reset token.**
+   *
+   * Forwards the request to the auth microservice, which validates the token,
+   * updates the password, and revokes all active refresh tokens for the user.
+   * Finally, clears the access and refresh token cookies (if present) on the client
+   * so the user must log in again with the new password.
+   *
+   * @param input      - `{ token, newPassword }` (validated by Zod).
+   * @param context    - GraphQL context; `res` is used to clear auth cookies.
+   * @param clientInfo - Normalized client metadata (IP, User-Agent, Geo, Lang)
+   *                     attached to the security-alert email.
+   * @returns Success message from the auth service.
+   *
+   * @throws {GatewayException} 400 — invalid or expired reset token.
+   * @throws {GatewayException} 400 — `newPassword` fails password policy (propagated).
+   *
+   * @remarks
+   * - Public endpoint (no authenticated session required).
+   * - The reset token is single-use and has a short TTL (stored as a hash in Redis).
+   * - Revokes **all** refresh tokens server-side for the user.
+   * - Clears both `ACCESS_TOKEN` and `REFRESH_TOKEN` cookies client-side,
+   *   in case the user was already logged in on the same device.
+   * - Triggers a "password reset" security-alert email.
+   *
+   * @example
+   * mutation ResetPassword($input: ResetPasswordInput!) {
+   *   resetPassword(input: $input)
+   * }
+   * // variables: { "input": { "token": "<64-char-hex>", "newPassword": "new-secret" } }
+   */
+  @Decorators.ResetPasswordDecorators()
+  @Mutation(() => String)
+  async resetPassword(
+    @Args(
+      'input',
+      {type: () => Inputs.ResetPasswordInput},
+      new ZodPipe(ResetPasswordSchema)
+    ) input: ResetPasswordSchemaType,
+    @NormalizeClientInfo() clientInfo: NormalizeClientInfoType,
+    @Context() context: GraphQLContext,
+  ) {
+    const {res} = context;
+
+    const result = await firstValueFrom<string>(
+      this.authClient.send(
+        AUTH_PATTERNS.RESET_PASSWORD,
+        {
+          ...input,
+          clientInfo,
+        } satisfies ResetPasswordRequestService
+      )
+    );
+
+    // Remove Cookies
+    this.clearCookies(res);
+
+    return result;
+  }
+
+  /**
+   * **Clear Cookies**
+   * @param res - @type Response
+   * */
+  clearCookies(res: Response): void {
+    // Clear Cookies
+    res.clearCookie(ACCESS_TOKEN_NAME, {
+      path: "/"
+    });
+
+    res.clearCookie(REFRESH_TOKEN_NAME, {
+      path: "/"
+    });
   }
 }

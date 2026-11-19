@@ -232,7 +232,7 @@ cp apps/core/.env.example apps/core/.env
 | `BASE_URL`         | `api`                   | Global path prefix             |
 | `API_VERSION`      | `1`                     | URI versioning                 |
 | `NODE_ENV`         | `development`           | Env mode                       |
-| `FRONT_END_URL`    | `http://localhost:3000` | CORS origin                    |
+| `APP_URL`    | `http://localhost:3000` | CORS origin                    |
 | `APPLICATION_NAME` | `Live Bid`              | App name                       |
 | `REDIS_HOST`       | `127.0.0.1`             | Redis host (transport + cache) |
 | `REDIS_PORT`       | `6379`                  | Redis port                     |

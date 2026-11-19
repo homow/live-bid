@@ -2,9 +2,42 @@ import geoip from "geoip-lite";
 import {UAParser} from "ua-parser-js";
 import {GraphQLContext} from "@app/gateway/types";
 import {GqlExecutionContext} from "@nestjs/graphql";
-import {normalizeClientInfo} from "@app/gateway/lib";
+import {normalizeClientInfo} from "@app/gateway/lib/utils";
 import {createParamDecorator, ExecutionContext} from "@nestjs/common";
 
+/**
+ * **@NormalizeClientInfo() Parameter Decorator**
+ *
+ * Extracts and normalizes client metadata from the incoming GraphQL request
+ * (IP, User-Agent, geolocation, and preferred language) into a single payload.
+ *
+ * @remarks
+ * **IP resolution priority:**
+ * 1. `x-forwarded-for` (for proxies/load balancers)
+ * 2. `cf-connection-ip` (Cloudflare)
+ * 3. `req.ip` (Express default)
+ * 4. `req.socket.remoteAddress` (fallback)
+ *
+ * **Other metadata:**
+ * - **User-Agent:** Parsed via `UAParser` into `{ browser, os, device }`.
+ * - **Geolocation:** Resolved via `geoip-lite` from the IP (or `null` if not resolvable).
+ * - **Language:** Read from the `accept-language` header.
+ *
+ * The raw (un-normalized) metadata is also attached to `req.clientInfo` for
+ * downstream access (e.g., audit logging).
+ *
+ * @returns The normalized client info payload, typically used in
+ *   security alerts and audit logs.
+ *
+ * @example
+ * @Mutation(() => String)
+ * login(
+ *   @Args('input') input: LoginInput,
+ *   @NormalizeClientInfo() clientInfo: NormalizeClientInfoType
+ * ) {
+ *   return this.authService.login(input, clientInfo);
+ * }
+ */
 export const NormalizeClientInfo = createParamDecorator(
   (_data: never, ctx: ExecutionContext) => {
     const gqlCtx = GqlExecutionContext.create(ctx);

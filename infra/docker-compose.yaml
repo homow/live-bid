@@ -1,36 +1,130 @@
 services:
+  #  PostgresQL
   postgres:
     image: postgres:16-alpine
     container_name: live-bid-postgres
-    restart: unless-stopped
-    environment:
-      POSTGRES_DB: live_bid
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-    ports:
-      - "5432:5432"
+    restart: always
+    networks:
+      - live-bid-network
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - live-bid-postgres-data:/var/lib/postgresql/data
+    env_file:
+      - ./.env
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U user -d live_bid"]
+      test: [ "CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB" ]
       interval: 5s
       timeout: 5s
       retries: 5
+    ports:
+      - "5432:5432"
 
+  # Redis
   redis:
     image: redis:7-alpine
     container_name: live-bid-redis
-    restart: unless-stopped
+    restart: always
+    networks:
+      - live-bid-network
+    volumes:
+      - live-bid-redis-data:/data
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     ports:
       - "6379:6379"
-    volumes:
-      - redis_data:/data
+
+  # Gateway Service
+  gateway:
+    build:
+      context: ../.
+      dockerfile: apps/gateway/Dockerfile
+    image: live-bid-gateway:latest
+    ports:
+      - "3001:3001"
+    restart: always
+    networks:
+      - live-bid-network
+    depends_on:
+      redis:
+        condition: service_healthy
+      auth:
+        condition: service_started
+      core:
+        condition: service_started
+    env_file:
+      - ./.env.gateway
+    environment:
+      REDIS_HOST: redis
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: [ "CMD", "node", "-e", "fetch('http://127.0.0.1:3001/api/health').then(r => { if (!r.ok) process.exit(1) }).catch(() => process.exit(1))" ]
       interval: 5s
       timeout: 5s
       retries: 5
 
+  # Auth Service
+  auth:
+    build:
+      context: ../.
+      dockerfile: apps/auth/Dockerfile
+    image: live-bid-auth:latest
+    restart: always
+    networks:
+      - live-bid-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file:
+      - ./.env.auth
+    environment:
+      REDIS_HOST: redis
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+
+  # Core Service
+  core:
+    build:
+      context: ../.
+      dockerfile: apps/core/Dockerfile
+    image: live-bid-core:latest
+    restart: always
+    networks:
+      - live-bid-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file:
+      - ./.env.core
+    environment:
+      REDIS_HOST: redis
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+
+  # Web
+  web:
+    build:
+      context: ../.
+      dockerfile: clients/web/Dockerfile
+    image: live-bid-web:latest
+    restart: always
+    networks:
+      - live-bid-network
+    depends_on:
+      gateway:
+        condition: service_healthy
+    env_file:
+      - ./.env.web
+
+networks:
+  live-bid-network:
+    name: live-bid-network
+    driver: bridge
+
 volumes:
-  postgres_data:
-  redis_data:
+  live-bid-postgres-data:
+    name: live-bid-postgres-data
+  live-bid-redis-data:
+    name: live-bid-redis-data

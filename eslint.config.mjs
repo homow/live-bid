@@ -5,12 +5,17 @@ import tseslint from "typescript-eslint";
 
 /**
  * Add TSESLint Type
- * @type {import("typescript-eslint").configs.base} */
+ * @type {any}
+ * */
 const recommendedTypeChecked = tseslint.configs.recommendedTypeChecked;
 
 export default tseslint.config(
     {
-      ignores: ["eslint.config.mjs"],
+      ignores: [
+          "eslint.config.mjs",
+          "clients/**",
+          "dist/**",
+      ],
     },
     eslint.configs.recommended,
     ...recommendedTypeChecked,

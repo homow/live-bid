@@ -1,14 +1,16 @@
+import * as Inputs from "./inputs";
 import {firstValueFrom} from "rxjs";
 import * as Outputs from "./outputs";
 import {Inject} from "@nestjs/common";
-import * as UsersDecorator from "./decorators";
+import * as Decorators from "./decorators";
+import {ZodPipe} from "@app/gateway/common/pipes";
 import {ClientProxy} from "@nestjs/microservices";
-import {UUIDv7Schema} from "@live-bid/contracts/schemas";
-import {CurrentUser, ZodPipe} from "@app/gateway/common";
-import {Args, ID, Query, Resolver} from "@nestjs/graphql";
+import {CurrentUser} from "@app/gateway/common/decorators";
 import {AUTH_SERVICE_NAME} from "@live-bid/services/names";
-import * as ServiceMessages from "@live-bid/services/messages";
-import type {GetProfileResponseService, PublicProfileResponseService, UserAccess} from "@live-bid/services/types";
+import {USERS_PATTERNS} from "@live-bid/services/messages";
+import {Args, ID, Mutation, Query, Resolver} from "@nestjs/graphql";
+import {type UpdateProfileSchemaType, UpdateProfileSchema, UUIDv7Schema, type FindManyUsersSchemaType, FindManyUsersSchema} from "@live-bid/contracts/schemas";
+import type {FindManyUsersRequestService, GetProfileResponseService, PublicProfileResponseService, UpdateProfileRequestService, UpdateProfileResponseService, UserAccess} from "@live-bid/services/types";
 
 /**
  * **UserResolver**
@@ -17,7 +19,7 @@ import type {GetProfileResponseService, PublicProfileResponseService, UserAccess
  * This resolver communicates with the Auth microservice via the `ClientProxy` transport layer.
  *
  * @remarks
- * - All queries are decorated with custom security decorators (`UsersDecorator.*`)
+ * - All queries are decorated with custom security decorators (`Decorators.*`)
  * - Input validation is performed using `ZodPipe` with predefined schemas
  * - Public profiles are exposed without sensitive fields (email, phone, role, etc.)
  * - Private profile data is resolved from the authenticated user's session
@@ -56,7 +58,7 @@ export class UserResolver {
    * @remarks
    * - `userId` is validated via `ZodPipe(UUIDv7Schema)`
    * - Throws `NOT_FOUND` if the user does not exist
-   * - Access control is enforced by `UsersDecorator.getUsersProfile()`
+   * - Access control is enforced by `Decorators.getUsersProfile()`
    *
    * @example
    * query {
@@ -66,7 +68,7 @@ export class UserResolver {
    *   }
    * }
    */
-  @UsersDecorator.GetPublicProfileDecorators()
+  @Decorators.GetPublicProfileDecorators()
   @Query(() => Outputs.PublicProfileOutput, {name: 'publicProfile'})
   publicProfile(
     @Args(
@@ -76,7 +78,7 @@ export class UserResolver {
   ): Promise<Outputs.PublicProfileOutput> {
     return firstValueFrom<PublicProfileResponseService>(
       this.authClient.send(
-        ServiceMessages.USERS_PATTERNS.PUBLIC_PROFILE,
+        USERS_PATTERNS.PUBLIC_PROFILE,
         userId
       )
     );
@@ -93,7 +95,7 @@ export class UserResolver {
    *
    * @remarks
    *   authenticated session to prevent users from reading other users' private data
-   * - Access control is enforced by `UsersDecorator.getMyProfile()`, which requires
+   * - Access control is enforced by `Decorators.getMyProfile()`, which requires
    *   a valid authenticated session
    * - Throws `UNAUTHORIZED` if no valid session is present
    * - Throws `NOT_FOUND` if the user record no longer exists
@@ -107,15 +109,87 @@ export class UserResolver {
    *   }
    * }
    */
-  @UsersDecorator.GetMyProfileDecorators()
+  @Decorators.GetMyProfileDecorators()
   @Query(() => Outputs.GetProfileOutput, {name: 'myProfile'})
   myProfile(
     @CurrentUser() user: UserAccess
   ): Promise<GetProfileResponseService> {
     return firstValueFrom<GetProfileResponseService>(
       this.authClient.send(
-        ServiceMessages.USERS_PATTERNS.MY_PROFILE,
+        USERS_PATTERNS.MY_PROFILE,
         user.userId
+      )
+    );
+  }
+
+  /**
+   * **Update the authenticated user's profile**
+   *
+   * Allows the currently authenticated user to modify their `username`
+   * and/or `display_name`. The request is validated via Zod and delegated
+   * to the auth microservice.
+   *
+   * @param input - The validated profile data (`username`, `display_name`)
+   * @param user  - Authenticated user injected by `@CurrentUser()`
+   * @returns UpdateProfileOutput - Only the fields that were actually modified
+   *
+   * @remarks
+   * - Requires a valid authenticated session
+   * - `input` is validated via `ZodPipe(ZodSchemas.UpdateProfileSchema)`
+   * - Access control is enforced by `Decorators.GetUpdateProfileDecorators()`
+   * - Throws `BAD_REQUEST` (`NO_CHANGES`) if no new values are provided
+   * - Throws `UNAUTHORIZED` if no valid session is present
+   *
+   * @example
+   * mutation {
+   *   updateProfile(input: { display_name: "New Name" }) {
+   *     username
+   *     display_name
+   *   }
+   * }
+   */
+  @Decorators.GetUpdateProfileDecorators()
+  @Mutation(() => Outputs.UpdateProfileOutput, {name: 'updateProfile'})
+  updateProfile(
+    @Args(
+      'input',
+      {type: () => Inputs.UpdateProfileInput},
+      new ZodPipe(UpdateProfileSchema)
+    ) input: UpdateProfileSchemaType,
+    @CurrentUser() user: UserAccess
+  ): Promise<UpdateProfileResponseService> {
+    return firstValueFrom<UpdateProfileResponseService>(
+      this.authClient.send(
+        USERS_PATTERNS.UPDATE_PROFILE,
+        {
+          userId: user.userId,
+          updatableData: input
+        } satisfies UpdateProfileRequestService
+      )
+    );
+  }
+
+  /**
+   * Resolves a GraphQL query for retrieving a list of users.
+   *
+   * @param input - Validated filtering, sorting, and pagination parameters.
+   * @returns A promise resolving to the list of users.
+   */
+  @Decorators.GetUserListDecorators()
+  @Query(() => [Outputs.FindManyOutput])
+  users(
+    @Args(
+      'input',
+      {type: () => Inputs.FindManyInput},
+      new ZodPipe(FindManyUsersSchema)
+    ) input: FindManyUsersSchemaType
+  ) {
+    return firstValueFrom(
+      this.authClient.send(
+        USERS_PATTERNS.FIND_MANY,
+        {
+          ...input
+        } satisfies FindManyUsersRequestService
       )
     );
   }

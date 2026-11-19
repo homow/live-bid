@@ -1,13 +1,8 @@
 /** 1 minutes in milliseconds */
-export const ONE_MINUTE_MS = 60_000 as const;
+export const ONE_SECOND_MS: number = 1000;
+export const ONE_MINUTE_MS: number = ONE_SECOND_MS * 60;
 export const ONE_HOUR_MS: number = ONE_MINUTE_MS * 60;
-export const TOW_HOUR_MS: number = ONE_HOUR_MS * 2;
-
-/** static example date for responses */
-export const exampleDate = new Date();
-
-/** Get present tense and convert to string */
-export const getServerTime = (): string => new Date().toISOString();
+export const TWO_HOUR_MS: number = ONE_HOUR_MS * 2;
 
 /** get local now date */
 export function getLocalDate(result: "fa-IR" | "en-CA") {

@@ -22,6 +22,20 @@
       "when": 1787745717736,
       "tag": "0002_overrated_rhino",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1794530979746,
+      "tag": "0003_red_phantom_reporter",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1794531491502,
+      "tag": "0004_fixed_barracuda",
+      "breakpoints": true
     }
   ]
 }
