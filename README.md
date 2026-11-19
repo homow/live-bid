@@ -407,13 +407,13 @@ A clean and modern full‑stack collaboration.
 
 <table>
   <tr>
-    <td align="center">
+    <td style="text-align: center;">
       <img src="https://github.com/homow.png" width="90" alt="Homayoun"/><br>
       <b>Homayoun</b><br>
       <sub>Backend Developer · DevOps · Infrastructure</sub><br>
       <a href="https://github.com/homow">github.com/homow</a>
     </td>
-    <td align="center">
+    <td style="text-align: center;">
       <img src="https://github.com/mardi-niyayesh.png" width="90" alt="Niyayesh"/><br>
       <b>Niyayesh</b><br>
       <sub>Frontend Developer · UI/UX Designer · Figma</sub><br>
