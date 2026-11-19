@@ -1,3 +1,3 @@
-import type {FindOneSchemaType} from "@live-bid/contracts/schemas";
+import type {FindOneUserSchemaType} from "@live-bid/contracts/schemas";
 
-export type FindOneRequestService = FindOneSchemaType;
+export type FindOneUserRequestService = FindOneUserSchemaType;

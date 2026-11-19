@@ -2,7 +2,7 @@ import {z} from "zod";
 import {LoginUserSchema} from "../auth";
 import {UUIDv7Schema} from "../../common";
 
-export const FindOneSchema = LoginUserSchema
+export const FindOneUserSchema = LoginUserSchema
   .pick({
     email: true,
     username: true,
@@ -17,4 +17,4 @@ export const FindOneSchema = LoginUserSchema
     params: ['username', 'display_name', 'email'],
   });
 
-export type FindOneSchemaType = z.infer<typeof FindOneSchema>;
+export type FindOneUserSchemaType = z.infer<typeof FindOneUserSchema>;
