@@ -395,26 +395,28 @@ export const user = pgTable("users", {
 > 📖 For full backend documentation, see [`README.SERVER.md`](README.SERVER.md).  
 > 📖 For the service map, see [`apps/README.md`](./apps/README.md).
 
+---
+
 ## **Contributors**
 
 ### 👨‍💻 Project Contributors
 
 A clean and modern full‑stack collaboration.
 
-<br>
+**Built with ❤️ using NestJS, Next.js, PostgreSQL, and Redis.**
 
 <table>
   <tr>
     <td align="center">
-      <img src="https://github.com/homow.png" width="90" style="border-radius: 50%;"  alt=""/><br>
+      <img src="https://github.com/homow.png" width="90" alt="Homayoun"/><br>
       <b>Homayoun</b><br>
-      <sub>Backend Developer · Server‑Side</sub><br>
+      <sub>Backend Developer · DevOps · Infrastructure</sub><br>
       <a href="https://github.com/homow">github.com/homow</a>
     </td>
     <td align="center">
-      <img src="https://github.com/mardi-niyayesh.png" width="90" style="border-radius: 50%;"  alt=""/><br>
-      <b>mardi‑niyayesh</b><br>
-      <sub>Frontend Developer · Client‑Side</sub><br>
+      <img src="https://github.com/mardi-niyayesh.png" width="90" alt="Niyayesh"/><br>
+      <b>Niyayesh</b><br>
+      <sub>Frontend Developer · UI/UX Designer · Figma</sub><br>
       <a href="https://github.com/mardi-niyayesh">github.com/mardi-niyayesh</a>
     </td>
   </tr>

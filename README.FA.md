@@ -28,10 +28,10 @@ live-bid/
 
 پروژه از دو پکیج مشترک برای مدیریت قراردادها و منطق داخلی Backend استفاده می‌کند:
 
-| Package | Usage | Description |
-|---|---|---|
-| `@live-bid/contracts` | Client + Server | منبع اصلی و یکپارچه برای Zod schemas، enums و انواع داده مشترک |
-| `@live-bid/services` | Backend services | شامل Database schema (Drizzle)، Cache، Message Patterns و انواع داده داخلی سرویس‌ها |
+| Package               | Usage            | Description                                                                        |
+|-----------------------|------------------|------------------------------------------------------------------------------------|
+| `@live-bid/contracts` | Client + Server  | منبع اصلی و یکپارچه برای Zod schemas، enums و انواع داده مشترک                     |
+| `@live-bid/services`  | Backend services | شامل Database schema (Drizzle)، Cache، Message Patterns و انواع داده داخلی سرویس‌ها |
 
 **قانون کلی:**
 
@@ -45,6 +45,7 @@ live-bid/
 کلاینت وب با استفاده از Next.js توسعه داده شده و از طریق Apollo Client و GraphQL با Backend ارتباط برقرار می‌کند.
 
 **Core Technologies:**
+
 - Next.js 16 (App Router)
 - React 19
 - Tailwind CSS 4
@@ -74,29 +75,29 @@ clients/web/src/
 
 ### 🛠️ Client Tech Stack
 
-| Technology | Version | Purpose |
-|---|---|---|
-| `next` | `^16.3.6` | فریم‌ورک React با App Router |
-| `react` | `19.2.8` | کتابخانه رابط کاربری |
-| `typescript` | `^5` | Type Safety |
-| `tailwindcss` | `^4` | طراحی رابط کاربری با Utility Classes |
-| `shadcn` | `^4.21.0` | سیستم کامپوننت‌های رابط کاربری |
-| `@base-ui/react` | `^1.8.0` | Headless UI Primitives |
-| `framer-motion` | `^13.1.1` | انیمیشن و تعاملات رابط کاربری |
-| `lucide-react` | `^1.34.0` | مجموعه آیکون‌ها |
-| `recharts` | `^3.8.0` | رسم نمودارها |
-| `sonner` | `^2.0.8` | نمایش اعلان‌ها و Toastها |
-| `date-fns` | `^4.4.0` | مدیریت و پردازش تاریخ |
-| `@live-bid/contracts` | `*` | Schemaها و Typeهای مشترک |
+| Technology            | Version   | Purpose                              |
+|-----------------------|-----------|--------------------------------------|
+| `next`                | `^16.3.6` | فریم‌ورک React با App Router          |
+| `react`               | `19.2.8`  | کتابخانه رابط کاربری                 |
+| `typescript`          | `^5`      | Type Safety                          |
+| `tailwindcss`         | `^4`      | طراحی رابط کاربری با Utility Classes |
+| `shadcn`              | `^4.21.0` | سیستم کامپوننت‌های رابط کاربری        |
+| `@base-ui/react`      | `^1.8.0`  | Headless UI Primitives               |
+| `framer-motion`       | `^13.1.1` | انیمیشن و تعاملات رابط کاربری        |
+| `lucide-react`        | `^1.34.0` | مجموعه آیکون‌ها                       |
+| `recharts`            | `^3.8.0`  | رسم نمودارها                         |
+| `sonner`              | `^2.0.8`  | نمایش اعلان‌ها و Toastها              |
+| `date-fns`            | `^4.4.0`  | مدیریت و پردازش تاریخ                |
+| `@live-bid/contracts` | `*`       | Schemaها و Typeهای مشترک             |
 
 ### 🔧 Development Tools
 
-| Tool | Version | Purpose |
-|---|---|---|
-| `storybook` | `^10.6.0` | توسعه و مستندسازی کامپوننت‌ها |
-| `vitest` | `latest` | تست واحد |
-| `playwright` | `latest` | تست مرورگر |
-| `eslint` | `^9` | بررسی و یکپارچه‌سازی کد |
+| Tool         | Version   | Purpose                      |
+|--------------|-----------|------------------------------|
+| `storybook`  | `^10.6.0` | توسعه و مستندسازی کامپوننت‌ها |
+| `vitest`     | `latest`  | تست واحد                     |
+| `playwright` | `latest`  | تست مرورگر                   |
+| `eslint`     | `^9`      | بررسی و یکپارچه‌سازی کد       |
 
 ### 🚀 Getting Started
 
@@ -140,38 +141,32 @@ flowchart TB
     Gateway["Gateway<br/>GraphQL API"]
     Auth["Auth<br/>Users · Tokens"]
     Core["Core<br/>Auctions · Wallet"]
-
     Gateway --> Auth
     Gateway --> Core
-
     Gateway --> Redis[("Redis<br/>Cache · Pub/Sub")]
     Auth --> Redis
     Core --> Redis
-
     Gateway --> DB[("PostgreSQL<br/>Drizzle ORM")]
     Auth --> DB
     Core --> DB
-
-    classDef service fill:#202B3C,stroke:#64748B,color:#E2E8F0,stroke-width:1.5px;
-    classDef gateway fill:#243B53,stroke:#60A5FA,color:#F0F9FF,stroke-width:2px;
-    classDef cache fill:#292F46,stroke:#A78BFA,color:#EDE9FE,stroke-width:1.5px;
-    classDef database fill:#263B35,stroke:#6EE7B7,color:#D1FAE5,stroke-width:1.5px;
-
+    classDef service fill: #202B3C, stroke: #64748B, color: #E2E8F0, stroke-width: 1.5px;
+    classDef gateway fill: #243B53, stroke: #60A5FA, color: #F0F9FF, stroke-width: 2px;
+    classDef cache fill: #292F46, stroke: #A78BFA, color: #EDE9FE, stroke-width: 1.5px;
+    classDef database fill: #263B35, stroke: #6EE7B7, color: #D1FAE5, stroke-width: 1.5px;
     class Gateway gateway;
-    class Auth,Core service;
+    class Auth, Core service;
     class Redis cache;
     class DB database;
-
-    linkStyle default stroke:#94A3B8,stroke-width:1.5px;
+    linkStyle default stroke: #94A3B8, stroke-width: 1.5px;
 ```
 
 ### 🧩 Backend Services
 
-| Service | Responsibility |
-|---|---|
+| Service   | Responsibility                                                          |
+|-----------|-------------------------------------------------------------------------|
 | `gateway` | GraphQL API عمومی، احراز هویت، Guards، Cache، Rate Limiting و WebSocket |
-| `auth` | ثبت‌نام و ورود کاربران، مدیریت JWT، Refresh Token و Roleها |
-| `core` | منطق اصلی دامنه شامل مزایده‌ها و کیف پول — در حال حاضر حداقلی |
+| `auth`    | ثبت‌نام و ورود کاربران، مدیریت JWT، Refresh Token و Roleها               |
+| `core`    | منطق اصلی دامنه شامل مزایده‌ها و کیف پول — در حال حاضر حداقلی            |
 
 ### 📂 Structure
 
@@ -188,36 +183,36 @@ packages/
 
 ### 🛠️ Backend Tech Stack
 
-| Technology | Version | Purpose |
-|---|---|---|
-| `@nestjs/core` | `^11.0.1` | فریم‌ورک اصلی Backend |
-| `@nestjs/graphql` | `^13.4.4` | پیاده‌سازی GraphQL به روش Code-First |
-| `@apollo/server` | `^5.5.1` | GraphQL Server |
-| `@nestjs/websockets` | `^11.1.29` | قابلیت‌های Real-time با Socket.IO |
-| `graphql-ws` | `^6.2.1` | پشتیبانی از GraphQL Subscriptions روی WebSocket |
-| `graphql-redis-subscriptions` | `^2.7.0` | Redis-backed PubSub برای Subscriptionها |
-| `@nestjs/jwt` | `^11.0.2` | احراز هویت مبتنی بر JWT |
-| `@nestjs/passport` | `^11.0.5` | لایه مدیریت استراتژی‌های احراز هویت |
-| `bcrypt` | `^6.0.0` | Hash کردن رمز عبور |
-| `drizzle-orm` | `^0.45.2` | ORM تایپ‌سیف برای PostgreSQL |
-| `pg` | `^8.23.0` | درایور PostgreSQL |
-| `ioredis` | `^6.0.0` | ارتباط با Redis برای Cache و Pub/Sub |
-| `zod` | `^4.4.3` | اعتبارسنجی Schemaها |
-| `nestjs-zod` | `^5.5.0` | یکپارچه‌سازی Zod با NestJS |
-| `@nestjs/throttler` | `^6.5.0` | مدیریت Rate Limiting |
-| `nestjs-pino` | `^4.6.1` | Structured Logging |
-| `helmet` | `^8.3.0` | افزودن HTTP Security Headers |
-| `geoip-lite` | `^2.0.3` | تشخیص موقعیت جغرافیایی IP |
-| `ua-parser-js` | `^2.0.10` | شناسایی مرورگر و دستگاه کاربر |
+| Technology                    | Version    | Purpose                                         |
+|-------------------------------|------------|-------------------------------------------------|
+| `@nestjs/core`                | `^11.0.1`  | فریم‌ورک اصلی Backend                            |
+| `@nestjs/graphql`             | `^13.4.4`  | پیاده‌سازی GraphQL به روش Code-First             |
+| `@apollo/server`              | `^5.5.1`   | GraphQL Server                                  |
+| `@nestjs/websockets`          | `^11.1.29` | قابلیت‌های Real-time با Socket.IO                |
+| `graphql-ws`                  | `^6.2.1`   | پشتیبانی از GraphQL Subscriptions روی WebSocket |
+| `graphql-redis-subscriptions` | `^2.7.0`   | Redis-backed PubSub برای Subscriptionها         |
+| `@nestjs/jwt`                 | `^11.0.2`  | احراز هویت مبتنی بر JWT                         |
+| `@nestjs/passport`            | `^11.0.5`  | لایه مدیریت استراتژی‌های احراز هویت              |
+| `bcrypt`                      | `^6.0.0`   | Hash کردن رمز عبور                              |
+| `drizzle-orm`                 | `^0.45.2`  | ORM تایپ‌سیف برای PostgreSQL                     |
+| `pg`                          | `^8.23.0`  | درایور PostgreSQL                               |
+| `ioredis`                     | `^6.0.0`   | ارتباط با Redis برای Cache و Pub/Sub            |
+| `zod`                         | `^4.4.3`   | اعتبارسنجی Schemaها                             |
+| `nestjs-zod`                  | `^5.5.0`   | یکپارچه‌سازی Zod با NestJS                       |
+| `@nestjs/throttler`           | `^6.5.0`   | مدیریت Rate Limiting                            |
+| `nestjs-pino`                 | `^4.6.1`   | Structured Logging                              |
+| `helmet`                      | `^8.3.0`   | افزودن HTTP Security Headers                    |
+| `geoip-lite`                  | `^2.0.3`   | تشخیص موقعیت جغرافیایی IP                       |
+| `ua-parser-js`                | `^2.0.10`  | شناسایی مرورگر و دستگاه کاربر                   |
 
 ### 🔧 Development Tools
 
-| Tool | Version | Purpose |
-|---|---|---|
-| `drizzle-kit` | `^0.31.10` | مدیریت Migrationها و Drizzle Studio |
-| `concurrently` | `^10.0.4` | اجرای هم‌زمان سرویس‌ها |
-| `pino-pretty` | `^13.1.3` | خواناتر کردن خروجی Logها |
-| `typescript` | `^5.7.3` | Type Safety |
+| Tool           | Version    | Purpose                             |
+|----------------|------------|-------------------------------------|
+| `drizzle-kit`  | `^0.31.10` | مدیریت Migrationها و Drizzle Studio |
+| `concurrently` | `^10.0.4`  | اجرای هم‌زمان سرویس‌ها                |
+| `pino-pretty`  | `^13.1.3`  | خواناتر کردن خروجی Logها            |
+| `typescript`   | `^5.7.3`   | Type Safety                         |
 
 ### 🚀 Getting Started
 
@@ -328,15 +323,15 @@ Request و Response Typeهای مشترک بین سرویس‌ها نیز در �
 
 هنگام اضافه کردن یک Endpoint جدید، بخش‌های مرتبط باید در مسیرهای زیر تعریف شوند:
 
-| Concern | Location |
-|---|---|
-| Zod Schema (Validation) | `packages/contracts/src/schemas/<domain>/<action>.schema.ts` |
-| Enum (Shared Values) | `packages/contracts/src/enums/<name>.enum.ts` |
-| DB Table (Drizzle) | `packages/services/src/database/schema/<table>.schema.ts` |
-| Message Pattern | `packages/services/src/messages/<service>.messages.ts` |
+| Concern                  | Location                                                               |
+|--------------------------|------------------------------------------------------------------------|
+| Zod Schema (Validation)  | `packages/contracts/src/schemas/<domain>/<action>.schema.ts`           |
+| Enum (Shared Values)     | `packages/contracts/src/enums/<name>.enum.ts`                          |
+| DB Table (Drizzle)       | `packages/services/src/database/schema/<table>.schema.ts`              |
+| Message Pattern          | `packages/services/src/messages/<service>.messages.ts`                 |
 | Request / Response Types | `packages/services/src/types/services-request/` و `services-response/` |
-| Resolver (Gateway) | `apps/gateway/src/graphql/resolvers/<domain>/` |
-| Resolver Input / Output | `.../resolvers/<domain>/<domain>/inputs/` و `outputs/` |
+| Resolver (Gateway)       | `apps/gateway/src/graphql/resolvers/<domain>/`                         |
+| Resolver Input / Output  | `.../resolvers/<domain>/<domain>/inputs/` و `outputs/`                 |
 
 ### 🔐 Authentication Flow
 
@@ -462,9 +457,32 @@ export const user = pgTable("users", {
 
 برای مطالعه جزئیات بیشتر درباره ساختار و معماری Backend، مستندات زیر را بررسی کنید:
 
-- [README.server.md](README.SERVER.md) — مستندات کامل Backend و معماری آن
+- [README.SERVER.md](README.SERVER.md) — مستندات کامل Backend و معماری آن
 - [apps/README.md](apps/README.md) — راهنمای سرویس‌ها و ساختار داخلی آن‌ها
 
 ---
 
-**Built with ❤️ using NestJS, Next.js, PostgreSQL, and Redis.**
+**ساخته‌شده با ❤️ و استفاده از NestJS، Next.js، PostgreSQL و Redis**
+
+<table>
+  <tr>
+    <td align="center">
+      <img src="https://github.com/homow.png" width="90" alt="همایون"/>
+      <br/>
+      <b>همایون</b>
+      <br/>
+      <sub>توسعه‌دهنده بک‌اند · دواپس · زیرساخت</sub>
+      <br/>
+      <a href="https://github.com/homow">github.com/homow</a>
+    </td>
+    <td align="center">
+      <img src="https://github.com/mardi-niyayesh.png" width="90" alt="نیایش"/>
+      <br/>
+      <b>نیایش</b>
+      <br/>
+      <sub>توسعه‌دهنده فرانت‌اند · طراح UI/UX · Figma</sub>
+      <br/>
+      <a href="https://github.com/mardi-niyayesh">github.com/mardi-niyayesh</a>
+    </td>
+  </tr>
+</table>
