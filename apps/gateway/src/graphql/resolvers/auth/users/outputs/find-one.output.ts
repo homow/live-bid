@@ -2,4 +2,4 @@ import {ObjectType} from "@nestjs/graphql";
 import {LoginUserOutput} from "@app/gateway/graphql/resolvers/auth/auth/outputs";
 
 @ObjectType()
-export class FindManyOutput extends LoginUserOutput {}
+export class FindOneOutput extends LoginUserOutput {}
