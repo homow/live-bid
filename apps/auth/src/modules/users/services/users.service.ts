@@ -1,9 +1,18 @@
+import type {
+  SafeUser,
+  GetProfileResponseService,
+  FindOneUserRequestService,
+  FindManyUsersRequestService,
+  UpdateProfileRequestService,
+  UpdateProfileResponseService,
+  PublicProfileResponseService,
+} from "@live-bid/services/types";
+
 import {Injectable} from "@nestjs/common";
 import {UsersCacheService} from "./users-cache.service";
-import {AppException, handleDrizzleError, throwNotFound} from "@live-bid/services/lib";
-import type {UpdateProfileSchemaType} from "@live-bid/contracts/schemas";
 import {UsersRepository} from "@app/auth/modules/users/users.repository";
-import type {FindManyUsersRequestService, FindOneUserRequestService, GetProfileResponseService, PublicProfileResponseService, SafeUser, UpdateProfileRequestService, UpdateProfileResponseService} from "@live-bid/services/types";
+import type {UpdateProfileSchemaType} from "@live-bid/contracts/schemas";
+import {AppException, handleDrizzleError, throwNotFound} from "@live-bid/services/lib";
 
 /**
  * **UsersService**
