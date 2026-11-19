@@ -1,14 +1,14 @@
 import {z} from "zod";
-import {LoginUserSchema} from "../auth";
-import {UUIDv7Schema} from "../../common";
+import {RegisterUserSchema} from "../auth";
+import {UsernameSchema, UUIDv7Schema} from "../../common";
 
-export const FindOneUserSchema = LoginUserSchema
+export const FindOneUserSchema = RegisterUserSchema
   .pick({
     email: true,
-    username: true,
   })
   .extend({
     user_id: UUIDv7Schema,
+    username: UsernameSchema,
   })
   .partial()
   .refine(arg => (arg.email || arg.user_id || arg.username), {
