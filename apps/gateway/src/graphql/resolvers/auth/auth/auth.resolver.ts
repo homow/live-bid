@@ -1,3 +1,14 @@
+import {
+  LoginUserSchema,
+  RegisterUserSchema,
+  ResetPasswordSchema,
+  ChangePasswordSchema,
+  type LoginUserSchemaType,
+  type RegisterUserSchemaType,
+  type ResetPasswordSchemaType,
+  type ChangePasswordSchemaType,
+} from "@live-bid/contracts/schemas";
+
 import type {
   SafeUser,
   UserAccess,
@@ -15,18 +26,17 @@ import type {
   ForgotPasswordRequestService,
 } from "@live-bid/services/types";
 
+import * as Inputs from "./inputs";
 import {firstValueFrom} from "rxjs";
+import * as Outputs from "./outputs";
 import {Inject} from "@nestjs/common";
 import type {Response} from "express";
-import * as AuthInputs from "./inputs";
-import * as AuthOutputs from "./outputs";
 import * as Decorators from "./decorators";
 import {ZodPipe} from "@app/gateway/common/pipes";
 import {ClientProxy} from "@nestjs/microservices";
 import type {GraphQLContext} from "@app/gateway/types";
 import {RefreshGuard} from "@app/gateway/common/guards";
-import * as ZodSchemas from "@live-bid/contracts/schemas";
-import * as ServiceMessages from "@live-bid/services/messages";
+import {AUTH_PATTERNS} from "@live-bid/services/messages";
 import {Resolver, Mutation, Args, Context} from "@nestjs/graphql";
 import {CurrentUser, NormalizeClientInfo} from "@app/gateway/common/decorators";
 import {ACCESS_TOKEN_NAME, AUTH_SERVICE_NAME, REFRESH_TOKEN_NAME} from "@live-bid/services/names";
@@ -40,7 +50,7 @@ import {ACCESS_TOKEN_NAME, AUTH_SERVICE_NAME, REFRESH_TOKEN_NAME} from "@live-bi
  *
  * @remarks
  * - **Transport:** each mutation sends a message (`send`) or emits a fire-and-forget
- *   event (`emit`) to the auth service using `ServiceMessages.AUTH_PATTERNS`.
+ *   event (`emit`) to the auth service using `AUTH_PATTERNS`.
  * - **Validation:** inputs are validated at the edge with `ZodPipe` + schemas.
  * - **Cookies:** `ACCESS_TOKEN` and `REFRESH_TOKEN` are HTTP-only; they are set on
  *   login/refresh and cleared on logout, password change, and password reset.
@@ -100,19 +110,19 @@ export class AuthResolver {
    * }
    */
   @Decorators.RegisterDecorators()
-  @Mutation(() => AuthOutputs.RegisterUserOutput)
+  @Mutation(() => Outputs.RegisterUserOutput)
   register(
     @Args(
       "input",
-      {type: () => AuthInputs.RegisterUserInput},
-      new ZodPipe(ZodSchemas.RegisterUserSchema),
+      {type: () => Inputs.RegisterUserInput},
+      new ZodPipe(RegisterUserSchema),
     )
-    input: ZodSchemas.RegisterUserSchemaType,
+    input: RegisterUserSchemaType,
     @NormalizeClientInfo() clientInfo: NormalizeClientInfoType
   ): Promise<RegisterResponseService> {
     return firstValueFrom<RegisterResponseService>(
       this.authClient.send(
-        ServiceMessages.AUTH_PATTERNS.REGISTER,
+        AUTH_PATTERNS.REGISTER,
         {
           input,
           clientInfo,
@@ -144,19 +154,19 @@ export class AuthResolver {
    * }
    */
   @Decorators.LoginDecorators()
-  @Mutation(() => AuthOutputs.LoginUserOutput)
+  @Mutation(() => Outputs.LoginUserOutput)
   async login(
     @Args(
       "input",
-      {type: () => AuthInputs.LoginUserInput},
-      new ZodPipe(ZodSchemas.LoginUserSchema)
-    ) input: ZodSchemas.LoginUserSchemaType,
+      {type: () => Inputs.LoginUserInput},
+      new ZodPipe(LoginUserSchema)
+    ) input: LoginUserSchemaType,
     @Context() context: GraphQLContext,
     @NormalizeClientInfo() clientInfo: NormalizeClientInfoType
   ): Promise<SafeUser> {
     const result = await firstValueFrom<LoginResponseService>(
       this.authClient.send(
-        ServiceMessages.AUTH_PATTERNS.LOGIN,
+        AUTH_PATTERNS.LOGIN,
         {
           clientInfo,
           userData: input
@@ -197,7 +207,7 @@ export class AuthResolver {
    * }
    */
   @Decorators.RefreshDecorators()
-  @Mutation(() => AuthOutputs.LoginUserOutput)
+  @Mutation(() => Outputs.LoginUserOutput)
   async refresh(
     @Context() context: GraphQLContext<RefreshRequest>,
     @NormalizeClientInfo() client_info: NormalizeClientInfoType,
@@ -206,7 +216,7 @@ export class AuthResolver {
 
     const result = await firstValueFrom<LoginResponseService>(
       this.authClient.send(
-        ServiceMessages.AUTH_PATTERNS.REFRESH,
+        AUTH_PATTERNS.REFRESH,
         {
           client_info,
           userId: req.refreshGuardData.userId,
@@ -252,7 +262,7 @@ export class AuthResolver {
 
     const rawRefreshTokenId = RefreshGuard.getTokenFromReq(req);
 
-    this.authClient.emit(ServiceMessages.AUTH_PATTERNS.LOGOUT, {
+    this.authClient.emit(AUTH_PATTERNS.LOGOUT, {
       rawRefreshTokenId,
     } satisfies LogoutRequestService);
 
@@ -293,9 +303,9 @@ export class AuthResolver {
   async changePassword(
     @Args(
       "input",
-      {type: () => AuthInputs.ChangePasswordInput},
-      new ZodPipe(ZodSchemas.ChangePasswordSchema)
-    ) input: ZodSchemas.ChangePasswordSchemaType,
+      {type: () => Inputs.ChangePasswordInput},
+      new ZodPipe(ChangePasswordSchema)
+    ) input: ChangePasswordSchemaType,
     @CurrentUser() user: UserAccess,
     @Context() context: GraphQLContext<AccessRequest>,
     @NormalizeClientInfo() clientInfo: NormalizeClientInfoType,
@@ -304,7 +314,7 @@ export class AuthResolver {
 
     const result = await firstValueFrom<string>(
       this.authClient.send(
-        ServiceMessages.AUTH_PATTERNS.CHANGE_PASSWORD,
+        AUTH_PATTERNS.CHANGE_PASSWORD,
         {
           ...input,
           clientInfo,
@@ -345,13 +355,13 @@ export class AuthResolver {
     @Args(
       'email',
       {type: () => String, name: 'email'},
-      new ZodPipe(ZodSchemas.RegisterUserSchema.shape.email)
+      new ZodPipe(RegisterUserSchema.shape.email)
     ) email: string,
     @NormalizeClientInfo() clientInfo: NormalizeClientInfoType,
   ) {
     return firstValueFrom<string>(
       this.authClient.send(
-        ServiceMessages.AUTH_PATTERNS.FORGOT_PASSWORD,
+        AUTH_PATTERNS.FORGOT_PASSWORD,
         {
           email,
           clientInfo,
@@ -396,9 +406,9 @@ export class AuthResolver {
   async resetPassword(
     @Args(
       'input',
-      {type: () => AuthInputs.ResetPasswordInput},
-      new ZodPipe(ZodSchemas.ResetPasswordSchema)
-    ) input: ZodSchemas.ResetPasswordSchemaType,
+      {type: () => Inputs.ResetPasswordInput},
+      new ZodPipe(ResetPasswordSchema)
+    ) input: ResetPasswordSchemaType,
     @NormalizeClientInfo() clientInfo: NormalizeClientInfoType,
     @Context() context: GraphQLContext,
   ) {
@@ -406,7 +416,7 @@ export class AuthResolver {
 
     const result = await firstValueFrom<string>(
       this.authClient.send(
-        ServiceMessages.AUTH_PATTERNS.RESET_PASSWORD,
+        AUTH_PATTERNS.RESET_PASSWORD,
         {
           ...input,
           clientInfo,

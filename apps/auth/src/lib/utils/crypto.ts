@@ -1,13 +1,5 @@
-import {hash, compare} from "bcrypt";
+import {compare} from "bcrypt";
 import {randomBytes} from "node:crypto";
-
-/** hashed password with bcrypt */
-export async function hashSecret(
-  value: string,
-  saltRounds: number = 12
-): Promise<string> {
-  return await hash(value, saltRounds);
-}
 
 /** compare hashed password with bcrypt */
 export async function compareSecret(

@@ -153,8 +153,8 @@ export function handleDrizzleError(data: HandleDrizzleErrorParams): never {
  */
 export function throwNotFound(resource: string, fields: string): never {
   throw new AppException({
+    statusCode: 404,
     code: "NOT_FOUND",
     message: `${resource} not found in database. Please check your ${fields} and try again`,
-    statusCode: 404,
   });
 }

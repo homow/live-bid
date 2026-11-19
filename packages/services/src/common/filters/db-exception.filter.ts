@@ -2,31 +2,30 @@ import {throwError} from 'rxjs';
 import {AppException} from '@live-bid/services/lib';
 import {Catch, RpcExceptionFilter, ArgumentsHost} from '@nestjs/common';
 
+const DB_CONNECTION_ERROR_CODES = new Set([
+  'ECONNREFUSED',
+  'ECONNRESET',
+  'ETIMEDOUT',
+  'ENOTFOUND',
+]);
+
 @Catch()
 export class DbExceptionFilter implements RpcExceptionFilter {
+  isDbConnectionError(e: unknown): boolean {
+    const err = e as { code?: string; cause?: { code?: string }; } | null;
+    const code = err?.cause?.code ?? err?.code;
+    return !!code && DB_CONNECTION_ERROR_CODES.has(code);
+  }
+
   catch(e: Error, _host: ArgumentsHost) {
-    if (e instanceof AppException) {
-      return throwError(() => e.getError());
-    }
-
-    const error = e as Error & {
-      cause?: {
-        code?: string;
-      };
-    };
-
-    if (error?.cause?.code === 'ECONNREFUSED') {
+    if (this.isDbConnectionError(e)) {
       return throwError(() => new AppException({
         statusCode: 503,
         code: 'DATABASE_UNAVAILABLE',
         message: 'Database unavailable.'
-      }).getError());
+      }));
     }
 
-    return throwError(() => new AppException({
-      statusCode: 500,
-      code: 'DATABASE_ERROR',
-      message: 'Unexpected database error.'
-    }).getError());
+    return throwError(() => e instanceof AppException ? e.getError() : e);
   }
 }

@@ -2,8 +2,6 @@ import type {Request} from "express";
 import {Reflector} from "@nestjs/core";
 import {mergeMap, Observable} from "rxjs";
 import {AppException} from "@live-bid/services/lib";
-import {AccessRequest} from "@live-bid/services/types";
-import {getRequestResponse} from "@app/gateway/lib/utils";
 import {CacheService, RedisKey} from "@live-bid/services/cache";
 import {CACHE_EVICT_KEY, CacheEvictDecorator} from "@app/gateway/common/decorators";
 import {CallHandler, ExecutionContext, Injectable, NestInterceptor} from "@nestjs/common";
@@ -62,14 +60,8 @@ export class CacheEvictInterceptor implements NestInterceptor {
             await evict(finalKey, 'deletePrefix');
           }
 
-          const {req} = getRequestResponse<AccessRequest>(ctx);
-
           const key: string = RedisKey.keyPrefix({
-            req,
-            self: cacheParams.self,
-            query: cacheParams.query,
             resource: cacheParams.resource,
-            paramsKey: cacheParams.paramsKey,
             extraKeys: cacheParams.extraKeys,
           });
 

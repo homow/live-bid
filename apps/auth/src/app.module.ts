@@ -33,6 +33,7 @@ import {DrizzleModule, MailModule} from "@live-bid/services/modules";
     // App Modules
     Modules.AuthModule,
     Modules.UsersModule,
+    Modules.RolesModule,
   ],
 })
 export class AppModule {}

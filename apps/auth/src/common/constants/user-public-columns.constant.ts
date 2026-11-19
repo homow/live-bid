@@ -1,6 +1,6 @@
 import {user} from "@live-bid/services/database";
 
-export const USER_PUBLIC_COLUMNS = {
+export const USER_SAFE_COLUMNS = {
   id: user.id,
   role: user.role,
   email: user.email,
