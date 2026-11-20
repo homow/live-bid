@@ -1,1 +1,0 @@
-ALTER TABLE "refresh_tokens" ADD COLUMN "remember_me" boolean DEFAULT false NOT NULL;

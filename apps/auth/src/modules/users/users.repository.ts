@@ -139,6 +139,42 @@ export class UsersRepository {
   }
 
   /**
+   * Retrieves a filtered and paginated list of users.
+   *
+   * - Only safe user columns are selected (password is excluded).
+   * - Filters can be combined using `AND`.
+   * - Results are ordered by the requested field and direction.
+   *
+   * @param options - Pagination, sorting, and filtering options.
+   * @returns A query resolving to a list of safe user records.
+   *
+   * @see {@link FindManyUsersSchemaType}
+   */
+  findMany({limit, orderBy, offset, role, sortBy, is_active}: FindManyUsersSchemaType) {
+    const conditions: SQL[] = [];
+
+    if (is_active !== undefined) {
+      conditions.push(eq(user.is_active, is_active));
+    }
+
+    if (role) {
+      conditions.push(eq(user.role, role));
+    }
+
+    return this.drizzle.db
+      .select(USER_SAFE_COLUMNS)
+      .from(user)
+      .limit(limit)
+      .offset(offset)
+      .orderBy(
+        sortBy === BaseSortByEnum.desc
+          ? desc(user[orderBy])
+          : asc(user[orderBy])
+      )
+      .where(and(...conditions));
+  }
+
+  /**
    * Builds a base user query, optionally filtered by a `WHERE` clause
    * and/or locked with `FOR UPDATE`.
    *
@@ -208,41 +244,5 @@ export class UsersRepository {
       .update(user)
       .set({role})
       .where(eq(user.id, userID));
-  }
-
-  /**
-   * Retrieves a filtered and paginated list of users.
-   *
-   * - Only safe user columns are selected (password is excluded).
-   * - Filters can be combined using `AND`.
-   * - Results are ordered by the requested field and direction.
-   *
-   * @param options - Pagination, sorting, and filtering options.
-   * @returns A query resolving to a list of safe user records.
-   *
-   * @see {@link FindManyUsersSchemaType}
-   */
-  findMany({limit, orderBy, offset, role, sortBy, is_active}: FindManyUsersSchemaType) {
-    const conditions: SQL[] = [];
-
-    if (is_active !== undefined) {
-      conditions.push(eq(user.is_active, is_active));
-    }
-
-    if (role) {
-      conditions.push(eq(user.role, role));
-    }
-
-    return this.drizzle.db
-      .select(USER_SAFE_COLUMNS)
-      .from(user)
-      .limit(limit)
-      .offset(offset)
-      .orderBy(
-        sortBy === BaseSortByEnum.desc
-          ? desc(user[orderBy])
-          : asc(user[orderBy])
-      )
-      .where(and(...conditions));
   }
 }

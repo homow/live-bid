@@ -1,6 +1,6 @@
 {
-  "id": "88074d91-8557-4c11-9deb-a452b6f46d94",
-  "prevId": "77eaeb57-2132-43ca-90f4-708f65dc33b2",
+  "id": "966ca7ff-d555-466f-b16d-8434b0be99d7",
+  "prevId": "a30e9f73-a64b-4458-9cc2-123ec11363a8",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -18,14 +18,14 @@
           "name": "created_at",
           "type": "timestamp with time zone",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "default": "now()"
         },
         "updated_at": {
           "name": "updated_at",
           "type": "timestamp with time zone",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "default": "now()"
         },
         "password": {
@@ -36,13 +36,13 @@
         },
         "email": {
           "name": "email",
-          "type": "varchar",
+          "type": "varchar(255)",
           "primaryKey": false,
           "notNull": true
         },
         "username": {
           "name": "username",
-          "type": "varchar(255)",
+          "type": "varchar(30)",
           "primaryKey": false,
           "notNull": false
         },
@@ -85,6 +85,7 @@
             }
           ],
           "isUnique": false,
+          "where": "\"users\".\"is_active\" = true",
           "concurrently": false,
           "method": "btree",
           "with": {}
@@ -112,6 +113,76 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
+    "public.wallets": {
+      "name": "wallets",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "balance": {
+          "name": "balance",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "held_balance": {
+          "name": "held_balance",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "wallets_user_id_unique": {
+          "name": "wallets_user_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "user_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "wallet_balance_non_negtaive": {
+          "name": "wallet_balance_non_negtaive",
+          "value": "\"wallets\".\"balance\" >= 0"
+        },
+        "wallet_held_within_balance": {
+          "name": "wallet_held_within_balance",
+          "value": "\"wallets\".\"held_balance\" >= 0 AND \"wallets\".\"held_balance\" <= \"wallets\".\"balance\""
+        }
+      },
+      "isRLSEnabled": false
+    },
     "public.refresh_tokens": {
       "name": "refresh_tokens",
       "schema": "",
@@ -126,14 +197,14 @@
           "name": "created_at",
           "type": "timestamp with time zone",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "default": "now()"
         },
         "updated_at": {
           "name": "updated_at",
           "type": "timestamp with time zone",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "default": "now()"
         },
         "user_id": {
@@ -160,6 +231,13 @@
           "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true
+        },
+        "remember_me": {
+          "name": "remember_me",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
         },
         "replace_by_token_id": {
           "name": "replace_by_token_id",
