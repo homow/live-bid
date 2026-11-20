@@ -1,3 +1,4 @@
+import * as Modules from './modules';
 import {Module} from '@nestjs/common';
 import {LoggerModule} from "nestjs-pino";
 import {ConfigModule} from "@nestjs/config";
@@ -28,6 +29,9 @@ import * as drizzleSchemas from "@live-bid/services/database/schema";
 
     // Mail Module
     MailModule,
+
+    // App Modules
+    Modules.WalletsModule,
   ],
 })
 export class AppModule {}
