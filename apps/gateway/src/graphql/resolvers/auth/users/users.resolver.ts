@@ -1,3 +1,14 @@
+import type {
+  SafeUser,
+  UserAccess,
+  FindOneUserRequestService,
+  GetProfileResponseService,
+  UpdateProfileRequestService,
+  FindManyUsersRequestService,
+  UpdateProfileResponseService,
+  PublicProfileResponseService,
+} from "@live-bid/services/types";
+
 import * as Inputs from "./inputs";
 import {firstValueFrom} from "rxjs";
 import * as Outputs from "./outputs";
@@ -10,7 +21,6 @@ import {AUTH_SERVICE_NAME} from "@live-bid/services/names";
 import {USERS_PATTERNS} from "@live-bid/services/messages";
 import {Args, ID, Mutation, Query, Resolver} from "@nestjs/graphql";
 import {type UpdateProfileSchemaType, UpdateProfileSchema, UUIDv7Schema, type FindManyUsersSchemaType, FindManyUsersSchema, FindOneUserSchema, type FindOneUserSchemaType} from "@live-bid/contracts/schemas";
-import type {FindManyUsersRequestService, FindOneUserRequestService, GetProfileResponseService, PublicProfileResponseService, SafeUser, UpdateProfileRequestService, UpdateProfileResponseService, UserAccess} from "@live-bid/services/types";
 
 /**
  * **UserResolver**
