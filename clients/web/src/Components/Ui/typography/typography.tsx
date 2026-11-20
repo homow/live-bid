@@ -1,10 +1,13 @@
-import {
-  ListItemTypograph,
-  TypographyTs,
-} from "@/Components/Ui/typography/typography";
-
 import { cn } from "@/lib/utils";
-import { HTMLAttributes } from "react";
+import type { HTMLAttributes, ReactNode } from "react";
+
+// Types
+export type TypographyTs = HTMLAttributes<HTMLElement>;
+
+export interface ListItemTypograph {
+  id?: string | number;
+  content: ReactNode;
+}
 
 // Page title
 function PageTitle({ children, className, ...props }: TypographyTs) {

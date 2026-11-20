@@ -8,6 +8,7 @@ import {
 
 import { H2, H4, P, Span } from "@/Components/Ui/typography/typography";
 
+
 import { buyerSteps, sellerSteps } from "@/mocks/how-it-works";
 
 const Moredetail = () => {
