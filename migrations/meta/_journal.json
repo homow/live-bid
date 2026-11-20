@@ -15,6 +15,13 @@
       "when": 1795187277053,
       "tag": "0001_overjoyed_black_widow",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1795189789981,
+      "tag": "0002_lyrical_silverclaw",
+      "breakpoints": true
     }
   ]
 }
