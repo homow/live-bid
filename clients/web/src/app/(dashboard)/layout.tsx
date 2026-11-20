@@ -1,15 +1,9 @@
-import DashboardHeader from "@/featuer/Dashboard/DashboardHeader";
+import DashboardLayout from "@/featuer/Dashboard/DashboardLayout";
 
-export default function DashboardLayout({
+export default function DashboardRouteLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <div className="min-h-screen bg-[#151923]">
-      <DashboardHeader />
-
-      <main>{children}</main>
-    </div>
-  );
+  return <DashboardLayout>{children}</DashboardLayout>;
 }
