@@ -45,8 +45,10 @@
     "@types/node": "^26.5.1",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@vitest/browser-playwright": "latest",
+    "@vitest/browser": "^5.0.5",
+    "@vitest/browser-playwright": "^5.0.5",
     "@vitest/coverage-v8": "latest",
+    "@vitest/ui": "^5.0.5",
     "eslint": "^9",
     "eslint-config-next": "^16.3.6",
     "eslint-plugin-storybook": "^10.6.0",
@@ -55,6 +57,6 @@
     "tailwindcss": "^4",
     "typescript": "^5",
     "vite": "latest",
-    "vitest": "latest"
+    "vitest": "^5.0.5"
   }
 }
