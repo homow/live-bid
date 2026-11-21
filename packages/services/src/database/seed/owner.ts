@@ -1,10 +1,10 @@
 import {eq} from "drizzle-orm";
-import {user, wallet} from "../schema";
 import * as dotenv from "dotenv";
 
 dotenv.config();
 
 import {hashSecret} from "../../lib";
+import {user, wallet} from "../schema";
 import {seedDb, seedPool} from './seed-client';
 import * as readline from "node:readline/promises";
 import {UserRoleEnum} from "@live-bid/contracts/enums";
