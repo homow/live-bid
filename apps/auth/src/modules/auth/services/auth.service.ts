@@ -115,11 +115,13 @@ export class AuthService {
 
       const dashboardLink: string = this.config.get<string>("APPLICATION_DASHBOARD_URL") ?? "http://127.0.0.1:3000/dashboard";
 
+      // Send an event for create wallet
       this.coreClient.emit(
         AUTH_EVENTS.USER_REGISTERED,
         user.id
       );
 
+      // Send notif for user
       void this.authMail.authNotification(
         "register",
         userData.email,
