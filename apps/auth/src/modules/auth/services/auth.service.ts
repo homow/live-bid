@@ -14,7 +14,7 @@ import {v7} from "uuid";
 import {TokenUtil} from "../utils";
 import {PinoLogger} from "nestjs-pino";
 import {randomUUID} from "node:crypto";
-import {Injectable} from "@nestjs/common";
+import {Inject, Injectable} from "@nestjs/common";
 import {ConfigService} from "@nestjs/config";
 import {compareSecret} from "@app/auth/lib/utils";
 import {AuthRepository} from "../auth.repository";
@@ -24,6 +24,8 @@ import {UsersCacheService} from "@app/auth/modules/users/services";
 import {UsersRepository} from "@app/auth/modules/users/users.repository";
 import type {RegisterUserSchemaType, LoginUserSchemaType} from "@live-bid/contracts/schemas";
 import {hashSecret, hashSecretToken, AppException, handleDrizzleError, throwNotFound, AppErrorPayload} from "@live-bid/services/lib";
+import {CORE_SERVICE_NAME} from "@live-bid/services/names";
+import {ClientProxy} from "@nestjs/microservices";
 
 /**
  * **AuthService**
@@ -75,6 +77,7 @@ export class AuthService {
     private readonly authRepository: AuthRepository,
     private readonly usersRepository: UsersRepository,
     private readonly usersCacheService: UsersCacheService,
+    @Inject(CORE_SERVICE_NAME) private readonly coreClient: ClientProxy,
   ) {
     this.logger.setContext(AuthService.name);
   }
@@ -110,6 +113,11 @@ export class AuthService {
       this.usersCacheService.incrementUserListVersion();
 
       const dashboardLink: string = this.config.get<string>("APPLICATION_DASHBOARD_URL") ?? "http://127.0.0.1:3000/dashboard";
+
+      this.coreClient.emit(
+        "user.registered",
+        {userId: user.id}
+      );
 
       void this.authMail.authNotification(
         "register",
