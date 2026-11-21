@@ -127,7 +127,7 @@ async function main() {
 
       console.log("Owner wallet created successfully.\n");
 
-      return ownerData;
+      return newOwner;
     });
 
     console.table(owner);
