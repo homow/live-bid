@@ -1,3 +1,4 @@
+import './lib/config/env';
 import {AppModule} from './app.module';
 import {NestFactory} from '@nestjs/core';
 import {DbExceptionFilter} from "@live-bid/services/common";

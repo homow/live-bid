@@ -12,11 +12,15 @@ export class WalletService {
   }
 
   createWallet(userId: string) {
-    void this.walletsRepository.createWallet(userId).catch(reason => {
-      this.logger.error(
-        {userId, err: reason as Error},
-        `Failed to create wallet for user in ${WalletsRepository.name}`,
-      );
-    });
+    void this.walletsRepository.createWallet(userId)
+      .then(() => {
+        this.logger.info({userId}, "Wallet created successfully.");
+      })
+      .catch(reason => {
+        this.logger.error(
+          {userId, err: reason as Error},
+          `Failed to create wallet for user in ${WalletsRepository.name}`,
+        );
+      });
   }
 }
