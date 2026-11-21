@@ -14,19 +14,19 @@ import {v7} from "uuid";
 import {TokenUtil} from "../utils";
 import {PinoLogger} from "nestjs-pino";
 import {randomUUID} from "node:crypto";
-import {Inject, Injectable} from "@nestjs/common";
 import {ConfigService} from "@nestjs/config";
+import {ClientProxy} from "@nestjs/microservices";
+import {Inject, Injectable} from "@nestjs/common";
 import {compareSecret} from "@app/auth/lib/utils";
 import {AuthRepository} from "../auth.repository";
 import {AuthMailService} from "./auth-mail.service";
+import {AUTH_EVENTS} from "@live-bid/services/events";
 import {DrizzleService} from "@live-bid/services/modules";
+import {CORE_SERVICE_NAME} from "@live-bid/services/names";
 import {UsersCacheService} from "@app/auth/modules/users/services";
 import {UsersRepository} from "@app/auth/modules/users/users.repository";
 import type {RegisterUserSchemaType, LoginUserSchemaType} from "@live-bid/contracts/schemas";
 import {hashSecret, hashSecretToken, AppException, handleDrizzleError, throwNotFound, AppErrorPayload} from "@live-bid/services/lib";
-import {CORE_SERVICE_NAME} from "@live-bid/services/names";
-import {ClientProxy} from "@nestjs/microservices";
-import {AUTH_EVENTS} from "@live-bid/services/events";
 
 /**
  * **AuthService**
