@@ -1,5 +1,5 @@
 import {eq} from "drizzle-orm";
-import {user} from "../schema";
+import {user, wallet} from "../schema";
 import * as dotenv from "dotenv";
 
 dotenv.config();
@@ -102,22 +102,33 @@ async function main() {
 
     const hashedPassword = await hashSecret(ownerData.password);
 
-    const owner = await seedDb
-      .insert(user)
-      .values({
-        ...ownerData,
-        is_active: true,
-        password: hashedPassword,
-        role: UserRoleEnum.OWNER,
-      })
-      .returning({
-        role: user.role,
-        email: user.email,
-        username: user.username,
-        display_name: user.display_name,
-      });
+    const owner = await seedDb.transaction(async (tx) => {
+      const [newOwner] = await tx
+        .insert(user)
+        .values({
+          ...ownerData,
+          is_active: true,
+          password: hashedPassword,
+          role: UserRoleEnum.OWNER,
+        })
+        .returning({
+          id: user.id,
+          role: user.role,
+          email: user.email,
+          username: user.username,
+          display_name: user.display_name,
+        });
 
-    console.log("Owner account created successfully.");
+      console.log("\nOwner account created successfully.");
+
+      await tx
+        .insert(wallet)
+        .values({user_id: newOwner.id});
+
+      console.log("Owner wallet created successfully.\n");
+
+      return ownerData;
+    });
 
     console.table(owner);
   } catch (error) {
