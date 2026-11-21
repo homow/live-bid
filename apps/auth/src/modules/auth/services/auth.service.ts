@@ -26,6 +26,7 @@ import type {RegisterUserSchemaType, LoginUserSchemaType} from "@live-bid/contra
 import {hashSecret, hashSecretToken, AppException, handleDrizzleError, throwNotFound, AppErrorPayload} from "@live-bid/services/lib";
 import {CORE_SERVICE_NAME} from "@live-bid/services/names";
 import {ClientProxy} from "@nestjs/microservices";
+import {AUTH_EVENTS} from "@live-bid/services/events";
 
 /**
  * **AuthService**
@@ -115,8 +116,8 @@ export class AuthService {
       const dashboardLink: string = this.config.get<string>("APPLICATION_DASHBOARD_URL") ?? "http://127.0.0.1:3000/dashboard";
 
       this.coreClient.emit(
-        "user.registered",
-        {userId: user.id}
+        AUTH_EVENTS.USER_REGISTERED,
+        user.id
       );
 
       void this.authMail.authNotification(
