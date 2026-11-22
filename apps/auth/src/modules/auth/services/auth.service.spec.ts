@@ -784,7 +784,10 @@ describe("AuthService", () => {
     it("stores the new password hashed and revokes every session, in one transaction", async () => {
       await service.resetPassword(request);
 
-      const [params, tx] = mocks.authRepository.changePassword.mock.calls[0];
+      const [params, tx] = mocks.authRepository.changePassword.mock.calls[0] as [
+        { id: string; password: string },
+        { tag: string; }
+      ];
       expect(params.password).not.toBe(NEW_PASSWORD);
       expect(params.id).toBe(safeUser.id);
       expect(await compare(NEW_PASSWORD, params.password)).toBe(true);
