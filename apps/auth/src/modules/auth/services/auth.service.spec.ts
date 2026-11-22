@@ -2,6 +2,7 @@ import {TokenUtil} from "../utils";
 import {Test} from "@nestjs/testing";
 import {hash, compare} from "bcrypt";
 import {PinoLogger} from "nestjs-pino";
+import {createHash} from "node:crypto";
 import {AuthService} from "./auth.service";
 import {ConfigService} from "@nestjs/config";
 import {AuthRepository} from "../auth.repository";
@@ -15,9 +16,8 @@ import {UsersCacheService} from "@app/auth/modules/users/services";
 import {beforeAll, beforeEach, describe, expect, it, vi} from "vitest";
 import {UsersRepository} from "@app/auth/modules/users/users.repository";
 import {AppException, type AppErrorPayload} from "@live-bid/services/lib";
-import {AccessTokenPayload, NormalizeClientInfoType, SafeUser} from "@live-bid/services/types";
 import type {LoginUserSchemaType, RegisterUserSchemaType} from "@live-bid/contracts/schemas";
-import {createHash} from "node:crypto";
+import {AccessTokenPayload, NormalizeClientInfoType, SafeUser} from "@live-bid/services/types";
 
 /**
  * Unit tests for AuthService (register + login).
