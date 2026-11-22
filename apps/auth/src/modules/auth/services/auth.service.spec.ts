@@ -17,6 +17,7 @@ import {UsersRepository} from "@app/auth/modules/users/users.repository";
 import {AppException, type AppErrorPayload} from "@live-bid/services/lib";
 import {AccessTokenPayload, NormalizeClientInfoType, SafeUser} from "@live-bid/services/types";
 import type {LoginUserSchemaType, RegisterUserSchemaType} from "@live-bid/contracts/schemas";
+import {createHash} from "node:crypto";
 
 /**
  * Unit tests for AuthService (register + login).
@@ -584,6 +585,24 @@ describe("AuthService", () => {
 
       expect(error).toMatchObject({code: "REFRESH_TOKEN_REVOKED"});
       expect(mocks.logger.error).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  // =========================
+  // |        Logout         |
+  // =========================
+  describe("logout", () => {
+    it("revokes the session by the sha256 hash of the raw token", () => {
+      service.logout("raw-refresh-token");
+
+      const expected = createHash("sha256").update("raw-refresh-token").digest("hex");
+      expect(mocks.authRepository.revokeToken).toHaveBeenCalledWith(expected);
+    });
+
+    it("does nothing when there is no token, like when the cookie is already gone", () => {
+      service.logout(null);
+
+      expect(mocks.authRepository.revokeToken).not.toHaveBeenCalled();
     });
   });
 });
