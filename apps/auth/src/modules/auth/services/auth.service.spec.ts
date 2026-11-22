@@ -1,11 +1,9 @@
-import {hash, compare} from "bcrypt";
-import {Test} from "@nestjs/testing";
-import {PinoLogger} from "nestjs-pino";
-import {ConfigService} from "@nestjs/config";
-import {beforeAll, beforeEach, describe, expect, it, vi} from "vitest";
-
 import {TokenUtil} from "../utils";
+import {Test} from "@nestjs/testing";
+import {hash, compare} from "bcrypt";
+import {PinoLogger} from "nestjs-pino";
 import {AuthService} from "./auth.service";
+import {ConfigService} from "@nestjs/config";
 import {AuthRepository} from "../auth.repository";
 import {AuthMailService} from "./auth-mail.service";
 import type {User} from "@live-bid/services/database";
@@ -14,6 +12,7 @@ import {AUTH_EVENTS} from "@live-bid/services/events";
 import {DrizzleService} from "@live-bid/services/modules";
 import {CORE_SERVICE_NAME} from "@live-bid/services/names";
 import {UsersCacheService} from "@app/auth/modules/users/services";
+import {beforeAll, beforeEach, describe, expect, it, vi} from "vitest";
 import {UsersRepository} from "@app/auth/modules/users/users.repository";
 import {AppException, type AppErrorPayload} from "@live-bid/services/lib";
 import type {NormalizeClientInfoType, SafeUser} from "@live-bid/services/types";
@@ -83,13 +82,13 @@ async function buildService(mocks: Mocks): Promise<AuthService> {
     providers: [
       AuthService,
       {provide: PinoLogger, useValue: mocks.logger},
-      {provide: ConfigService, useValue: mocks.config},
       {provide: TokenUtil, useValue: mocks.tokenUtil},
+      {provide: ConfigService, useValue: mocks.config},
       {provide: AuthMailService, useValue: mocks.authMail},
-      {provide: AuthRepository, useValue: mocks.authRepository},
-      {provide: UsersRepository, useValue: mocks.usersRepository},
       {provide: UsersCacheService, useValue: mocks.usersCache},
       {provide: CORE_SERVICE_NAME, useValue: mocks.coreClient},
+      {provide: AuthRepository, useValue: mocks.authRepository},
+      {provide: UsersRepository, useValue: mocks.usersRepository},
       // AuthService only holds on to this one, none of the tested paths touch it
       {provide: DrizzleService, useValue: {}},
     ],
