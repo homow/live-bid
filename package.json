@@ -40,7 +40,8 @@
     "db:sync": "npm run db:generate && npm run db:migrate-dev",
     "seed:owner": "node ./packages/services/dist/database/seed/owner.js",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:int": "vitest run -c vitest.int.config.ts"
   },
   "dependencies": {
     "@apollo/server": "^5.5.1",
