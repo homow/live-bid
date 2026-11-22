@@ -468,4 +468,51 @@ describe("AuthService", () => {
       });
     });
   });
+
+  // =========================
+  // |       Refresh         |
+  // =========================
+  describe("refresh", () => {
+    const request = {userId: safeUser.id, tokenHash: "hash-1", client_info: clientInfo};
+
+    beforeEach(() => {
+      mocks.usersCache.getCachedUserInfo.mockResolvedValue(safeUser);
+      mocks.authRepository.findRefreshRecord.mockResolvedValue([refreshRecord()]);
+      mocks.authRepository.rotateToken.mockResolvedValue({id: "rt-2"});
+    });
+
+    it("returns a fresh token pair, cookie options and the user", async () => {
+      const result = await service.refresh(request);
+
+      expect(result).toEqual({
+        accessToken: TOKENS.accessToken,
+        refreshToken: TOKENS.refreshToken,
+        accessOptions: ACCESS_COOKIE,
+        refreshOptions: REFRESH_COOKIE,
+        user: safeUser,
+      });
+    });
+
+    it("validates and rotates inside one transaction", async () => {
+      await service.refresh(request);
+
+      expect(mocks.drizzle.db.transaction).toHaveBeenCalledWith(expect.any(Function), {
+        accessMode: "read write",
+        isolationLevel: "read committed",
+      });
+      expect(mocks.authRepository.findRefreshRecord).toHaveBeenCalledWith("hash-1", TX);
+      expect(mocks.authRepository.rotateToken).toHaveBeenCalledWith(
+        "rt-1",
+        {
+          expires_in: TOKENS.expires_in,
+          client_info: clientInfo,
+          remember_me: false,
+          user_id: safeUser.id,
+          replace_by_token_id: null,
+          token_hash: TOKENS.hashedRefreshToken,
+        },
+        TX,
+      );
+    });
+  });
 });
