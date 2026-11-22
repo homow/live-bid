@@ -405,5 +405,67 @@ describe("AuthService", () => {
         expect(error).toMatchObject({statusCode: 401, code: "REFRESH_TOKEN_EXPIRE"});
       });
     });
+
+    describe("when the cache is cold", () => {
+      beforeEach(() => {
+        mocks.usersCache.getCachedUserInfo.mockResolvedValue(null);
+        mocks.authRepository.findRefreshRecordWithUser.mockResolvedValue([
+          {...refreshRecord(), user: safeUser},
+        ]);
+      });
+
+      it("loads token and user together, and returns them separated", async () => {
+        const result = await service.validateRefresh(guard);
+
+        expect(result).toEqual({user: safeUser, refreshRecord: refreshRecord({expires_in: expect.any(Date)})});
+        expect(result.refreshRecord).not.toHaveProperty("user");
+        expect(mocks.authRepository.findRefreshRecord).not.toHaveBeenCalled();
+      });
+
+      it("puts the user back into the cache for the next call", async () => {
+        await service.validateRefresh(guard);
+
+        expect(mocks.usersCache.setCacheUserInfo).toHaveBeenCalledWith(safeUser);
+      });
+
+      it("passes the transaction on to the lookup", async () => {
+        await service.validateRefresh(guard, TX as never);
+
+        expect(mocks.authRepository.findRefreshRecordWithUser).toHaveBeenCalledWith("hash-1", TX);
+      });
+
+      it("rejects an unknown token with 401 REFRESH_TOKEN_EXPIRE", async () => {
+        mocks.authRepository.findRefreshRecordWithUser.mockResolvedValue([]);
+
+        const error = await appErrorOf(service.validateRefresh(guard));
+
+        expect(error).toMatchObject({statusCode: 401, code: "REFRESH_TOKEN_EXPIRE"});
+      });
+
+      it("rejects a token whose user is gone with 401 USER_NOT_FOUND", async () => {
+        mocks.authRepository.findRefreshRecordWithUser.mockResolvedValue([
+          {...refreshRecord(), user: null},
+        ]);
+
+        const error = await appErrorOf(service.validateRefresh(guard));
+
+        expect(error).toMatchObject({statusCode: 401, code: "USER_NOT_FOUND"});
+        expect(mocks.usersCache.setCacheUserInfo).not.toHaveBeenCalled();
+      });
+
+      it("rejects a revoked token and tells the client to clear its cookies", async () => {
+        mocks.authRepository.findRefreshRecordWithUser.mockResolvedValue([
+          {...refreshRecord({is_revoked: true}), user: safeUser},
+        ]);
+
+        const error = await appErrorOf(service.validateRefresh(guard));
+
+        expect(error).toMatchObject({
+          statusCode: 401,
+          code: "REFRESH_TOKEN_REVOKED",
+          meta: {clearAuthCookies: true},
+        });
+      });
+    });
   });
 });
