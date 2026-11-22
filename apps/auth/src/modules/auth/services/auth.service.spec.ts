@@ -15,7 +15,7 @@ import {UsersCacheService} from "@app/auth/modules/users/services";
 import {beforeAll, beforeEach, describe, expect, it, vi} from "vitest";
 import {UsersRepository} from "@app/auth/modules/users/users.repository";
 import {AppException, type AppErrorPayload} from "@live-bid/services/lib";
-import type {NormalizeClientInfoType, SafeUser} from "@live-bid/services/types";
+import {AccessTokenPayload, NormalizeClientInfoType, SafeUser} from "@live-bid/services/types";
 import type {LoginUserSchemaType, RegisterUserSchemaType} from "@live-bid/contracts/schemas";
 
 /**
@@ -513,6 +513,77 @@ describe("AuthService", () => {
         },
         TX,
       );
+    });
+
+    it("keeps the remember-me choice of the old session", async () => {
+      mocks.authRepository.findRefreshRecord.mockResolvedValue([refreshRecord({remember_me: true})]);
+
+      await service.refresh(request);
+
+      expect(mocks.tokenUtil.getAccessAndRefreshTokens).toHaveBeenCalledWith(
+        expect.objectContaining({sub: safeUser.id, role: safeUser.role}),
+        true,
+      );
+      expect(mocks.tokenUtil.getCookieOptions).toHaveBeenCalledWith("refresh", true);
+    });
+
+    it("uses a new jti for every access token", async () => {
+      await service.refresh(request);
+      await service.refresh(request);
+
+      const jtis = mocks.tokenUtil.getAccessAndRefreshTokens.mock.calls.map(([payload]) => (payload as AccessTokenPayload).jti);
+
+      expect(jtis).toHaveLength(2);
+      expect(new Set(jtis).size).toBe(2);
+    });
+
+    it("rejects an unknown token without revoking the user's other sessions", async () => {
+      mocks.authRepository.findRefreshRecord.mockResolvedValue([]);
+
+      const error = await appErrorOf(service.refresh(request));
+
+      expect(error).toMatchObject({statusCode: 401, code: "REFRESH_TOKEN_EXPIRE"});
+      expect(mocks.authRepository.rotateToken).not.toHaveBeenCalled();
+      expect(mocks.authRepository.revokeAllUserTokens).not.toHaveBeenCalled();
+    });
+
+    it("revokes every session when an already revoked token shows up again", async () => {
+      mocks.authRepository.findRefreshRecord.mockResolvedValue([refreshRecord({is_revoked: true})]);
+
+      const error = await appErrorOf(service.refresh(request));
+
+      expect(error).toMatchObject({code: "REFRESH_TOKEN_REVOKED", meta: {clearAuthCookies: true}});
+      expect(mocks.authRepository.rotateToken).not.toHaveBeenCalled();
+      // Called without a tx on purpose: the transaction above has already rolled back
+      expect(mocks.authRepository.revokeAllUserTokens).toHaveBeenCalledWith(safeUser.id);
+      expect(mocks.tokenUtil.getCookieOptions).not.toHaveBeenCalled();
+    });
+
+    it("revokes every session when the repository detects token reuse", async () => {
+      mocks.authRepository.rotateToken.mockRejectedValue(
+        new AppException({
+          statusCode: 401,
+          code: "REFRESH_TOKEN_REUSE",
+          message: "Refresh token reuse detected.",
+          meta: {clearAuthCookies: true},
+        }),
+      );
+
+      const error = await appErrorOf(service.refresh(request));
+
+      expect(error).toMatchObject({code: "REFRESH_TOKEN_REUSE"});
+      expect(mocks.authRepository.revokeAllUserTokens).toHaveBeenCalledWith(safeUser.id);
+      expect(mocks.tokenUtil.getCookieOptions).not.toHaveBeenCalled();
+    });
+
+    it("still throws the original error when revoking all sessions fails too", async () => {
+      mocks.authRepository.findRefreshRecord.mockResolvedValue([refreshRecord({is_revoked: true})]);
+      mocks.authRepository.revokeAllUserTokens.mockRejectedValue(new Error("db is down"));
+
+      const error = await appErrorOf(service.refresh(request));
+
+      expect(error).toMatchObject({code: "REFRESH_TOKEN_REVOKED"});
+      expect(mocks.logger.error).toHaveBeenCalledTimes(1);
     });
   });
 });
