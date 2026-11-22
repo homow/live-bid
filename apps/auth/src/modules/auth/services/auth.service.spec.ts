@@ -697,6 +697,9 @@ describe("AuthService", () => {
     });
   });
 
+  // =========================
+  // |    Forgot Password    |
+  // =========================
   describe("forgotPassword", () => {
     it("gives the same answer whether the account exists, is throttled, or does not exist", async () => {
       // Any difference here would let an attacker find out which emails are registered
@@ -747,6 +750,70 @@ describe("AuthService", () => {
       await service.forgotPassword(safeUser.email, clientInfo);
 
       expect(mocks.authMail.forgotPasswordNotification).not.toHaveBeenCalled();
+    });
+  });
+
+  // =========================
+  // |     reset Password    |
+  // =========================
+  describe("resetPassword", () => {
+    const NEW_PASSWORD = "Br4nd-new!Passw0rd";
+    const request = {token: "raw-reset-token", newPassword: NEW_PASSWORD, clientInfo};
+    const resetPayload = {id: safeUser.id, email: safeUser.email};
+
+    beforeEach(() => {
+      mocks.tokenUtil.verifyPwdToken.mockResolvedValue(resetPayload);
+    });
+
+    it("rejects an invalid, expired or used token with 400 and touches nothing", async () => {
+      mocks.tokenUtil.verifyPwdToken.mockResolvedValue(null);
+
+      const error = await appErrorOf(service.resetPassword(request));
+
+      expect(error).toMatchObject({statusCode: 400, code: "INVALID_RESET_TOKEN"});
+      expect(mocks.drizzle.db.transaction).not.toHaveBeenCalled();
+      expect(mocks.authMail.passwordChangedNotification).not.toHaveBeenCalled();
+    });
+
+    it("hands the raw token to verifyPwdToken", async () => {
+      await service.resetPassword(request);
+
+      expect(mocks.tokenUtil.verifyPwdToken).toHaveBeenCalledWith("raw-reset-token");
+    });
+
+    it("stores the new password hashed and revokes every session, in one transaction", async () => {
+      await service.resetPassword(request);
+
+      const [params, tx] = mocks.authRepository.changePassword.mock.calls[0];
+      expect(params.password).not.toBe(NEW_PASSWORD);
+      expect(params.id).toBe(safeUser.id);
+      expect(await compare(NEW_PASSWORD, params.password)).toBe(true);
+      expect(tx).toBe(TX);
+
+      expect(mocks.authRepository.revokeAllUserTokens).toHaveBeenCalledWith(safeUser.id, TX);
+    });
+
+    it("sends the alert email and returns a success message", async () => {
+      await expect(service.resetPassword(request)).resolves.toMatch(/reset successfully/i);
+
+      expect(mocks.authMail.passwordChangedNotification).toHaveBeenCalledWith(safeUser.email, clientInfo, "reset");
+    });
+
+    it("maps a database foreign-key error to 404 and sends no email", async () => {
+      const missingUser = Object.assign(new Error("insert failed"), {cause: {code: "23503"}});
+      mocks.authRepository.changePassword.mockRejectedValue(missingUser);
+
+      const error = await appErrorOf(service.resetPassword(request));
+
+      expect(error).toMatchObject({statusCode: 404, code: "NOT_FOUND"});
+      expect(mocks.authMail.passwordChangedNotification).not.toHaveBeenCalled();
+    });
+
+    it("lets unknown errors through untouched", async () => {
+      mocks.authRepository.changePassword.mockRejectedValue(new Error("boom"));
+
+      await expect(service.resetPassword(request)).rejects.toThrow("boom");
+      expect(mocks.authMail.passwordChangedNotification).not.toHaveBeenCalled();
     });
   });
 });
