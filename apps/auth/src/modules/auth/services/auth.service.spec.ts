@@ -124,13 +124,12 @@ async function buildService(mocks: Mocks): Promise<AuthService> {
       {provide: PinoLogger, useValue: mocks.logger},
       {provide: TokenUtil, useValue: mocks.tokenUtil},
       {provide: ConfigService, useValue: mocks.config},
+      {provide: DrizzleService, useValue: mocks.drizzle},
       {provide: AuthMailService, useValue: mocks.authMail},
       {provide: UsersCacheService, useValue: mocks.usersCache},
       {provide: CORE_SERVICE_NAME, useValue: mocks.coreClient},
       {provide: AuthRepository, useValue: mocks.authRepository},
       {provide: UsersRepository, useValue: mocks.usersRepository},
-      // AuthService only holds on to this one, none of the tested paths touch it
-      {provide: DrizzleService, useValue: {}},
     ],
   }).compile();
 
