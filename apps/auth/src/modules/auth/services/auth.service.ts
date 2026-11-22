@@ -313,6 +313,14 @@ export class AuthService {
       };
     }
 
+    if (tokenRecord.refreshRecord.expires_in.getTime() <= Date.now()) {
+      throw new AppException({
+        statusCode: 401,
+        code: 'REFRESH_TOKEN_EXPIRE',
+        message: 'Invalid or expired refresh token',
+      });
+    }
+
     // If this token is revoked
     if (tokenRecord.refreshRecord.is_revoked) {
       this.logger.warn({userId},
