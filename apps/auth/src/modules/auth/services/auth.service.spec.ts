@@ -155,6 +155,13 @@ describe("AuthService", () => {
   let service: AuthService;
   let passwordHash: string;
 
+  // The full row, password hash included, which is what the repository returns for password checks
+  const storedUser = (overrides: Partial<User> = {}): User => ({
+    ...safeUser,
+    password: passwordHash,
+    ...overrides,
+  });
+
   beforeAll(async () => {
     // Low cost on purpose, we only need a valid hash and the tests should stay fast
     passwordHash = await hash(PASSWORD, 4);
@@ -603,6 +610,90 @@ describe("AuthService", () => {
       service.logout(null);
 
       expect(mocks.authRepository.revokeToken).not.toHaveBeenCalled();
+    });
+  });
+
+  // =========================
+  // |    Change Password    |
+  // =========================
+  describe("changePassword", () => {
+    const NEW_PASSWORD = "An0ther!Passw0rd";
+    const request = {
+      userId: safeUser.id,
+      oldPassword: PASSWORD,
+      newPassword: NEW_PASSWORD,
+      clientInfo,
+    };
+
+    beforeEach(() => {
+      mocks.usersRepository.findOne.mockImplementation(() => storedUser());
+    });
+
+    it("stores the new password hashed and revokes every session, in one transaction", async () => {
+      await service.changePassword(request);
+
+      expect(mocks.usersRepository.findOne).toHaveBeenCalledWith({id: safeUser.id}, false, TX);
+
+      const [params, tx] = mocks.authRepository.changePassword.mock.calls[0] as [
+        { id: string; password: string },
+        { tag: string; }
+      ];
+      expect(params.id).toBe(safeUser.id);
+      expect(params.password).not.toBe(NEW_PASSWORD);
+      expect(await compare(NEW_PASSWORD, params.password)).toBe(true);
+      expect(tx).toBe(TX);
+
+      expect(mocks.authRepository.revokeAllUserTokens).toHaveBeenCalledWith(safeUser.id, TX);
+    });
+
+    it("returns a message that asks the user to log in again", async () => {
+      await expect(service.changePassword(request)).resolves.toMatch(/password changed successfully/i);
+    });
+
+    it("sends the alert email, and only after the transaction has committed", async () => {
+      let committed = false;
+      let committedWhenMailWasSent: boolean | undefined;
+
+      mocks.drizzle.db.transaction.mockImplementation(async (callback: (tx: unknown) => unknown) => {
+        const result = await callback(TX);
+        committed = true;
+        return result;
+      });
+      mocks.authMail.passwordChangedNotification.mockImplementation(() => {
+        committedWhenMailWasSent = committed;
+        return Promise.resolve();
+      });
+
+      await service.changePassword(request);
+
+      expect(mocks.authMail.passwordChangedNotification).toHaveBeenCalledWith(safeUser.email, clientInfo, "change");
+      expect(committedWhenMailWasSent).toBe(true);
+    });
+
+    it("rejects a wrong current password with 400 and changes nothing", async () => {
+      const error = await appErrorOf(service.changePassword({...request, oldPassword: "not-my-password"}));
+
+      expect(error).toMatchObject({statusCode: 400, code: "Invalid Old Password"});
+      expect(mocks.authRepository.changePassword).not.toHaveBeenCalled();
+      expect(mocks.authRepository.revokeAllUserTokens).not.toHaveBeenCalled();
+      expect(mocks.authMail.passwordChangedNotification).not.toHaveBeenCalled();
+    });
+
+    it("answers 404 when the user does not exist", async () => {
+      mocks.usersRepository.findOne.mockResolvedValue(null);
+
+      const error = await appErrorOf(service.changePassword(request));
+
+      expect(error).toMatchObject({statusCode: 404, code: "NOT_FOUND"});
+      expect(mocks.authRepository.changePassword).not.toHaveBeenCalled();
+    });
+
+    it("sends no email when the transaction fails", async () => {
+      mocks.authRepository.revokeAllUserTokens.mockRejectedValue(new Error("boom"));
+
+      await expect(service.changePassword(request)).rejects.toThrow("boom");
+
+      expect(mocks.authMail.passwordChangedNotification).not.toHaveBeenCalled();
     });
   });
 });
