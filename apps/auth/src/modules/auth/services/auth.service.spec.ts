@@ -17,7 +17,7 @@ import {beforeAll, beforeEach, describe, expect, it, vi} from "vitest";
 import {UsersRepository} from "@app/auth/modules/users/users.repository";
 import {AppException, type AppErrorPayload} from "@live-bid/services/lib";
 import type {LoginUserSchemaType, RegisterUserSchemaType} from "@live-bid/contracts/schemas";
-import {AccessTokenPayload, NormalizeClientInfoType, SafeUser} from "@live-bid/services/types";
+import type {AccessTokenPayload, NormalizeClientInfoType, SafeUser} from "@live-bid/services/types";
 
 /**
  * Unit tests for AuthService (register + login).
