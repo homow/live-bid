@@ -191,4 +191,121 @@ describe("AuthService", () => {
       expect(mocks.usersCache.incrementUserListVersion).not.toHaveBeenCalled();
     });
   });
+
+  // =========================
+  // |       Login           |
+  // =========================
+  describe("login", () => {
+    const input: LoginUserSchemaType = {
+      email: "dpk@example.com",
+      password: PASSWORD,
+      remember: false,
+    };
+
+    // The full row, password hash included, which is what the repository returns for login
+    const storedUser = (overrides: Partial<User> = {}): User => ({
+      ...safeUser,
+      password: passwordHash,
+      ...overrides,
+    });
+
+    beforeEach(() => {
+      mocks.usersRepository.findOne.mockImplementation(() => storedUser());
+    });
+
+    it("returns tokens, cookie options and the user without the password", async () => {
+      const result = await service.login(input, clientInfo);
+
+      expect(result).toEqual({
+        accessToken: TOKENS.accessToken,
+        refreshToken: TOKENS.refreshToken,
+        accessOptions: ACCESS_COOKIE,
+        refreshOptions: REFRESH_COOKIE,
+        user: safeUser,
+      });
+      expect(result.user).not.toHaveProperty("password");
+    });
+
+    it("looks the user up by the given identifier and asks for the full row", async () => {
+      await service.login(input, clientInfo);
+
+      expect(mocks.usersRepository.findOne).toHaveBeenCalledWith(
+        {email: input.email, username: undefined},
+        false,
+      );
+    });
+
+    it("stores only the hash of the refresh token in the session", async () => {
+      await service.login(input, clientInfo);
+
+      expect(mocks.authRepository.insertRefreshToken).toHaveBeenCalledWith({
+        expires_in: TOKENS.expires_in,
+        user_id: safeUser.id,
+        client_info: clientInfo,
+        replace_by_token_id: null,
+        token_hash: TOKENS.hashedRefreshToken,
+        remember_me: false,
+      });
+    });
+
+    it("passes the remember-me choice through to tokens, cookies and the session", async () => {
+      await service.login({...input, remember: true}, clientInfo);
+
+      expect(mocks.tokenUtil.getAccessAndRefreshTokens).toHaveBeenCalledWith(
+        expect.objectContaining({sub: safeUser.id, role: safeUser.role}),
+        true,
+      );
+      expect(mocks.tokenUtil.getCookieOptions).toHaveBeenCalledWith("refresh", true);
+      expect(mocks.authRepository.insertRefreshToken).toHaveBeenCalledWith(
+        expect.objectContaining({remember_me: true}),
+      );
+    });
+
+    it("caches the safe user and sends a login alert", async () => {
+      await service.login(input, clientInfo);
+
+      expect(mocks.usersCache.setCacheUserInfo).toHaveBeenCalledWith(safeUser);
+      expect(mocks.authMail.authNotification).toHaveBeenCalledWith(
+        "login",
+        safeUser.email,
+        expect.any(String),
+        clientInfo,
+      );
+    });
+
+    it("rejects an unknown user with 401 and issues nothing", async () => {
+      mocks.usersRepository.findOne.mockResolvedValue(null);
+
+      const error = await appErrorOf(service.login(input, clientInfo));
+
+      expect(error).toMatchObject({statusCode: 401, code: "Invalid Credentials"});
+      expect(mocks.tokenUtil.getAccessAndRefreshTokens).not.toHaveBeenCalled();
+      expect(mocks.authRepository.insertRefreshToken).not.toHaveBeenCalled();
+    });
+
+    it("rejects a wrong password with the exact same error as an unknown user", async () => {
+      // Same payload both ways, otherwise the endpoint leaks which emails are registered
+      mocks.usersRepository.findOne.mockResolvedValueOnce(null);
+      const unknownUser = await appErrorOf(service.login(input, clientInfo));
+
+      const wrongPassword = await appErrorOf(
+        service.login({...input, password: "not-the-password"}, clientInfo),
+      );
+
+      expect(wrongPassword).toEqual(unknownUser);
+      expect(mocks.tokenUtil.getAccessAndRefreshTokens).not.toHaveBeenCalled();
+      expect(mocks.authRepository.insertRefreshToken).not.toHaveBeenCalled();
+    });
+
+    // Fails until login checks `is_active`, see the fix in the notes
+    it("does not log in a disabled account, even with the right password", async () => {
+      mocks.usersRepository.findOne.mockImplementation(() => storedUser({is_active: false}));
+
+      const error = await appErrorOf(service.login(input, clientInfo));
+
+      expect(error).toMatchObject({statusCode: 403, code: "ACCOUNT_DISABLED"});
+      expect(mocks.tokenUtil.getAccessAndRefreshTokens).not.toHaveBeenCalled();
+      expect(mocks.authRepository.insertRefreshToken).not.toHaveBeenCalled();
+    });
+  });
 });
