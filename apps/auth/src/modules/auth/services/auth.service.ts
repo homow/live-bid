@@ -163,6 +163,17 @@ export class AuthService {
       message: "Invalid user credentials",
     });
 
+    // Checked after the password on purpose, so a stranger can't probe which accounts are disabled
+    if (!user.is_active) {
+      this.logger.warn({id: user.id}, 'Login blocked: account is disabled');
+
+      throw new AppException({
+        statusCode: 403,
+        code: 'ACCOUNT_DISABLED',
+        message: 'This account has been disabled.',
+      });
+    }
+
     // Check password
     const isValidPassword: boolean = await compareSecret(userData.password, user.password);
 
