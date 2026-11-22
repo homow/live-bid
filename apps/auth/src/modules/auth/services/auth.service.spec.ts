@@ -59,6 +59,25 @@ const TOKENS = {
 const ACCESS_COOKIE = {httpOnly: true, maxAge: 1};
 const REFRESH_COOKIE = {httpOnly: true, maxAge: 2};
 
+// Stands in for the drizzle transaction object, we only check it gets passed along
+const TX = {tag: "tx"};
+
+/** A refresh_tokens row as the repository returns it (public columns only) */
+const refreshRecord = (overrides: Record<string, unknown> = {}) => ({
+  id: "rt-1",
+  user_id: safeUser.id,
+  token_hash: "hash-1",
+  is_revoked: false,
+  expires_in: inOneHour(),
+  created_at: new Date("2026-01-01T00:00:00Z"),
+  updated_at: new Date("2026-01-01T00:00:00Z"),
+  remember_me: false,
+  replace_by_token_id: null,
+  ...overrides,
+});
+
+const inOneHour = () => new Date(Date.now() + 60 * 60 * 1000);
+
 function createMocks() {
   return {
     logger: {setContext: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn()},
@@ -66,11 +85,31 @@ function createMocks() {
     tokenUtil: {
       getAccessAndRefreshTokens: vi.fn().mockReturnValue(TOKENS),
       getCookieOptions: vi.fn((type: string) => (type === "access" ? ACCESS_COOKIE : REFRESH_COOKIE)),
+      setPwdToken: vi.fn(),
+      verifyPwdToken: vi.fn(),
     },
-    authMail: {authNotification: vi.fn().mockResolvedValue(undefined)},
-    authRepository: {insertRefreshToken: vi.fn().mockResolvedValue(undefined)},
+    authMail: {
+      authNotification: vi.fn().mockResolvedValue(undefined),
+      passwordChangedNotification: vi.fn().mockResolvedValue(undefined),
+      forgotPasswordNotification: vi.fn().mockResolvedValue(undefined),
+    },
+    authRepository: {
+      insertRefreshToken: vi.fn().mockResolvedValue(undefined),
+      findRefreshRecord: vi.fn(),
+      findRefreshRecordWithUser: vi.fn(),
+      rotateToken: vi.fn(),
+      revokeToken: vi.fn().mockResolvedValue(undefined),
+      revokeAllUserTokens: vi.fn().mockResolvedValue(undefined),
+      changePassword: vi.fn().mockResolvedValue(undefined),
+    },
     usersRepository: {insertUser: vi.fn(), findOne: vi.fn()},
-    usersCache: {incrementUserListVersion: vi.fn(), setCacheUserInfo: vi.fn()},
+    usersCache: {
+      incrementUserListVersion: vi.fn(),
+      setCacheUserInfo: vi.fn(),
+      getCachedUserInfo: vi.fn().mockResolvedValue(null),
+    },
+    // Runs the callback right away and hands it the fake tx, like drizzle would
+    drizzle: {db: {transaction: vi.fn((callback: (tx: unknown) => unknown) => callback(TX))}},
     coreClient: {emit: vi.fn()},
   };
 }
@@ -305,6 +344,66 @@ describe("AuthService", () => {
       expect(error).toMatchObject({statusCode: 403, code: "ACCOUNT_DISABLED"});
       expect(mocks.tokenUtil.getAccessAndRefreshTokens).not.toHaveBeenCalled();
       expect(mocks.authRepository.insertRefreshToken).not.toHaveBeenCalled();
+    });
+  });
+
+  // =========================
+  // |   Validate Refresh    |
+  // =========================
+  describe("validateRefresh", () => {
+    const guard = {userId: safeUser.id, tokenHash: "hash-1"};
+
+    describe("when the user is in the cache", () => {
+      beforeEach(() => {
+        mocks.usersCache.getCachedUserInfo.mockResolvedValue(safeUser);
+        mocks.authRepository.findRefreshRecord.mockResolvedValue([refreshRecord()]);
+      });
+
+      it("returns the cached user together with the token record", async () => {
+        const record = refreshRecord();
+        mocks.authRepository.findRefreshRecord.mockResolvedValue([record]);
+
+        const result = await service.validateRefresh(guard);
+
+        expect(result).toEqual({user: safeUser, refreshRecord: record});
+        expect(mocks.authRepository.findRefreshRecordWithUser).not.toHaveBeenCalled();
+      });
+
+      it("passes the transaction on to the token lookup", async () => {
+        await service.validateRefresh(guard, TX as never);
+
+        expect(mocks.authRepository.findRefreshRecord).toHaveBeenCalledWith("hash-1", TX);
+      });
+
+      it("rejects an unknown token with 401 REFRESH_TOKEN_EXPIRE", async () => {
+        mocks.authRepository.findRefreshRecord.mockResolvedValue([]);
+
+        const error = await appErrorOf(service.validateRefresh(guard));
+
+        expect(error).toMatchObject({statusCode: 401, code: "REFRESH_TOKEN_EXPIRE"});
+      });
+
+      it("rejects a revoked token and tells the client to clear its cookies", async () => {
+        mocks.authRepository.findRefreshRecord.mockResolvedValue([refreshRecord({is_revoked: true})]);
+
+        const error = await appErrorOf(service.validateRefresh(guard));
+
+        expect(error).toMatchObject({
+          statusCode: 401,
+          code: "REFRESH_TOKEN_REVOKED",
+          meta: {clearAuthCookies: true},
+        });
+      });
+
+      // Fails until validateRefresh looks at `expires_in`, see the notes
+      it("rejects a token whose expiry date has passed", async () => {
+        const expired = new Date(Date.now() - 1000);
+        mocks.authRepository.findRefreshRecord.mockResolvedValue([refreshRecord({expires_in: expired})]);
+
+        const error = await appErrorOf(service.validateRefresh(guard));
+
+        expect(error).toMatchObject({statusCode: 401, code: "REFRESH_TOKEN_EXPIRE"});
+      });
     });
   });
 });
