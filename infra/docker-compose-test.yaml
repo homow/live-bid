@@ -1,0 +1,36 @@
+services:
+  postgres-test:
+    image: postgres:16-alpine
+    container_name: live-bid-postgres-test
+    restart: "no"
+    environment:
+      POSTGRES_DB: live_bid_test
+      POSTGRES_USER: test_user
+      POSTGRES_PASSWORD: test_password
+    ports:
+      - "5433:5432"
+    volumes:
+      - live_bid_postgres_test_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U test_user -d live_bid_test" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis-test:
+    image: redis:7-alpine
+    container_name: live-bid-redis-test
+    restart: "no"
+    ports:
+      - "6380:6379"
+    volumes:
+      - live_bid_redis_test_data:/data
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  live_bid_redis_test_data:
+  live_bid_postgres_test_data:
