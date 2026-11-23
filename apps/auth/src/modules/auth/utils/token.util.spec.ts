@@ -3,7 +3,7 @@ import {createHash} from "node:crypto";
 import {JwtService} from "@nestjs/jwt";
 import {UserRoleEnum} from "@live-bid/contracts/enums";
 import {vi, afterEach, describe, it, expect} from "vitest";
-import {AccessTokenPayload} from "@live-bid/services/types";
+import type {AccessTokenPayload} from "@live-bid/services/types";
 
 /**
  * Unit tests for TokenUtil.
