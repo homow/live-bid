@@ -14,6 +14,7 @@ const SECRET = "test-secret-that-is-long-enough-for-hs256";
 const HOUR_MS = 60 * 60 * 1000;
 const TWELVE_HOURS_MS = 12 * HOUR_MS;
 const SEVEN_DAYS_MS = 7 * 24 * HOUR_MS;
+const FIFTEEN_MINUTES_MS = 15 * 60 * 1000;
 
 function setup(env: Record<string, string | undefined> = {}) {
   const values: Record<string, string | undefined> = {JWT_SECRET: SECRET, ...env};
@@ -38,6 +39,20 @@ describe("TokenUtil", () => {
 
       expect(util.getRefreshDate(false)).toBe(TWELVE_HOURS_MS);
       expect(util.getRefreshDate(true)).toBe(SEVEN_DAYS_MS);
+    });
+  });
+
+  describe("getAccessDate", () => {
+    it("falls back to 15 minutes", () => {
+      const {util} = setup();
+
+      expect(util.getAccessDate()).toBe(FIFTEEN_MINUTES_MS);
+    });
+
+    it("follows JWT_EXPIRES when it is set", () => {
+      const {util} = setup({JWT_EXPIRES: "1h"});
+
+      expect(util.getAccessDate()).toBe(HOUR_MS);
     });
   });
 });
