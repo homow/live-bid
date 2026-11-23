@@ -55,4 +55,18 @@ describe("TokenUtil", () => {
       expect(util.getAccessDate()).toBe(HOUR_MS);
     });
   });
+
+  describe("getCookieOptions", () => {
+    it("is strict and secure in production", () => {
+      const {util} = setup({NODE_ENV: "production"});
+
+      expect(util.getCookieOptions("access")).toEqual({
+        sameSite: "strict",
+        httpOnly: true,
+        secure: true,
+        path: "/",
+        maxAge: FIFTEEN_MINUTES_MS,
+      });
+    });
+  });
 });
