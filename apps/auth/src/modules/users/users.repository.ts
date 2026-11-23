@@ -104,6 +104,7 @@ export class UsersRepository {
   async findOne(
     {
       id,
+      lock,
       email,
       username,
     }: FindOneUserParams,
@@ -126,7 +127,7 @@ export class UsersRepository {
       });
     }
 
-    const [findUser] = await this.buildUserQuery(eqUser, tx);
+    const [findUser] = await this.buildUserQuery(eqUser, tx, lock);
 
     if (!findUser) return null;
 
@@ -193,7 +194,6 @@ export class UsersRepository {
       .groupBy(user.id);
 
     if (whereCondition) {
-
       if (lock) {
         return query
           .where(whereCondition)
