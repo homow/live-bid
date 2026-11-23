@@ -43,6 +43,9 @@ afterEach(() => {
 });
 
 describe("TokenUtil", () => {
+  // =============================
+  // |       getRefreshDate      |
+  // =============================
   describe("getRefreshDate", () => {
     it("is 12 hours by default and 7 days with remember me", () => {
       const {util} = setup();
@@ -51,7 +54,9 @@ describe("TokenUtil", () => {
       expect(util.getRefreshDate(true)).toBe(SEVEN_DAYS_MS);
     });
   });
-
+  // =============================
+  // |       getAccessDate       |
+  // =============================
   describe("getAccessDate", () => {
     it("falls back to 15 minutes", () => {
       const {util} = setup();
@@ -65,7 +70,9 @@ describe("TokenUtil", () => {
       expect(util.getAccessDate()).toBe(HOUR_MS);
     });
   });
-
+  // =============================
+  // |      getCookieOptions     |
+  // =============================
   describe("getCookieOptions", () => {
     it("is strict and secure in production", () => {
       const {util} = setup({NODE_ENV: "production"});
@@ -106,7 +113,9 @@ describe("TokenUtil", () => {
       expect(options).toMatchObject({httpOnly: true, path: "/"});
     });
   });
-
+  // =============================
+  // |    generateAccessToken    |
+  // =============================
   describe("generateAccessToken", () => {
     it("throws when JWT_SECRET is missing", () => {
       const {util} = setup({JWT_SECRET: undefined});
@@ -142,7 +151,9 @@ describe("TokenUtil", () => {
       expect(decoded.exp! - decoded.iat!).toBe(FIFTEEN_MINUTES_MS / 1000);
     });
   });
-
+  // =============================
+  // | getAccessAndRefreshTokens |
+  // =============================
   describe("getAccessAndRefreshTokens", () => {
     it("builds the refresh token as <userId>:<128 hex characters>", () => {
       const {util} = setup();
@@ -189,7 +200,9 @@ describe("TokenUtil", () => {
       expect(jwt.verify(accessToken, {secret: SECRET})).toMatchObject({sub: "user-1"});
     });
   });
-
+  // =============================
+  // |        setPwdToken        |
+  // =============================
   describe("setPwdToken", () => {
     const user = {id: "user-1", email: "dpk@example.com"};
 
@@ -219,7 +232,9 @@ describe("TokenUtil", () => {
       await expect(util.setPwdToken(user)).resolves.toBeNull();
     });
   });
-
+  // =============================
+  // |       verifyPwdToken      |
+  // =============================
   describe("verifyPwdToken", () => {
     it("looks the token up by its hash and returns the payload", async () => {
       const {util, cache} = setup();
