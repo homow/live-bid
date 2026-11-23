@@ -68,5 +68,32 @@ describe("TokenUtil", () => {
         maxAge: FIFTEEN_MINUTES_MS,
       });
     });
+
+    it("is lax and not secure outside production, so local http works", () => {
+      const {util} = setup({NODE_ENV: "development"});
+
+      expect(util.getCookieOptions("access")).toMatchObject({
+        sameSite: "lax",
+        secure: false,
+        httpOnly: true,
+      });
+    });
+
+    it("sizes the refresh cookie by the remember-me flag", () => {
+      const {util} = setup();
+
+      expect(util.getCookieOptions("refresh")).toMatchObject({maxAge: TWELVE_HOURS_MS});
+      expect(util.getCookieOptions("refresh", false)).toMatchObject({maxAge: TWELVE_HOURS_MS});
+      expect(util.getCookieOptions("refresh", true)).toMatchObject({maxAge: SEVEN_DAYS_MS});
+    });
+
+    it("leaves maxAge out for logout, so the browser can drop the cookie", () => {
+      const {util} = setup();
+
+      const options = util.getCookieOptions("logout");
+
+      expect(options).not.toHaveProperty("maxAge");
+      expect(options).toMatchObject({httpOnly: true, path: "/"});
+    });
   });
 });
