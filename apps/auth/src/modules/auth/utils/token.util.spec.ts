@@ -189,4 +189,34 @@ describe("TokenUtil", () => {
       expect(jwt.verify(accessToken, {secret: SECRET})).toMatchObject({sub: "user-1"});
     });
   });
+
+  describe("setPwdToken", () => {
+    const user = {id: "user-1", email: "dpk@example.com"};
+
+    it("stores only hashes in the cache keys and never the raw token", async () => {
+      const {util, cache} = setup();
+      cache.setPwdTokenAtomic.mockResolvedValue(true);
+
+      const rawToken = await util.setPwdToken(user);
+
+      expect(rawToken).toMatch(/^[0-9a-f]{64}$/);
+
+      const tokenHash = sha256(rawToken!);
+      expect(cache.setPwdTokenAtomic).toHaveBeenCalledWith(
+        `pwd_reset:token:${tokenHash}`,
+        "pwd_reset:user:user-1",
+        user,
+        tokenHash,
+        FIFTEEN_MINUTES_MS,
+      );
+      expect(JSON.stringify(cache.setPwdTokenAtomic.mock.calls)).not.toContain(rawToken);
+    });
+
+    it("returns null when a reset link is already active for the user", async () => {
+      const {util, cache} = setup();
+      cache.setPwdTokenAtomic.mockResolvedValue(false);
+
+      await expect(util.setPwdToken(user)).resolves.toBeNull();
+    });
+  });
 });
