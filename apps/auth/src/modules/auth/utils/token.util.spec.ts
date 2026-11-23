@@ -219,4 +219,23 @@ describe("TokenUtil", () => {
       await expect(util.setPwdToken(user)).resolves.toBeNull();
     });
   });
+
+  describe("verifyPwdToken", () => {
+    it("looks the token up by its hash and returns the payload", async () => {
+      const {util, cache} = setup();
+      const stored = {id: "user-1", email: "dpk@example.com"};
+      cache.getDel.mockResolvedValue(stored);
+
+      await expect(util.verifyPwdToken("raw-reset-token")).resolves.toEqual(stored);
+
+      expect(cache.getDel).toHaveBeenCalledWith(`pwd_reset:token:${sha256("raw-reset-token")}`);
+    });
+
+    it("returns null for an unknown, expired or already used token", async () => {
+      const {util, cache} = setup();
+      cache.getDel.mockResolvedValue(null);
+
+      await expect(util.verifyPwdToken("whatever")).resolves.toBeNull();
+    });
+  });
 });
