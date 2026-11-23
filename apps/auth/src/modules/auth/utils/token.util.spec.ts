@@ -2,6 +2,7 @@ import {TokenUtil} from "./token.util";
 import {JwtService} from "@nestjs/jwt";
 import {UserRoleEnum} from "@live-bid/contracts/enums";
 import {vi, afterEach, describe, it, expect} from "vitest";
+import {AccessTokenPayload} from "@live-bid/services/types";
 
 /**
  * Unit tests for TokenUtil.
@@ -27,6 +28,12 @@ function setup(env: Record<string, string | undefined> = {}) {
 
   return {util, jwt, cache};
 }
+
+const payload: AccessTokenPayload = {
+  sub: "user-1",
+  role: UserRoleEnum.USER,
+  jti: "jti-1",
+};
 
 afterEach(() => {
   vi.useRealTimers();
@@ -94,6 +101,42 @@ describe("TokenUtil", () => {
 
       expect(options).not.toHaveProperty("maxAge");
       expect(options).toMatchObject({httpOnly: true, path: "/"});
+    });
+  });
+
+  describe("generateAccessToken", () => {
+    it("throws when JWT_SECRET is missing", () => {
+      const {util} = setup({JWT_SECRET: undefined});
+
+      expect(() => util.generateAccessToken(payload)).toThrow("JWT_SECRET must be set");
+    });
+
+    it("signs a token that verifies with the secret and carries the payload", () => {
+      const {util, jwt} = setup();
+
+      const token = util.generateAccessToken(payload);
+      const decoded = jwt.verify(token, {secret: SECRET}) as unknown as AccessTokenPayload;
+
+      expect(decoded).toMatchObject({sub: "user-1", role: UserRoleEnum.USER, jti: "jti-1"});
+      expect(decoded.exp! - decoded.iat!).toBe(FIFTEEN_MINUTES_MS / 1000);
+    });
+
+    it("does not verify with any other secret", () => {
+      const {util, jwt} = setup();
+
+      const token = util.generateAccessToken(payload);
+
+      const decoded = jwt.verify<AccessTokenPayload>(token, {
+        secret: SECRET,
+      });
+
+      expect(decoded).toMatchObject({
+        sub: "user-1",
+        role: UserRoleEnum.USER,
+        jti: "jti-1",
+      });
+
+      expect(decoded.exp! - decoded.iat!).toBe(FIFTEEN_MINUTES_MS / 1000);
     });
   });
 });
