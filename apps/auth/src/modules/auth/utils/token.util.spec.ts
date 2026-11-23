@@ -3,6 +3,7 @@ import {JwtService} from "@nestjs/jwt";
 import {UserRoleEnum} from "@live-bid/contracts/enums";
 import {vi, afterEach, describe, it, expect} from "vitest";
 import {AccessTokenPayload} from "@live-bid/services/types";
+import {createHash} from "node:crypto";
 
 /**
  * Unit tests for TokenUtil.
@@ -11,6 +12,8 @@ import {AccessTokenPayload} from "@live-bid/services/types";
  * Config and cache are small fakes.
  */
 const SECRET = "test-secret-that-is-long-enough-for-hs256";
+
+const sha256 = (value: string) => createHash("sha256").update(value).digest("hex");
 
 const HOUR_MS = 60 * 60 * 1000;
 const TWELVE_HOURS_MS = 12 * HOUR_MS;
@@ -137,6 +140,53 @@ describe("TokenUtil", () => {
       });
 
       expect(decoded.exp! - decoded.iat!).toBe(FIFTEEN_MINUTES_MS / 1000);
+    });
+  });
+
+  describe("getAccessAndRefreshTokens", () => {
+    it("builds the refresh token as <userId>:<128 hex characters>", () => {
+      const {util} = setup();
+
+      const {refreshToken} = util.getAccessAndRefreshTokens(payload, false);
+
+      expect(refreshToken).toMatch(/^user-1:[0-9a-f]{128}$/);
+    });
+
+    it("returns the sha256 of the refresh token for storage", () => {
+      const {util} = setup();
+
+      const {refreshToken, hashedRefreshToken} = util.getAccessAndRefreshTokens(payload, false);
+
+      expect(hashedRefreshToken).toBe(sha256(refreshToken));
+      expect(hashedRefreshToken).not.toContain(refreshToken);
+    });
+
+    it("gives every call a different refresh token", () => {
+      const {util} = setup();
+
+      const first = util.getAccessAndRefreshTokens(payload, false);
+      const second = util.getAccessAndRefreshTokens(payload, false);
+
+      expect(first.refreshToken).not.toBe(second.refreshToken);
+      expect(first.hashedRefreshToken).not.toBe(second.hashedRefreshToken);
+    });
+
+    it("sets the session expiry from the remember-me flag", () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date("2026-06-01T00:00:00Z"));
+      const {util} = setup();
+      const now = Date.now();
+
+      expect(util.getAccessAndRefreshTokens(payload, false).expires_in.getTime()).toBe(now + TWELVE_HOURS_MS);
+      expect(util.getAccessAndRefreshTokens(payload, true).expires_in.getTime()).toBe(now + SEVEN_DAYS_MS);
+    });
+
+    it("returns an access token that verifies", () => {
+      const {util, jwt} = setup();
+
+      const {accessToken} = util.getAccessAndRefreshTokens(payload, false);
+
+      expect(jwt.verify(accessToken, {secret: SECRET})).toMatchObject({sub: "user-1"});
     });
   });
 });
