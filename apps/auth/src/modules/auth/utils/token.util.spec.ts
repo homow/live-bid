@@ -54,6 +54,7 @@ describe("TokenUtil", () => {
       expect(util.getRefreshDate(true)).toBe(SEVEN_DAYS_MS);
     });
   });
+
   // =============================
   // |       getAccessDate       |
   // =============================
@@ -70,6 +71,7 @@ describe("TokenUtil", () => {
       expect(util.getAccessDate()).toBe(HOUR_MS);
     });
   });
+
   // =============================
   // |      getCookieOptions     |
   // =============================
@@ -113,6 +115,7 @@ describe("TokenUtil", () => {
       expect(options).toMatchObject({httpOnly: true, path: "/"});
     });
   });
+
   // =============================
   // |    generateAccessToken    |
   // =============================
@@ -151,6 +154,7 @@ describe("TokenUtil", () => {
       expect(decoded.exp! - decoded.iat!).toBe(FIFTEEN_MINUTES_MS / 1000);
     });
   });
+
   // =============================
   // | getAccessAndRefreshTokens |
   // =============================
@@ -200,6 +204,7 @@ describe("TokenUtil", () => {
       expect(jwt.verify(accessToken, {secret: SECRET})).toMatchObject({sub: "user-1"});
     });
   });
+
   // =============================
   // |        setPwdToken        |
   // =============================
@@ -232,6 +237,7 @@ describe("TokenUtil", () => {
       await expect(util.setPwdToken(user)).resolves.toBeNull();
     });
   });
+
   // =============================
   // |       verifyPwdToken      |
   // =============================
