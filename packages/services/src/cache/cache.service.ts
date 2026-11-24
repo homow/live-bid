@@ -109,7 +109,7 @@ export class CacheService implements OnModuleInit, OnModuleDestroy {
     do {
       const [nextCursor, keys] = await this.getClient().scan(
         cursor,
-        'MATCH', prefix,
+        'MATCH', this.prefix + prefix,
         'COUNT', 50
       );
 
