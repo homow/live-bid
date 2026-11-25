@@ -87,4 +87,30 @@ describe("AuthRepository (real Postgres)", () => {
       });
     });
   });
+
+  describe("findRefreshRecord", () => {
+    it("returns the public columns only", async () => {
+      const owner = await createUser();
+      const session = await seedToken(owner.id);
+
+      const [row] = await repo.findRefreshRecord(session.token_hash);
+
+      expect(row.id).toBe(session.id);
+      expect(row).not.toHaveProperty("client_info");
+    });
+
+    it("returns nothing for an unknown hash", async () => {
+      await expect(repo.findRefreshRecord(randomHash())).resolves.toEqual([]);
+    });
+
+    it("works inside a transaction", async () => {
+      const owner = await createUser();
+      const session = await seedToken(owner.id);
+
+      const rows = await drizzle.db.transaction((tx) => repo.findRefreshRecord(session.token_hash, tx));
+
+      expect(rows).toHaveLength(1);
+    });
+  });
+
 });
