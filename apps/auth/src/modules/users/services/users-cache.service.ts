@@ -134,19 +134,29 @@ export class UsersCacheService {
    * Retrieves a paginated user list using a versioned Cache-Aside strategy.
    *
    * @remarks
-   * - **Versioned Cache:** Uses the current user list cache version to build
-   *   the cache key. Incrementing the version invalidates all previously
-   *   cached list variations without explicitly deleting them.
-   * - **Cache Hit:** Returns the cached user list immediately when available.
-   * - **Cache Miss:** Fetches the user list from the database and schedules
-   *   an asynchronous Redis write.
-   * - **Fire-and-forget:** Cache writes do not block the response. Failures
-   *   are logged and do not affect the database result.
-   * - **Cache Key:** Excludes `offset` because it is derived from pagination
-   *   parameters and is not independently required to identify the result.
+   * **Cache Versioning**
+   * - Retrieves the current user list cache version.
+   * - Incorporates the version into the cache key.
+   * - Version increments invalidate all previously cached list variations
+   *   by making their keys unreachable.
+   *
+   * **Cache Retrieval**
+   * - **Cache Hit:** Returns the cached result without querying the database.
+   * - **Cache Miss:** Fetches the requested user list from the database
+   *   and schedules an asynchronous Redis write.
+   *
+   * **Cache Population**
+   * - Cache writes are performed using a fire-and-forget approach.
+   * - Redis writes do not block the database response.
+   * - Cache write failures are caught and logged without affecting
+   *   the successfully retrieved database result.
+   *
+   * **Cache Key Construction**
+   * - Excludes `offset` because it is derived from pagination parameters
+   *   and is not independently required to identify the requested result.
    *
    * @param options - Filtering, sorting, and pagination options.
-   * @returns The requested user list.
+   * @returns A promise resolving to the requested list of users.
    */
   async getOrSetCacheUserList(options: FindManyUsersSchemaType): Promise<SafeUser[]> {
     const version: number = await this.cache.getCacheVersion(this.userListVersionKey);

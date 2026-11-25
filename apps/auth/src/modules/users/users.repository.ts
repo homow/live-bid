@@ -104,6 +104,7 @@ export class UsersRepository {
   async findOne(
     {
       id,
+      lock,
       email,
       username,
     }: FindOneUserParams,
@@ -126,7 +127,7 @@ export class UsersRepository {
       });
     }
 
-    const [findUser] = await this.buildUserQuery(eqUser, tx);
+    const [findUser] = await this.buildUserQuery(eqUser, tx, lock);
 
     if (!findUser) return null;
 
@@ -136,6 +137,42 @@ export class UsersRepository {
     }
 
     return findUser satisfies User;
+  }
+
+  /**
+   * Retrieves a filtered and paginated list of users.
+   *
+   * - Only safe user columns are selected (password is excluded).
+   * - Filters can be combined using `AND`.
+   * - Results are ordered by the requested field and direction.
+   *
+   * @param options - Pagination, sorting, and filtering options.
+   * @returns A query resolving to a list of safe user records.
+   *
+   * @see {@link FindManyUsersSchemaType}
+   */
+  findMany({limit, orderBy, offset, role, sortBy, is_active}: FindManyUsersSchemaType) {
+    const conditions: SQL[] = [];
+
+    if (is_active !== undefined) {
+      conditions.push(eq(user.is_active, is_active));
+    }
+
+    if (role) {
+      conditions.push(eq(user.role, role));
+    }
+
+    return this.drizzle.db
+      .select(USER_SAFE_COLUMNS)
+      .from(user)
+      .limit(limit)
+      .offset(offset)
+      .orderBy(
+        sortBy === BaseSortByEnum.desc
+          ? desc(user[orderBy])
+          : asc(user[orderBy])
+      )
+      .where(and(...conditions));
   }
 
   /**
@@ -157,7 +194,6 @@ export class UsersRepository {
       .groupBy(user.id);
 
     if (whereCondition) {
-
       if (lock) {
         return query
           .where(whereCondition)
@@ -208,41 +244,5 @@ export class UsersRepository {
       .update(user)
       .set({role})
       .where(eq(user.id, userID));
-  }
-
-  /**
-   * Retrieves a filtered and paginated list of users.
-   *
-   * - Only safe user columns are selected (password is excluded).
-   * - Filters can be combined using `AND`.
-   * - Results are ordered by the requested field and direction.
-   *
-   * @param options - Pagination, sorting, and filtering options.
-   * @returns A query resolving to a list of safe user records.
-   *
-   * @see {@link FindManyUsersSchemaType}
-   */
-  findMany({limit, orderBy, offset, role, sortBy, is_active}: FindManyUsersSchemaType) {
-    const conditions: SQL[] = [];
-
-    if (is_active !== undefined) {
-      conditions.push(eq(user.is_active, is_active));
-    }
-
-    if (role) {
-      conditions.push(eq(user.role, role));
-    }
-
-    return this.drizzle.db
-      .select(USER_SAFE_COLUMNS)
-      .from(user)
-      .limit(limit)
-      .offset(offset)
-      .orderBy(
-        sortBy === BaseSortByEnum.desc
-          ? desc(user[orderBy])
-          : asc(user[orderBy])
-      )
-      .where(and(...conditions));
   }
 }

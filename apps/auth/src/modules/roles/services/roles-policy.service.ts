@@ -37,15 +37,27 @@ export class RolesPolicy {
   }
 
   /**
-   * **Assert that the actor is allowed to modify the target's role.**
+   * Validates whether the actor is allowed to modify the target user's role.
    *
-   * Runs **before** the DB transaction, since it only needs the request payload.
+   * Evaluates authorization rules that depend only on the supplied request
+   * data and therefore can be executed before opening a database transaction.
    *
-   * @param data - `{ actor, target }` with the actor's role and the target's new role.
+   * @param data - Role modification request containing the actor and target information.
    *
-   * @throws {AppException} 403 `ROLE_MODIFICATION_REQUIRES_OWNER` — actor is not `OWNER`.
-   * @throws {AppException} 403 `ROLE_SELF_MODIFICATION_NOT_ALLOWED` — actor targets themselves.
-   * @throws {AppException} 403 `OWNER_ROLE_ASSIGNMENT_FORBIDDEN` — target new role is `OWNER`.
+   * @throws AppException - 403 ROLE_MODIFICATION_REQUIRES_OWNER
+   * if the actor does not have the OWNER role.
+   *
+   * @throws AppException - 403 ROLE_SELF_MODIFICATION_NOT_ALLOWED
+   * if the actor attempts to modify their own role.
+   *
+   * @throws AppException - 403 OWNER_ROLE_ASSIGNMENT_FORBIDDEN
+   * if the requested new role is OWNER.
+   *
+   * @remarks
+   * This check provides defense in depth alongside the Gateway's
+   * authorization guards. It must also be enforced at the service level
+   * because the Auth microservice should not rely exclusively on Gateway
+   * authorization.
    */
   assertCanModifyRole({actor, target}: ModifyRoleRequestService): void {
     // ── 1. Defense in depth: RoleGuard should have blocked non-OWNER already.
@@ -94,14 +106,24 @@ export class RolesPolicy {
   }
 
   /**
-   * **Assert that the target user can be demoted.**
+   * Prevents modification of a user currently holding the OWNER role.
    *
-   * Runs **inside** the transaction because it depends on the target's
-   * current role from the database.
+   * Must be executed inside the database transaction after retrieving
+   * and locking the target user's database row.
    *
-   * @param targetUser - `{ id, role }` of the locked target user.
+   * @param targetUser - Current target user information:
+   * - `id` - Target user's unique identifier.
+   * - `role` - Target user's current database role.
    *
-   * @throws {AppException} 403 `OWNER_DEMOTION_FORBIDDEN` — target currently holds `OWNER`.
+   * @throws AppException - 403 OWNER_DEMOTION_FORBIDDEN
+   * if the target user currently holds the OWNER role.
+   *
+   * @remarks
+   * This check uses the target user's persisted role rather than relying
+   * on client-provided information.
+   *
+   * Row-level locking ensures that concurrent role modifications cannot
+   * bypass this check using a stale role value.
    */
   assertCanDemoteOwner(targetUser: { id: string; role: UserRoleEnum }): void {
     if (targetUser.role === UserRoleEnum.OWNER) {

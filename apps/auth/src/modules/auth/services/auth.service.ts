@@ -1,4 +1,4 @@
-import {
+import type {
   RefreshGuardData,
   DrizzleTransaction,
   RefreshTokenPayload,
@@ -14,12 +14,15 @@ import {v7} from "uuid";
 import {TokenUtil} from "../utils";
 import {PinoLogger} from "nestjs-pino";
 import {randomUUID} from "node:crypto";
-import {Injectable} from "@nestjs/common";
 import {ConfigService} from "@nestjs/config";
+import {ClientProxy} from "@nestjs/microservices";
+import {Inject, Injectable} from "@nestjs/common";
 import {compareSecret} from "@app/auth/lib/utils";
 import {AuthRepository} from "../auth.repository";
 import {AuthMailService} from "./auth-mail.service";
+import {AUTH_EVENTS} from "@live-bid/services/events";
 import {DrizzleService} from "@live-bid/services/modules";
+import {CORE_SERVICE_NAME} from "@live-bid/services/names";
 import {UsersCacheService} from "@app/auth/modules/users/services";
 import {UsersRepository} from "@app/auth/modules/users/users.repository";
 import type {RegisterUserSchemaType, LoginUserSchemaType} from "@live-bid/contracts/schemas";
@@ -75,6 +78,7 @@ export class AuthService {
     private readonly authRepository: AuthRepository,
     private readonly usersRepository: UsersRepository,
     private readonly usersCacheService: UsersCacheService,
+    @Inject(CORE_SERVICE_NAME) private readonly coreClient: ClientProxy,
   ) {
     this.logger.setContext(AuthService.name);
   }
@@ -111,6 +115,13 @@ export class AuthService {
 
       const dashboardLink: string = this.config.get<string>("APPLICATION_DASHBOARD_URL") ?? "http://127.0.0.1:3000/dashboard";
 
+      // Send an event for create wallet
+      this.coreClient.emit(
+        AUTH_EVENTS.USER_REGISTERED,
+        user.id
+      );
+
+      // Send notif for user
       void this.authMail.authNotification(
         "register",
         userData.email,
@@ -151,6 +162,17 @@ export class AuthService {
       code: 'Invalid Credentials',
       message: "Invalid user credentials",
     });
+
+    // Checked after the password on purpose, so a stranger can't probe which accounts are disabled
+    if (!user.is_active) {
+      this.logger.warn({id: user.id}, 'Login blocked: account is disabled');
+
+      throw new AppException({
+        statusCode: 403,
+        code: 'ACCOUNT_DISABLED',
+        message: 'This account has been disabled.',
+      });
+    }
 
     // Check password
     const isValidPassword: boolean = await compareSecret(userData.password, user.password);
@@ -289,6 +311,14 @@ export class AuthService {
         user,
         refreshRecord,
       };
+    }
+
+    if (tokenRecord.refreshRecord.expires_in.getTime() <= Date.now()) {
+      throw new AppException({
+        statusCode: 401,
+        code: 'REFRESH_TOKEN_EXPIRE',
+        message: 'Invalid or expired refresh token',
+      });
     }
 
     // If this token is revoked

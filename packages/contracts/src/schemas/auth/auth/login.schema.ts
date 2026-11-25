@@ -1,17 +1,22 @@
 import {z} from "zod";
-import {UserPasswordSchema, UsernameSchema} from "../../common";
+import {UsernameSchema} from "../../common";
+import {RegisterUserSchema} from "./register.schema";
 
-export const LoginUserSchema = z.object({
-  username: UsernameSchema.optional(),
-  email: z.email().optional(),
-  password: UserPasswordSchema,
-  remember: z.boolean().optional().default(false),
-}).refine(
-  data => data.username || data.email,
-  {
-    message: "Either username or email is required",
-    path: ["username", "email"],
-  }
-);
+export const LoginUserSchema = RegisterUserSchema
+  .pick({
+    password: true,
+  })
+  .extend({
+    username: UsernameSchema.optional(),
+    email: RegisterUserSchema.shape.email.optional(),
+    remember: z.boolean().optional().default(false),
+  })
+  .refine(
+    data => data.username || data.email,
+    {
+      path: ["username", "email"],
+      message: "Either username or email is required",
+    }
+  );
 
 export type LoginUserSchemaType = z.infer<typeof LoginUserSchema>;

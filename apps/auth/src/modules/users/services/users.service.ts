@@ -1,9 +1,18 @@
+import type {
+  SafeUser,
+  GetProfileResponseService,
+  FindOneUserRequestService,
+  FindManyUsersRequestService,
+  UpdateProfileRequestService,
+  UpdateProfileResponseService,
+  PublicProfileResponseService,
+} from "@live-bid/services/types";
+
 import {Injectable} from "@nestjs/common";
 import {UsersCacheService} from "./users-cache.service";
-import {AppException, handleDrizzleError} from "@live-bid/services/lib";
-import type {UpdateProfileSchemaType} from "@live-bid/contracts/schemas";
 import {UsersRepository} from "@app/auth/modules/users/users.repository";
-import type {FindManyUsersRequestService, GetProfileResponseService, PublicProfileResponseService, UpdateProfileRequestService, UpdateProfileResponseService} from "@live-bid/services/types";
+import type {UpdateProfileSchemaType} from "@live-bid/contracts/schemas";
+import {AppException, handleDrizzleError, throwNotFound} from "@live-bid/services/lib";
 
 /**
  * **UsersService**
@@ -43,7 +52,6 @@ export class UsersService {
    * // => { username, display_name, role, is_active }
    */
   async getPublicProfile(userId: string): Promise<PublicProfileResponseService> {
-
     const user = await this.usersCacheService.getOrSetUserCache(userId);
 
     return {
@@ -148,12 +156,57 @@ export class UsersService {
   }
 
   /**
+   * Retrieves a single user using the provided lookup criteria.
+   *
+   * @remarks
+   * **Lookup Strategy**
+   * - Uses the user cache when `user_id` is provided.
+   * - Falls back to the repository for lookups by `email` or `username`.
+   * - Returns only safe user data, excluding sensitive fields such as the password.
+   *
+   * **Error Handling**
+   * - Throws a `NotFoundException` if no matching user is found.
+   *
+   * @param user_id - Unique identifier of the user.
+   * @param username - Username used to locate the user.
+   * @param email - Email address used to locate the user.
+   * @returns A promise resolving to the matching `SafeUser`.
+   */
+  async findOne({user_id, username, email}: FindOneUserRequestService) {
+    let result: SafeUser | null;
+
+    if (user_id) {
+      result = await this.usersCacheService.getOrSetUserCache(user_id);
+    } else {
+      result = await this.usersRepository.findOne({
+        email,
+        username,
+      });
+    }
+
+    if (!result) throwNotFound('User', 'id or email or username');
+
+    return result;
+  }
+
+  /**
    * Retrieves a list of users through the caching layer.
    *
+   * @remarks
+   * **Caching Strategy**
+   * - Delegates cache retrieval and population to `UsersCacheService`.
+   * - Uses a versioned cache key to support invalidation of all cached
+   *   user list variations without explicitly deleting individual entries.
+   *
+   * **Supported Operations**
+   * - Filtering
+   * - Sorting
+   * - Pagination
+   *
    * @param options - Filtering, sorting, and pagination options.
-   * @returns A promise resolving to the requested user list.
+   * @returns A promise resolving to the requested list of users.
    */
-  findMany(options: FindManyUsersRequestService) {
+  findMany(options: FindManyUsersRequestService): Promise<SafeUser[]> {
     return this.usersCacheService.getOrSetCacheUserList(options);
   }
 }

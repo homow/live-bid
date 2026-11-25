@@ -3,7 +3,7 @@
 High-level structure of the Live Bid backend — from the monorepo root down to individual services. This is a **map**, not a file listing: it shows *where things live* and *how they
 connect*.
 
-> 📖 For setup, environment, and API details, see [`README.server.md`](./README.server.md).
+> 📖 For setup, environment, and API details, see [`README.SERVER.md`](README.SERVER.md).
 > 📖 For service internals, see [`apps/README.md`](./apps/README.md) and the per-service READMEs.
 
 ---
@@ -229,7 +229,7 @@ sequenceDiagram
 ## 📚 See Also
 
 - [`README.md`](./README.md) — project overview + client
-- [`README.server.md`](./README.server.md) — backend setup, env, DB, API
+- [`README.SERVER.md`](README.SERVER.md) — backend setup, env, DB, API
 - [`CONTRIBUTING.md`](./CONTRIBUTING.md) — branch/commit/PR conventions
 - [`apps/README.md`](./apps/README.md) — service roles and communication
 - [`apps/gateway/README.md`](./apps/gateway/README.md) — GraphQL, guards, caching

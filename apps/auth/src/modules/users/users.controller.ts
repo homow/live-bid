@@ -2,7 +2,7 @@ import {UsersService} from "./services";
 import {Controller} from "@nestjs/common";
 import {USERS_PATTERNS} from "@live-bid/services/messages";
 import {MessagePattern, Payload} from "@nestjs/microservices";
-import type {FindManyUsersRequestService, GetProfileResponseService, PublicProfileResponseService, UpdateProfileRequestService} from "@live-bid/services/types";
+import type {FindManyUsersRequestService, FindOneUserRequestService, GetProfileResponseService, PublicProfileResponseService, SafeUser, UpdateProfileRequestService} from "@live-bid/services/types";
 
 /**
  * **UsersController**
@@ -78,15 +78,36 @@ export class UsersController {
   }
 
   /**
+   * Handles incoming requests to retrieve a single user.
+   *
+   * @remarks
+   * - Listens for messages matching `USERS_PATTERNS.FIND_ONE`.
+   * - Delegates user lookup to `UsersService`.
+   *
+   * @param payload - User lookup criteria, including user ID, email, or username.
+   * @returns A promise resolving to the matching user, excluding sensitive fields.
+   */
+  @MessagePattern(USERS_PATTERNS.FIND_ONE)
+  findOne(
+    @Payload() payload: FindOneUserRequestService
+  ): Promise<SafeUser> {
+    return this.usersService.findOne(payload);
+  }
+
+  /**
    * Handles incoming requests to retrieve a list of users.
    *
-   * @param payload - User list query parameters received from the message payload.
-   * @returns A promise resolving to the requested user list.
+   * @remarks
+   * - Listens for messages matching `USERS_PATTERNS.FIND_MANY`.
+   * - Delegates filtering, sorting, and pagination to `UsersService`.
+   *
+   * @param payload - User list query parameters, including filters and pagination options.
+   * @returns A promise resolving to the matching list of users, excluding sensitive fields.
    */
   @MessagePattern(USERS_PATTERNS.FIND_MANY)
   findMany(
     @Payload() payload: FindManyUsersRequestService
-  ) {
+  ): Promise<SafeUser[]> {
     return this.usersService.findMany(payload);
   }
 }
