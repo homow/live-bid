@@ -13,8 +13,9 @@ import {
 import LoginForm from "../LoginForm";
 import RegisterForm from "../RegisterForm";
 import ForgotPassword from "../ForgotPassword";
+import ResetPassword from "../ResetPassword";
 
-type AuthMode = "login" | "register" | "forgotPass";
+type AuthMode = "login" | "register" | "forgotPass" | "resetPassword";
 
 type AuthModalProps = {
   open: boolean;
@@ -73,7 +74,20 @@ const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
               </DialogDescription>
             </DialogHeader>
 
-            <ForgotPassword onLoginClick={() => setMode("login")} />
+            <ForgotPassword
+              onLoginClick={() => setMode("login")}
+              onResetPasswordClick={() => setMode("resetPassword")}
+            />
+          </>
+        )}
+        {mode === "resetPassword" && (
+          <>
+            <DialogHeader>
+              <DialogTitle>Reset Password</DialogTitle>
+              <DialogDescription>Enter your new password.</DialogDescription>
+            </DialogHeader>
+
+            <ResetPassword onSuccess={() => setMode("login")} />
           </>
         )}
       </DialogContent>
