@@ -71,6 +71,9 @@ describe("AuthRepository (real Postgres)", () => {
     await closeDb();
   });
 
+  // ==============================
+  // |     insertRefreshToken      |
+  // ==============================
   describe("insertRefreshToken", () => {
     it("stores the session, not revoked by default", async () => {
       const owner = await createUser();
@@ -88,6 +91,9 @@ describe("AuthRepository (real Postgres)", () => {
     });
   });
 
+  // ==============================
+  // |     findRefreshRecord      |
+  // ==============================
   describe("findRefreshRecord", () => {
     it("returns the public columns only", async () => {
       const owner = await createUser();
@@ -113,6 +119,9 @@ describe("AuthRepository (real Postgres)", () => {
     });
   });
 
+  // ==============================
+  // |   revokeAllUserTokens      |
+  // ==============================
   describe("revokeAllUserTokens", () => {
     it("revokes every session of that user and leaves other users alone", async () => {
       const alice = await createUser();
@@ -142,6 +151,10 @@ describe("AuthRepository (real Postgres)", () => {
       expect((await loadToken(session.id)).is_revoked).toBe(false);
     });
   });
+
+  // ==============================
+  // |        rotateToken         |
+  // ==============================
   describe("rotateToken", () => {
     it("revokes the old session, inserts the new one and links them", async () => {
       const owner = await createUser();
@@ -189,6 +202,9 @@ describe("AuthRepository (real Postgres)", () => {
     });
   });
 
+  // ==============================
+  // |        revokeToken         |
+  // ==============================
   describe("revokeToken", () => {
     it("revokes only the session with that hash", async () => {
       const owner = await createUser();
@@ -202,6 +218,9 @@ describe("AuthRepository (real Postgres)", () => {
     });
   });
 
+  // ==============================
+  // |      changePassword        |
+  // ==============================
   describe("changePassword", () => {
     const passwordOf = async (id: string) => {
       const [row] = await drizzle.db.select({password: user.password}).from(user).where(eq(user.id, id));
@@ -235,5 +254,4 @@ describe("AuthRepository (real Postgres)", () => {
       expect(await passwordOf(owner.id)).toBe(owner.password);
     });
   });
-
 });
