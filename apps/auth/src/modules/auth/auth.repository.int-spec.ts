@@ -70,4 +70,21 @@ describe("AuthRepository (real Postgres)", () => {
   afterAll(async () => {
     await closeDb();
   });
+
+  describe("insertRefreshToken", () => {
+    it("stores the session, not revoked by default", async () => {
+      const owner = await createUser();
+      const tokenHash = randomHash();
+
+      await repo.insertRefreshToken({...newSession(owner.id), token_hash: tokenHash, remember_me: true});
+
+      const [row] = await repo.findRefreshRecord(tokenHash);
+      expect(row).toMatchObject({
+        user_id: owner.id,
+        token_hash: tokenHash,
+        is_revoked: false,
+        remember_me: true,
+      });
+    });
+  });
 });
