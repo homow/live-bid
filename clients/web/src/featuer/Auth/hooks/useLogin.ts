@@ -45,18 +45,23 @@ export const useLogin = (onSuccess: () => void) => {
       const { data: response } = await loginUser({
         variables: {
           input: {
-            username: data.username,
-            email: data.email,
+            username: data.username || undefined,
+            email: data.email || undefined,
             password: data.password,
             remember: data.remember,
           },
         },
       });
 
+      if (!response?.login) {
+        toast.error("Login failed. Please try again.");
+        return null;
+      }
+
       toast.success("Login successful :)");
       onSuccess();
 
-      return response?.login;
+      return response.login;
     } catch (error) {
       toast.error("Login failed. Please try again.");
       return null;
