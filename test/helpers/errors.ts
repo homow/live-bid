@@ -27,3 +27,15 @@ export async function pgErrorCode(promise: Promise<unknown>): Promise<string | u
   const pgError = error as {code?: string; cause?: {code?: string}};
   return pgError.cause?.code ?? pgError.code;
 }
+
+/** Same as appErrorOf, for code that throws synchronously */
+export function appErrorOfSync(call: () => unknown): AppErrorPayload {
+  try {
+    call();
+  } catch (error) {
+    expect(error).toBeInstanceOf(AppException);
+    return (error as AppException).getError() as AppErrorPayload;
+  }
+
+  throw new Error("Expected the call to throw, but it returned normally");
+}
