@@ -189,4 +189,51 @@ describe("AuthRepository (real Postgres)", () => {
     });
   });
 
+  describe("revokeToken", () => {
+    it("revokes only the session with that hash", async () => {
+      const owner = await createUser();
+      const target = await seedToken(owner.id);
+      const other = await seedToken(owner.id);
+
+      await repo.revokeToken(target.token_hash);
+
+      expect((await loadToken(target.id)).is_revoked).toBe(true);
+      expect((await loadToken(other.id)).is_revoked).toBe(false);
+    });
+  });
+
+  describe("changePassword", () => {
+    const passwordOf = async (id: string) => {
+      const [row] = await drizzle.db.select({password: user.password}).from(user).where(eq(user.id, id));
+      return row.password;
+    };
+
+    it("updates the password hash by user id", async () => {
+      const owner = await createUser();
+
+      await repo.changePassword({id: owner.id, password: "new-hash"});
+
+      expect(await passwordOf(owner.id)).toBe("new-hash");
+    });
+
+    it("updates the password hash by email", async () => {
+      const owner = await createUser();
+      const bystander = await createUser();
+
+      await repo.changePassword({email: owner.email, password: "new-hash"});
+
+      expect(await passwordOf(owner.id)).toBe("new-hash");
+      expect(await passwordOf(bystander.id)).toBe(bystander.password);
+    });
+
+    it("refuses to run without an id or an email, instead of updating every user", async () => {
+      const owner = await createUser();
+
+      const error = await appErrorOf(repo.changePassword({password: "new-hash"}));
+
+      expect(error).toMatchObject({statusCode: 500, code: "MISSING_IDENTIFIER"});
+      expect(await passwordOf(owner.id)).toBe(owner.password);
+    });
+  });
+
 });
