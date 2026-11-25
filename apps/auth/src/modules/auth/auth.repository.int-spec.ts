@@ -113,4 +113,33 @@ describe("AuthRepository (real Postgres)", () => {
     });
   });
 
+  describe("revokeAllUserTokens", () => {
+    it("revokes every session of that user and leaves other users alone", async () => {
+      const alice = await createUser();
+      const bob = await createUser();
+      const aliceTokens = [await seedToken(alice.id), await seedToken(alice.id)];
+      const bobToken = await seedToken(bob.id);
+
+      await repo.revokeAllUserTokens(alice.id);
+
+      for (const token of aliceTokens) {
+        expect((await loadToken(token.id)).is_revoked).toBe(true);
+      }
+      expect((await loadToken(bobToken.id)).is_revoked).toBe(false);
+    });
+
+    it("is rolled back together with the transaction it ran in", async () => {
+      const owner = await createUser();
+      const session = await seedToken(owner.id);
+
+      await expect(
+        drizzle.db.transaction(async (tx) => {
+          await repo.revokeAllUserTokens(owner.id, tx);
+          throw new Error("rollback please");
+        }),
+      ).rejects.toThrow("rollback please");
+
+      expect((await loadToken(session.id)).is_revoked).toBe(false);
+    });
+  });
 });
