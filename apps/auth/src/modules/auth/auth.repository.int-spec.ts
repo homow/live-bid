@@ -142,4 +142,51 @@ describe("AuthRepository (real Postgres)", () => {
       expect((await loadToken(session.id)).is_revoked).toBe(false);
     });
   });
+  describe("rotateToken", () => {
+    it("revokes the old session, inserts the new one and links them", async () => {
+      const owner = await createUser();
+      const old = await seedToken(owner.id);
+      const next = newSession(owner.id);
+
+      const created = await drizzle.db.transaction((tx) => repo.rotateToken(old.id, next, tx));
+
+      const oldAfter = await loadToken(old.id);
+      const newRow = await loadToken(created.id);
+
+      expect(oldAfter.is_revoked).toBe(true);
+      expect(oldAfter.replace_by_token_id).toBe(created.id);
+      expect(newRow).toMatchObject({token_hash: next.token_hash, is_revoked: false, user_id: owner.id});
+    });
+
+    it("throws REFRESH_TOKEN_REUSE for an already revoked token and inserts nothing", async () => {
+      const owner = await createUser();
+      const old = await seedToken(owner.id, {is_revoked: true});
+
+      const error = await appErrorOf(
+        drizzle.db.transaction((tx) => repo.rotateToken(old.id, newSession(owner.id), tx)),
+      );
+
+      expect(error).toMatchObject({
+        statusCode: 401,
+        code: "REFRESH_TOKEN_REUSE",
+        meta: {clearAuthCookies: true},
+      });
+      expect(await countTokens()).toBe(1);
+    });
+
+    it("lets exactly one of two parallel rotations of the same token win", async () => {
+      const owner = await createUser();
+      const old = await seedToken(owner.id);
+
+      const rotate = () => drizzle.db.transaction((tx) => repo.rotateToken(old.id, newSession(owner.id), tx));
+      const results = await Promise.allSettled([rotate(), rotate()]);
+
+      expect(results.filter((r) => r.status === "fulfilled")).toHaveLength(1);
+      expect(results.filter((r) => r.status === "rejected")).toHaveLength(1);
+
+      // The old session plus exactly one new one
+      expect(await countTokens()).toBe(2);
+    });
+  });
+
 });
