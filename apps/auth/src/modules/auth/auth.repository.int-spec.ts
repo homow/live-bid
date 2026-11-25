@@ -1,10 +1,10 @@
-import {randomBytes} from "node:crypto";
 import {eq} from "drizzle-orm";
-import {afterAll, beforeEach, describe, expect, it, vi} from "vitest";
+import {randomBytes} from "node:crypto";
 import {AuthRepository} from "./auth.repository";
 import {DrizzleService} from "@live-bid/services/modules";
-import {refreshToken, user} from "@live-bid/services/database";
 import {appErrorOf} from "../../../../../test/helpers/errors";
+import {refreshToken, user} from "@live-bid/services/database";
+import {afterAll, beforeEach, describe, expect, it, vi} from "vitest";
 import {closeDb, createUser, resetDb} from "../../../../../test/helpers/db";
 
 /**
