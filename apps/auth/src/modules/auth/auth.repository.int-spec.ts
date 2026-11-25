@@ -1,7 +1,6 @@
 import {randomBytes} from "node:crypto";
 import {eq} from "drizzle-orm";
 import {afterAll, beforeEach, describe, expect, it, vi} from "vitest";
-
 import {AuthRepository} from "./auth.repository";
 import {DrizzleService} from "@live-bid/services/modules";
 import {refreshToken, user} from "@live-bid/services/database";
@@ -28,4 +27,47 @@ const logger = {setContext: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn(
 const randomHash = () => randomBytes(32).toString("hex");
 const inOneHour = () => new Date(Date.now() + 60 * 60 * 1000);
 
-describe("AuthRepository (real Postgres)", () => {});
+describe("AuthRepository (real Postgres)", () => {
+  const drizzle = new DrizzleService();
+  const repo = new AuthRepository(logger as never, drizzle);
+
+  /** Puts a session straight into the table, so the tests don't depend on insertRefreshToken */
+  const seedToken = async (userId: string, overrides: Partial<typeof refreshToken.$inferInsert> = {}) => {
+    const [row] = await drizzle.db
+      .insert(refreshToken)
+      .values({
+        user_id: userId,
+        token_hash: randomHash(),
+        expires_in: inOneHour(),
+        client_info: clientInfo,
+        ...overrides,
+      })
+      .returning();
+
+    return row;
+  };
+
+  const loadToken = async (id: string) => {
+    const [row] = await drizzle.db.select().from(refreshToken).where(eq(refreshToken.id, id));
+    return row;
+  };
+
+  const countTokens = async () => (await drizzle.db.select().from(refreshToken)).length;
+
+  const newSession = (userId: string) => ({
+    user_id: userId,
+    token_hash: randomHash(),
+    expires_in: inOneHour(),
+    client_info: clientInfo,
+    remember_me: false,
+    replace_by_token_id: null,
+  });
+
+  beforeEach(async () => {
+    await resetDb();
+  });
+
+  afterAll(async () => {
+    await closeDb();
+  });
+});
