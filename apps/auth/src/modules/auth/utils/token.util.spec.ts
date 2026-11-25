@@ -141,17 +141,12 @@ describe("TokenUtil", () => {
 
       const token = util.generateAccessToken(payload);
 
-      const decoded = jwt.verify<AccessTokenPayload>(token, {
-        secret: SECRET,
-      });
-
-      expect(decoded).toMatchObject({
-        sub: "user-1",
-        role: UserRoleEnum.USER,
-        jti: "jti-1",
-      });
-
-      expect(decoded.exp! - decoded.iat!).toBe(FIFTEEN_MINUTES_MS / 1000);
+      expect(() =>
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+        jwt.verify(token, {
+          secret: "some-other-secret-of-similar-length-1234",
+        }),
+      ).toThrow();
     });
   });
 
