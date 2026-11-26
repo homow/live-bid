@@ -73,4 +73,61 @@ describe("UsersService", () => {
     });
   });
 
+  describe("updateProfile", () => {
+    it("writes only the fields that actually changed", async () => {
+      await ctx.service.updateProfile({
+        userId: USER_ID,
+        updatableData: {username: "dpk_new", display_name: "dpk"},
+      });
+
+      expect(ctx.usersRepository.updateProfile).toHaveBeenCalledWith(USER_ID, {username: "dpk_new"});
+    });
+
+    it("returns the changed fields, not the whole profile", async () => {
+      await expect(
+        ctx.service.updateProfile({userId: USER_ID, updatableData: {display_name: "New Name"}}),
+      ).resolves.toEqual({display_name: "New Name"});
+    });
+
+    it("clears the user's cache and the cached users lists", async () => {
+      await ctx.service.updateProfile({userId: USER_ID, updatableData: {display_name: "New Name"}});
+
+      expect(ctx.usersCache.deleteUserCache).toHaveBeenCalledWith(USER_ID);
+      expect(ctx.usersCache.incrementUserListVersion).toHaveBeenCalledTimes(1);
+    });
+
+    it.each([
+      ["nothing is sent", {}],
+      ["the values are the same as now", {display_name: "dpk", username: null}],
+    ])("answers 400 NO_CHANGES when %s, and writes nothing", async (_label, updatableData) => {
+      const error = await appErrorOf(ctx.service.updateProfile({userId: USER_ID, updatableData} as never));
+
+      expect(error).toMatchObject({statusCode: 400, code: "NO_CHANGES"});
+      expect(ctx.usersRepository.updateProfile).not.toHaveBeenCalled();
+      expect(ctx.usersCache.deleteUserCache).not.toHaveBeenCalled();
+      expect(ctx.usersCache.incrementUserListVersion).not.toHaveBeenCalled();
+    });
+
+    it("answers 409 when the username is taken, and keeps the caches", async () => {
+      const taken = Object.assign(new Error("update failed"), {cause: {code: "23505"}});
+      ctx.usersRepository.updateProfile.mockRejectedValue(taken);
+
+      const error = await appErrorOf(
+        ctx.service.updateProfile({userId: USER_ID, updatableData: {username: "taken"}}),
+      );
+
+      expect(error).toMatchObject({statusCode: 409, code: "CONFLICT"});
+      expect(ctx.usersCache.deleteUserCache).not.toHaveBeenCalled();
+      expect(ctx.usersCache.incrementUserListVersion).not.toHaveBeenCalled();
+    });
+
+    it("lets unknown errors through untouched", async () => {
+      ctx.usersRepository.updateProfile.mockRejectedValue(new Error("boom"));
+
+      await expect(
+        ctx.service.updateProfile({userId: USER_ID, updatableData: {username: "x"}}),
+      ).rejects.toThrow("boom");
+    });
+  });
+
 });
