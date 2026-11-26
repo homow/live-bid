@@ -137,4 +137,53 @@ describe("UsersCacheService", () => {
     });
   });
 
+  describe("getOrSetCacheUserList", () => {
+    it("returns a cached list without touching the database", async () => {
+      ctx.cache.get.mockResolvedValue([safeUser]);
+
+      await expect(ctx.service.getOrSetCacheUserList(listOptions)).resolves.toEqual([safeUser]);
+
+      expect(ctx.userRepository.findMany).not.toHaveBeenCalled();
+    });
+
+    it("treats a cached empty list as a hit", async () => {
+      ctx.cache.get.mockResolvedValue([]);
+
+      await expect(ctx.service.getOrSetCacheUserList(listOptions)).resolves.toEqual([]);
+
+      expect(ctx.userRepository.findMany).not.toHaveBeenCalled();
+    });
+
+    it("queries the database on a miss and caches the result for an hour", async () => {
+      ctx.userRepository.findMany.mockResolvedValue([safeUser]);
+
+      await expect(ctx.service.getOrSetCacheUserList(listOptions)).resolves.toEqual([safeUser]);
+
+      expect(ctx.userRepository.findMany).toHaveBeenCalledWith(listOptions);
+      expect(ctx.cache.set).toHaveBeenCalledWith(ctx.cache.get.mock.calls[0][0], [safeUser], ONE_HOUR_MS);
+    });
+
+    it("still returns the database result when caching it fails", async () => {
+      ctx.userRepository.findMany.mockResolvedValue([safeUser]);
+      ctx.cache.set.mockRejectedValue(new Error("redis is down"));
+
+      await expect(ctx.service.getOrSetCacheUserList(listOptions)).resolves.toEqual([safeUser]);
+      await flush();
+
+      expect(ctx.logger.error).toHaveBeenCalledTimes(1);
+    });
+
+    it("looks lists up under a key that changes with the list version", async () => {
+      ctx.cache.getCacheVersion.mockResolvedValueOnce(1).mockResolvedValueOnce(2);
+      ctx.userRepository.findMany.mockResolvedValue([]);
+
+      await ctx.service.getOrSetCacheUserList(listOptions);
+      await ctx.service.getOrSetCacheUserList(listOptions);
+
+      const [firstKey] = ctx.cache.get.mock.calls[0];
+      const [secondKey] = ctx.cache.get.mock.calls[1];
+      expect(firstKey).not.toBe(secondKey);
+    });
+  });
+
 });
