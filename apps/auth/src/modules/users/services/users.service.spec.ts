@@ -100,7 +100,7 @@ describe("UsersService", () => {
       ["nothing is sent", {}],
       ["the values are the same as now", {display_name: "dpk", username: null}],
     ])("answers 400 NO_CHANGES when %s, and writes nothing", async (_label, updatableData) => {
-      const error = await appErrorOf(ctx.service.updateProfile({userId: USER_ID, updatableData} as never));
+      const error = await appErrorOf(ctx.service.updateProfile({userId: USER_ID, updatableData}));
 
       expect(error).toMatchObject({statusCode: 400, code: "NO_CHANGES"});
       expect(ctx.usersRepository.updateProfile).not.toHaveBeenCalled();
