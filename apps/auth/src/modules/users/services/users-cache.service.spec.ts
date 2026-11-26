@@ -186,4 +186,21 @@ describe("UsersCacheService", () => {
     });
   });
 
+  describe("incrementUserListVersion", () => {
+    it("bumps the shared list version", () => {
+      ctx.service.incrementUserListVersion();
+
+      expect(ctx.cache.incrementCacheVersion).toHaveBeenCalledWith(LIST_VERSION_KEY);
+    });
+
+    it("logs a failure and doesn't throw", async () => {
+      ctx.cache.incrementCacheVersion.mockRejectedValue(new Error("redis is down"));
+
+      expect(() => ctx.service.incrementUserListVersion()).not.toThrow();
+      await flush();
+
+      expect(ctx.logger.error).toHaveBeenCalledTimes(1);
+    });
+  });
+
 });
