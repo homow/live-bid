@@ -58,6 +58,11 @@
       "require": "./dist/common/index.js",
       "types": "./dist/common/index.d.ts"
     },
+    "./enums": {
+      "import": "./dist/enums/index.js",
+      "require": "./dist/enums/index.js",
+      "types": "./dist/enums/index.d.ts"
+    },
     "./modules": {
       "import": "./dist/modules/index.js",
       "require": "./dist/modules/index.js",
