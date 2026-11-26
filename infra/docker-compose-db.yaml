@@ -98,8 +98,8 @@ services:
       start_period: 30s
 
 volumes:
-  live_bid_postgres_data:
   live_bid_redis_data:
-  live_bid_wordpress_db_dev_data:
+  live_bid_postgres_data:
   live_bid_wordpress_dev_core:
+  live_bid_wordpress_db_dev_data:
   live_bid_wordpress_dev_uploads:
