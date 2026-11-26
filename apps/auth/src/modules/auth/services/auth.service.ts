@@ -517,33 +517,36 @@ export class AuthService {
   }
 
   /**
-   * **Initiates the password reset process.**
+   * Initiates the password reset process.
    *
    * @remarks
-   * - This method is **public** and does not require authentication.
-   * - To prevent **email enumeration attacks**, the same success message is returned
-   *   regardless of whether the email exists in the system.
-   * - The reset link contains a single-use token that expires after **15 minutes**.
-   * - Email sending is **fire-and-forget** (non-blocking) to keep the response fast.
+   * - This method is public and does not require authentication.
+   * - Returns different messages depending on whether an active account
+   *   exists for the provided email address.
+   * - This behavior may expose account existence (email enumeration).
+   * - The reset link contains a single-use token that expires after 15 minutes.
+   * - Email sending is fire-and-forget (non-blocking).
    *
-   * @param email - The user's registered email address.
+   * @param email - The user's email address.
    * @param clientInfo - Client metadata (IP, browser, OS, etc.) for the security email.
-   * @returns A generic success message to avoid revealing whether the email exists.
+   *
+   * @returns A message indicating whether password reset instructions were sent
+   *   or no active account was found.
    *
    * @example
    * await this.forgotPassword('user@example.com', clientInfo);
-   * // Returns: "If an account with that email exists, a password reset link has been sent."
+   * // Returns: "Password reset instructions have been sent to your email address. Please check your inbox."
    */
   async forgotPassword(
     email: string,
     clientInfo: NormalizeClientInfoType,
   ): Promise<string> {
-    const genericMessage = "If an account with that email exists, a password reset link has been sent.";
-
     const user = await this.usersRepository.findOne({email});
 
     // Return a generic message even if the user does not exist (security).
-    if (!user) return genericMessage;
+    if (!user || !user.is_active) {
+      return 'No active account was found with this email address. Please check your email or contact support if you believe this is a mistake.';
+    }
 
     const rawToken = await this.tokenUtil.setPwdToken({email, id: user.id});
 
@@ -556,7 +559,7 @@ export class AuthService {
       );
     }
 
-    return genericMessage;
+    return 'Password reset instructions have been sent to your email address. Please check your inbox.';
   }
 
   /**
@@ -590,7 +593,7 @@ export class AuthService {
    *   clientInfo,
    * });
    */
-  async resetPassword({token, newPassword, clientInfo}: ResetPasswordRequestService) {
+  async resetPassword({token, newPassword, clientInfo}: ResetPasswordRequestService): Promise<string> {
     const cached = await this.tokenUtil.verifyPwdToken(token);
 
     if (!cached) throw new AppException({
