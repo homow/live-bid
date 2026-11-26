@@ -67,4 +67,10 @@ describe("UsersService", () => {
     });
   });
 
+  describe("getMyProfile", () => {
+    it("returns the user from the cache layer as it is", async () => {
+      await expect(ctx.service.getMyProfile(USER_ID)).resolves.toBe(safeUser);
+    });
+  });
+
 });
