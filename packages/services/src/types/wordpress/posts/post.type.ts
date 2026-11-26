@@ -1,8 +1,8 @@
 import type {User} from '../users';
 import type {Tag} from '../taxonomy';
 import type {MediaItem} from '../media';
+import type {Comment} from '../comments';
 import type {Category} from '../taxonomy';
-import type {Comment} from '../comments/comment.type';
 
 export interface Post {
   id: string;
