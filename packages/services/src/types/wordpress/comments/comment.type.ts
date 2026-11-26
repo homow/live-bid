@@ -1,8 +1,4 @@
-import type {User} from '../users';
-import type {Post} from '../posts';
-import type {CommentAuthorType} from '../users';
-
-export type Commenter = User | CommentAuthorType;
+import type {CommentToCommenterConnectionEdge, CommentToContentNodeConnectionEdge, CommentToParentCommentConnectionEdge, CommentToCommentConnection} from './comment-edges.type';
 
 export interface Comment {
   id: string;
@@ -12,12 +8,12 @@ export interface Comment {
   dateGmt: string | null;
   status: string | null;
   type: string | null;
-  author: Commenter | null;
-  commentedOn: Post | null;
-  parent: Comment | null;
+  author: CommentToCommenterConnectionEdge | null;
+  commentedOn: CommentToContentNodeConnectionEdge | null;
+  parent: CommentToParentCommentConnectionEdge | null;
   parentDatabaseId: number | null;
   parentId: string | null;
-  replies: Comment[] | null;
+  replies: CommentToCommentConnection | null;
   agent: string | null;
   karma: number | null;
   link: string | null;

@@ -1,8 +1,4 @@
-import type {User} from '../users';
-import type {Tag} from '../taxonomy';
-import type {MediaItem} from '../media';
-import type {Comment} from '../comments';
-import type {Category} from '../taxonomy';
+import type {PostToCategoryConnection, PostToTagConnection, PostToCommentConnection, NodeWithAuthorToUserConnectionEdge, NodeWithFeaturedImageToMediaItemConnectionEdge} from './post-edges.type';
 
 export interface Post {
   id: string;
@@ -27,9 +23,9 @@ export interface Post {
   uri: string | null;
   isSticky: boolean;
   hasPassword: boolean | null;
-  author: User | null;
-  categories: Category[] | null;
-  tags: Tag[] | null;
-  comments: Comment[] | null;
-  featuredImage: MediaItem | null;
+  author: NodeWithAuthorToUserConnectionEdge | null;
+  categories: PostToCategoryConnection | null;
+  tags: PostToTagConnection | null;
+  comments: PostToCommentConnection | null;
+  featuredImage: NodeWithFeaturedImageToMediaItemConnectionEdge | null;
 }
