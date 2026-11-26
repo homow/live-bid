@@ -32,6 +32,7 @@ import {DrizzleModule, MailModule} from "@live-bid/services/modules";
 
     // App Modules
     Modules.WalletsModule,
+    Modules.WordpressModule,
   ],
 })
 export class AppModule {}
