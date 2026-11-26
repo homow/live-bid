@@ -1,24 +1,18 @@
-import type { Connection, ConnectionEdge } from '../common/connection.type';
-import type { User } from '../users/user.type';
-import type { MediaItem } from '../media/media-item.type';
-import type { Category } from '../taxonomy/category.type';
-import type { Tag } from '../taxonomy/tag.type';
-import type { Comment } from '../comments/comment.type';
+import type {User} from '../users';
+import type {MediaItem} from '../media';
+import type {Comment} from '../comments';
+import type {Tag, Category} from '../taxonomy';
+import type {Connection, ConnectionEdge} from '../common';
 
-export interface NodeWithAuthorToUserConnectionEdge
-  extends ConnectionEdge<User> {}
+export type NodeWithAuthorToUserConnectionEdge = ConnectionEdge<User>;
 
-export interface NodeWithFeaturedImageToMediaItemConnectionEdge
-  extends ConnectionEdge<MediaItem> {}
+export type NodeWithFeaturedImageToMediaItemConnectionEdge = ConnectionEdge<MediaItem>;
 
-export interface PostToCategoryConnectionEdge
-  extends ConnectionEdge<Category> {}
+export type PostToCategoryConnectionEdge = ConnectionEdge<Category>;
 
-export interface PostToTagConnectionEdge
-  extends ConnectionEdge<Tag> {}
+export type PostToTagConnectionEdge = ConnectionEdge<Tag>;
 
-export interface PostToCommentConnectionEdge
-  extends ConnectionEdge<Comment> {}
+export type PostToCommentConnectionEdge = ConnectionEdge<Comment>;
 
 export type PostToCategoryConnection = Connection<Category, PostToCategoryConnectionEdge>;
 export type PostToTagConnection = Connection<Tag, PostToTagConnectionEdge>;
