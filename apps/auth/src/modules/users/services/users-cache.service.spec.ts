@@ -46,3 +46,29 @@ function setup() {
 
   return {service, logger, cache, userRepository};
 }
+
+describe("UsersCacheService", () => {
+  let ctx: ReturnType<typeof setup>;
+
+  beforeEach(() => {
+    ctx = setup();
+  });
+
+  describe("setCacheUserInfo", () => {
+    it("stores the user under its profile key for one hour", () => {
+      ctx.service.setCacheUserInfo(safeUser);
+
+      expect(ctx.cache.set).toHaveBeenCalledWith(RedisKey.getUserProfileKey(USER_ID), safeUser, ONE_HOUR_MS);
+    });
+
+    it("logs a failed write and doesn't throw, since the cache is only a shortcut", async () => {
+      ctx.cache.set.mockRejectedValue(new Error("redis is down"));
+
+      expect(() => ctx.service.setCacheUserInfo(safeUser)).not.toThrow();
+      await flush();
+
+      expect(ctx.logger.error).toHaveBeenCalledTimes(1);
+    });
+  });
+
+});
