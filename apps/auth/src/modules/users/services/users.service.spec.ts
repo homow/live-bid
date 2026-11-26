@@ -130,4 +130,37 @@ describe("UsersService", () => {
     });
   });
 
+  describe("findOne", () => {
+    it("uses the cache when it gets a user id", async () => {
+      await expect(ctx.service.findOne({user_id: USER_ID})).resolves.toBe(safeUser);
+
+      expect(ctx.usersCache.getOrSetUserCache).toHaveBeenCalledWith(USER_ID);
+      expect(ctx.usersRepository.findOne).not.toHaveBeenCalled();
+    });
+
+    it("prefers the user id over email and username", async () => {
+      await ctx.service.findOne({user_id: USER_ID, email: "other@example.com", username: "other"});
+
+      expect(ctx.usersCache.getOrSetUserCache).toHaveBeenCalledTimes(1);
+      expect(ctx.usersRepository.findOne).not.toHaveBeenCalled();
+    });
+
+    it("goes to the repository for an email or a username", async () => {
+      ctx.usersRepository.findOne.mockResolvedValue(safeUser);
+
+      await expect(ctx.service.findOne({email: safeUser.email})).resolves.toBe(safeUser);
+
+      expect(ctx.usersRepository.findOne).toHaveBeenCalledWith({email: safeUser.email, username: undefined});
+      expect(ctx.usersCache.getOrSetUserCache).not.toHaveBeenCalled();
+    });
+
+    it("answers 404 when the repository finds nobody", async () => {
+      ctx.usersRepository.findOne.mockResolvedValue(null);
+
+      const error = await appErrorOf(ctx.service.findOne({username: "ghost"}));
+
+      expect(error).toMatchObject({statusCode: 404, code: "NOT_FOUND"});
+    });
+  });
+
 });
