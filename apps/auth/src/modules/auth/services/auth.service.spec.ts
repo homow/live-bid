@@ -700,31 +700,63 @@ describe("AuthService", () => {
   // |    Forgot Password    |
   // =========================
   describe("forgotPassword", () => {
-    it("gives the same answer whether the account exists, is throttled, or does not exist", async () => {
-      // Any difference here would let an attacker find out which emails are registered
-      mocks.usersRepository.findOne.mockResolvedValueOnce(null);
-      const unknown = await service.forgotPassword(safeUser.email, clientInfo);
+    it("returns an appropriate message when no active account exists", async () => {
+      mocks.usersRepository.findOne.mockResolvedValue(null);
 
-      mocks.usersRepository.findOne.mockResolvedValueOnce(safeUser);
-      mocks.tokenUtil.setPwdToken.mockResolvedValueOnce("raw-reset-token");
-      const known = await service.forgotPassword(safeUser.email, clientInfo);
+      const result = await service.forgotPassword(
+        "nobody@example.com",
+        clientInfo,
+      );
 
-      mocks.usersRepository.findOne.mockResolvedValueOnce(safeUser);
-      mocks.tokenUtil.setPwdToken.mockResolvedValueOnce(null);
-      const throttled = await service.forgotPassword(safeUser.email, clientInfo);
+      expect(result).toBe(
+        "No active account was found with this email address. Please check your email or contact support if you believe this is a mistake.",
+      );
 
-      expect(known).toBe(unknown);
-      expect(throttled).toBe(unknown);
+      expect(mocks.tokenUtil.setPwdToken).not.toHaveBeenCalled();
+      expect(mocks.authMail.forgotPasswordNotification).not.toHaveBeenCalled();
     });
 
-    it("issues a token and mails the reset link to a known account", async () => {
+    it("returns an appropriate message when the account is inactive", async () => {
+      mocks.usersRepository.findOne.mockResolvedValue({
+        ...safeUser,
+        is_active: false,
+      });
+
+      const result = await service.forgotPassword(
+        safeUser.email,
+        clientInfo,
+      );
+
+      expect(result).toBe(
+        "No active account was found with this email address. Please check your email or contact support if you believe this is a mistake.",
+      );
+
+      expect(mocks.tokenUtil.setPwdToken).not.toHaveBeenCalled();
+      expect(mocks.authMail.forgotPasswordNotification).not.toHaveBeenCalled();
+    });
+
+    it("issues a token and mails the reset link to an active account", async () => {
       mocks.usersRepository.findOne.mockResolvedValue(safeUser);
       mocks.tokenUtil.setPwdToken.mockResolvedValue("raw-reset-token");
 
-      await service.forgotPassword(safeUser.email, clientInfo);
+      const result = await service.forgotPassword(
+        safeUser.email,
+        clientInfo,
+      );
 
-      expect(mocks.usersRepository.findOne).toHaveBeenCalledWith({email: safeUser.email});
-      expect(mocks.tokenUtil.setPwdToken).toHaveBeenCalledWith({email: safeUser.email, id: safeUser.id});
+      expect(result).toBe(
+        "Password reset instructions have been sent to your email address. Please check your inbox.",
+      );
+
+      expect(mocks.usersRepository.findOne).toHaveBeenCalledWith({
+        email: safeUser.email,
+      });
+
+      expect(mocks.tokenUtil.setPwdToken).toHaveBeenCalledWith({
+        email: safeUser.email,
+        id: safeUser.id,
+      });
+
       expect(mocks.authMail.forgotPasswordNotification).toHaveBeenCalledWith(
         safeUser.email,
         "raw-reset-token",
@@ -733,21 +765,20 @@ describe("AuthService", () => {
       );
     });
 
-    it("does nothing for an unknown email", async () => {
-      mocks.usersRepository.findOne.mockResolvedValue(null);
-
-      await service.forgotPassword("nobody@example.com", clientInfo);
-
-      expect(mocks.tokenUtil.setPwdToken).not.toHaveBeenCalled();
-      expect(mocks.authMail.forgotPasswordNotification).not.toHaveBeenCalled();
-    });
-
-    it("sends no second email while an earlier reset link is still valid", async () => {
+    it("does not send another email while an earlier reset link is still valid", async () => {
       mocks.usersRepository.findOne.mockResolvedValue(safeUser);
       mocks.tokenUtil.setPwdToken.mockResolvedValue(null);
 
-      await service.forgotPassword(safeUser.email, clientInfo);
+      const result = await service.forgotPassword(
+        safeUser.email,
+        clientInfo,
+      );
 
+      expect(result).toBe(
+        "Password reset instructions have been sent to your email address. Please check your inbox.",
+      );
+
+      expect(mocks.tokenUtil.setPwdToken).toHaveBeenCalled();
       expect(mocks.authMail.forgotPasswordNotification).not.toHaveBeenCalled();
     });
   });

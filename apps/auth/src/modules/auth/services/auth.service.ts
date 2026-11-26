@@ -521,10 +521,12 @@ export class AuthService {
    *
    * @remarks
    * - This method is public and does not require authentication.
-   * - Returns different messages depending on whether an active account
-   *   exists for the provided email address.
-   * - This behavior may expose account existence (email enumeration).
+   * - Returns a different message when no active account is associated
+   *   with the provided email address.
+   * - This behavior exposes account existence and may enable email enumeration.
    * - The reset link contains a single-use token that expires after 15 minutes.
+   * - Existing valid reset tokens prevent issuing another token or sending
+   *   another email.
    * - Email sending is fire-and-forget (non-blocking).
    *
    * @param email - The user's email address.
@@ -543,7 +545,7 @@ export class AuthService {
   ): Promise<string> {
     const user = await this.usersRepository.findOne({email});
 
-    // Return a generic message even if the user does not exist (security).
+    // Return a message indicating that no active account was found.
     if (!user || !user.is_active) {
       return 'No active account was found with this email address. Please check your email or contact support if you believe this is a mistake.';
     }
