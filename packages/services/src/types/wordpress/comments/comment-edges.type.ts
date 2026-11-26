@@ -1,9 +1,6 @@
 import type {Post} from '../posts';
-import type {Comment} from './comment.type';
-import type {User, CommentAuthorType} from '../users';
-import type {Connection, ConnectionEdge} from '../common/connection.type';
-
-export type Commenter = User | CommentAuthorType;
+import type {Comment, Commenter} from './comment.type';
+import type {Connection, ConnectionEdge} from '../common';
 
 export interface CommentToCommenterConnectionEdge {
   cursor: string | null;
