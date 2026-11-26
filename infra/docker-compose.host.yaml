@@ -39,6 +39,8 @@ services:
     restart: on-failure
     networks:
       - live-bid-host-network
+    ports:
+      - "3306:3306"
     volumes:
       - live_bid_wordpress_db_host_data:/var/lib/mysql
     env_file:
