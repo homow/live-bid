@@ -36,5 +36,35 @@ function setup() {
 }
 
 describe("UsersService", () => {
+  let ctx: ReturnType<typeof setup>;
+
+  beforeEach(() => {
+    ctx = setup();
+  });
+
+  describe("getPublicProfile", () => {
+    it("returns the four public fields and nothing else", async () => {
+      await expect(ctx.service.getPublicProfile(USER_ID)).resolves.toEqual({
+        role: safeUser.role,
+        username: safeUser.username,
+        is_active: safeUser.is_active,
+        display_name: safeUser.display_name,
+      });
+    });
+
+    it("never leaks the email, the id or the timestamps", async () => {
+      const profile = await ctx.service.getPublicProfile(USER_ID);
+
+      expect(profile).not.toHaveProperty("email");
+      expect(profile).not.toHaveProperty("id");
+      expect(profile).not.toHaveProperty("created_at");
+    });
+
+    it("reads through the cache", async () => {
+      await ctx.service.getPublicProfile(USER_ID);
+
+      expect(ctx.usersCache.getOrSetUserCache).toHaveBeenCalledWith(USER_ID);
+    });
+  });
 
 });
