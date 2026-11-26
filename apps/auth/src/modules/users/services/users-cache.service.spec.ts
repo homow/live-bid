@@ -85,4 +85,40 @@ describe("UsersCacheService", () => {
     });
   });
 
+  describe("getOrSetUserCache", () => {
+    it("returns the cached user without touching the database", async () => {
+      ctx.cache.get.mockResolvedValue(safeUser);
+
+      await expect(ctx.service.getOrSetUserCache(USER_ID)).resolves.toBe(safeUser);
+
+      expect(ctx.userRepository.findOne).not.toHaveBeenCalled();
+    });
+
+    it("loads from the database on a miss, then caches the result", async () => {
+      ctx.userRepository.findOne.mockResolvedValue(safeUser);
+
+      await expect(ctx.service.getOrSetUserCache(USER_ID)).resolves.toBe(safeUser);
+
+      expect(ctx.userRepository.findOne).toHaveBeenCalledWith({id: USER_ID, lock: undefined}, true);
+      expect(ctx.cache.set).toHaveBeenCalledWith(RedisKey.getUserProfileKey(USER_ID), safeUser, ONE_HOUR_MS);
+    });
+
+    it("passes the lock request on to the repository", async () => {
+      ctx.userRepository.findOne.mockResolvedValue(safeUser);
+
+      await ctx.service.getOrSetUserCache(USER_ID, true);
+
+      expect(ctx.userRepository.findOne).toHaveBeenCalledWith({id: USER_ID, lock: true}, true);
+    });
+
+    it("answers 404 and caches nothing when the user doesn't exist", async () => {
+      ctx.userRepository.findOne.mockResolvedValue(null);
+
+      const error = await appErrorOf(ctx.service.getOrSetUserCache(USER_ID));
+
+      expect(error).toMatchObject({statusCode: 404, code: "NOT_FOUND"});
+      expect(ctx.cache.set).not.toHaveBeenCalled();
+    });
+  });
+
 });
