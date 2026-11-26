@@ -1,10 +1,9 @@
-import {beforeEach, describe, expect, it, vi} from "vitest";
-
-import {UsersCacheService} from "./users-cache.service";
 import {RedisKey} from "@live-bid/services/cache";
 import {ONE_HOUR_MS} from "@live-bid/services/lib";
 import {UserRoleEnum} from "@live-bid/contracts/enums";
 import type {SafeUser} from "@live-bid/services/types";
+import {UsersCacheService} from "./users-cache.service";
+import {beforeEach, describe, expect, it, vi} from "vitest";
 import {appErrorOf} from "../../../../../../test/helpers/errors";
 
 /**
@@ -54,6 +53,9 @@ describe("UsersCacheService", () => {
     ctx = setup();
   });
 
+  // ===========================
+  // |    setCacheUserInfo     |
+  // ===========================
   describe("setCacheUserInfo", () => {
     it("stores the user under its profile key for one hour", () => {
       ctx.service.setCacheUserInfo(safeUser);
@@ -71,6 +73,9 @@ describe("UsersCacheService", () => {
     });
   });
 
+  // ===========================
+  // |    getCachedUserInfo    |
+  // ===========================
   describe("getCachedUserInfo", () => {
     it("returns whatever the cache has under the profile key", async () => {
       ctx.cache.get.mockResolvedValue(safeUser);
@@ -85,6 +90,9 @@ describe("UsersCacheService", () => {
     });
   });
 
+  // ===========================
+  // |    getOrSetUserCache    |
+  // ===========================
   describe("getOrSetUserCache", () => {
     it("returns the cached user without touching the database", async () => {
       ctx.cache.get.mockResolvedValue(safeUser);
@@ -121,6 +129,9 @@ describe("UsersCacheService", () => {
     });
   });
 
+  // ===========================
+  // |    deleteUserCache      |
+  // ============================
   describe("deleteUserCache", () => {
     it("deletes the profile key and returns how many keys went", async () => {
       await expect(ctx.service.deleteUserCache(USER_ID)).resolves.toBe(1);
@@ -137,6 +148,9 @@ describe("UsersCacheService", () => {
     });
   });
 
+  // ===========================
+  // |  getOrSetCacheUserList  |
+  // ===========================
   describe("getOrSetCacheUserList", () => {
     it("returns a cached list without touching the database", async () => {
       ctx.cache.get.mockResolvedValue([safeUser]);
@@ -180,12 +194,18 @@ describe("UsersCacheService", () => {
       await ctx.service.getOrSetCacheUserList(listOptions);
       await ctx.service.getOrSetCacheUserList(listOptions);
 
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const [firstKey] = ctx.cache.get.mock.calls[0];
+
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const [secondKey] = ctx.cache.get.mock.calls[1];
       expect(firstKey).not.toBe(secondKey);
     });
   });
 
+  // ============================
+  // | incrementUserListVersion |
+  // ============================
   describe("incrementUserListVersion", () => {
     it("bumps the shared list version", () => {
       ctx.service.incrementUserListVersion();
@@ -202,5 +222,4 @@ describe("UsersCacheService", () => {
       expect(ctx.logger.error).toHaveBeenCalledTimes(1);
     });
   });
-
 });
