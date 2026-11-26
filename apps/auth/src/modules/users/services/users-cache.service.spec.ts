@@ -71,4 +71,18 @@ describe("UsersCacheService", () => {
     });
   });
 
+  describe("getCachedUserInfo", () => {
+    it("returns whatever the cache has under the profile key", async () => {
+      ctx.cache.get.mockResolvedValue(safeUser);
+
+      await expect(ctx.service.getCachedUserInfo(USER_ID)).resolves.toBe(safeUser);
+
+      expect(ctx.cache.get).toHaveBeenCalledWith(RedisKey.getUserProfileKey(USER_ID));
+    });
+
+    it("returns null on a miss", async () => {
+      await expect(ctx.service.getCachedUserInfo(USER_ID)).resolves.toBeNull();
+    });
+  });
+
 });
