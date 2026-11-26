@@ -1,7 +1,8 @@
+# Only Databases
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: live-bid-postgres
+    container_name: live-bid-postgres-host
     restart: on-failure
     environment:
       POSTGRES_DB: live_bid
@@ -10,7 +11,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - live_bid_postgres_data:/var/lib/postgresql/data
+      - live_bidpostgres_host_data:/var/lib/postgresql/data
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U user -d live_bid" ]
       interval: 5s
@@ -19,12 +20,12 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: live-bid-redis
+    container_name: live-bid-redis-host
     restart: on-failure
     ports:
       - "6379:6379"
     volumes:
-      - live_bid_redis_data:/data
+      - live_bid_redis_host_data:/data
     healthcheck:
       test: [ "CMD", "redis-cli", "ping" ]
       interval: 5s
@@ -34,12 +35,12 @@ services:
   # WordPress database (MySQL)
   wordpress-db:
     image: mysql:8.0
-    container_name: live-bid-wordpress-db-dev
+    container_name: live-bid-wordpress-db-host
     restart: on-failure
     networks:
-      - live-bid-dev-network
+      - live-bid-host-network
     volumes:
-      - live_bid_wordpress_db_dev_data:/var/lib/mysql
+      - live_bid_wordpress_db_host_data:/var/lib/mysql
     env_file:
       - ./.env.wordpress-db
     healthcheck:
@@ -52,11 +53,11 @@ services:
   wordpress:
     build:
       context: ../wordpress
-    image: live-bid-wordpress:dev
-    container_name: live-bid-wordpress-dev
+    image: live-bid-wordpress:host
+    container_name: live-bid-wordpress-host
     restart: on-failure
     networks:
-      - live-bid-dev-network
+      - live-bid-host-network
     depends_on:
       wordpress-db:
         condition: service_healthy
@@ -83,8 +84,8 @@ services:
           define('ADVMO_MINIO_PATH_STYLE_ENDPOINT', getenv('S3_PATH_STYLE') === 'true');
         }
     volumes:
-      - live_bid_wordpress_dev_core:/var/www/html
-      - live_bid_wordpress_dev_uploads:/var/www/html/wp-content/uploads
+      - live_bid_wordpress_host_core:/var/www/html
+      - live_bid_wordpress_host_uploads:/var/www/html/wp-content/uploads
       # Only mu-plugins is bind-mounted. Mounting the whole plugins folder
       # would hide the plugins baked into the image.
       - ../wordpress/wp-content/mu-plugins:/var/www/html/wp-content/mu-plugins
@@ -98,8 +99,11 @@ services:
       start_period: 30s
 
 volumes:
-  live_bid_redis_data:
-  live_bid_postgres_data:
-  live_bid_wordpress_dev_core:
-  live_bid_wordpress_db_dev_data:
-  live_bid_wordpress_dev_uploads:
+  live_bid_redis_host_data:
+  live_bidpostgres_host_data:
+  live_bid_wordpress_host_core:
+  live_bid_wordpress_db_host_data:
+  live_bid_wordpress_host_uploads:
+
+networks:
+  live-bid-host-network:
