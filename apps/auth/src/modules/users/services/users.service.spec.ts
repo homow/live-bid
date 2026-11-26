@@ -163,4 +163,15 @@ describe("UsersService", () => {
     });
   });
 
+  describe("findMany", () => {
+    it("hands the options to the cached list lookup and returns its result", async () => {
+      const options = {limit: 10, offset: 0, orderBy: "created_at", sortBy: "desc"} as never;
+      ctx.usersCache.getOrSetCacheUserList.mockResolvedValue([safeUser]);
+
+      await expect(ctx.service.findMany(options)).resolves.toEqual([safeUser]);
+
+      expect(ctx.usersCache.getOrSetCacheUserList).toHaveBeenCalledWith(options);
+    });
+  });
+
 });
