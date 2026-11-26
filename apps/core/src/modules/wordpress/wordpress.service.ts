@@ -3,15 +3,21 @@ import {AppException} from "@live-bid/services/lib";
 
 @Injectable()
 export class WordpressService {
-  private readonly url: string = process.env.WORDPRESS_GRAPHQL_URL!;
-  private readonly secret: string = process.env.WORDPRESS_GRAPHQL_SECRET!;
+  private readonly url = process.env.WORDPRESS_GRAPHQL_URL;
+  private readonly secret = process.env.WORDPRESS_GRAPHQL_SECRET;
+
+  constructor() {
+    if (!this.url || !this.secret) {
+      throw new Error("WordPress GraphQL configuration is missing");
+    }
+  }
 
   async query<T>(query: string, variables: Record<string, unknown> = {}) {
-    const res = await fetch(this.url, {
+    const res = await fetch(this.url!, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        'X-LiveBid-secret': this.secret,
+        'X-LiveBid-secret': this.secret!,
       },
       body: JSON.stringify({query, variables}),
       signal: AbortSignal.timeout(5000),
