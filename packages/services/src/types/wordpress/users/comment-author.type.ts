@@ -1,4 +1,4 @@
-export interface CommentAuthor {
+export interface CommentAuthorType {
   id: string;
   databaseId: number;
   name: string | null;
