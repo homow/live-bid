@@ -1,4 +1,7 @@
+import {CommentAuthorType, User} from "../users";
 import type {CommentToCommenterConnectionEdge, CommentToContentNodeConnectionEdge, CommentToParentCommentConnectionEdge, CommentToCommentConnection} from './comment-edges.type';
+
+export type Commenter = User | CommentAuthorType;
 
 export interface Comment {
   id: string;
