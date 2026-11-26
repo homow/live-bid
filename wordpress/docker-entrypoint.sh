@@ -35,6 +35,19 @@ wp_step() {
   fi
 }
 
+# Check the database through PHP (mysqli), the same driver WordPress itself
+# uses. `wp db check` shells out to the mysql CLI instead, and newer builds
+# of it insist on verified TLS, which fails against MySQL 8's self-signed
+# cert even though WordPress connects fine.
+db_is_up() {
+  # shellcheck disable=SC2016
+  php -r '
+    mysqli_report(MYSQLI_REPORT_OFF);
+    $c = mysqli_connect(getenv("WORDPRESS_DB_HOST"), getenv("WORDPRESS_DB_USER"), getenv("WORDPRESS_DB_PASSWORD"), getenv("WORDPRESS_DB_NAME"));
+    if (!$c) { fwrite(STDERR, mysqli_connect_error() . "\n"); exit(1); }
+  '
+}
+
 is_bind_mounted() {
   local name="$1" p
   for p in "${BIND_MOUNTED_PLUGINS[@]}"; do
@@ -66,8 +79,9 @@ echo "Initializing WordPress (core files + wp-config.php)..."
 # real connection, and `wp db check` is the cheapest way to prove we have one.
 echo "Waiting for the database to accept connections..."
 db_ready=0
+db_error=""
 for _ in $(seq 1 30); do
-  if wp_as_user db check >/dev/null 2>&1; then
+  if db_error="$(db_is_up 2>&1)"; then
     db_ready=1
     break
   fi
@@ -77,7 +91,7 @@ done
 if [ "$db_ready" -ne 1 ]; then
   # Not fatal: the container stays up, and since everything below is
   # idempotent, the next start simply retries.
-  echo "⚠️  WARNING: database never became reachable; skipping setup." >&2
+  echo "⚠️  WARNING: database never became reachable; skipping setup. Last error: ${db_error}" >&2
 fi
 
 # ---------------------------------------------------------------------------
@@ -132,6 +146,7 @@ if [ "$db_ready" -eq 1 ]; then
 
   # 3e. Required plugins: present AND active. The activation flag is a
   # database row, so it survives container recreation.
+  activated_any=0
   for plugin in "${REQUIRED_PLUGINS[@]}" "${BIND_MOUNTED_PLUGINS[@]}"; do
     if ! wp_as_user plugin is-installed "$plugin"; then
       # Self-heal fallback, needs internet at runtime, so non-fatal.
@@ -139,8 +154,14 @@ if [ "$db_ready" -eq 1 ]; then
     fi
     if ! wp_as_user plugin is-active "$plugin"; then
       wp_step plugin activate "$plugin"
+      activated_any=1
     fi
   done
+  # Plugins can register rewrite rules (WPGraphQL's /graphql endpoint), so
+  # flush once after activating anything new.
+  if [ "$activated_any" -eq 1 ]; then
+    wp_step rewrite flush
+  fi
 
   # 3f. Media storage. The ADVMO_MINIO_* constants (set in compose through
   # WORDPRESS_CONFIG_EXTRA) only carry credentials. Which provider is active
