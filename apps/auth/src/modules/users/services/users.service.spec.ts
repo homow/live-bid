@@ -1,8 +1,7 @@
-import {beforeEach, describe, expect, it, vi} from "vitest";
-
 import {UsersService} from "./users.service";
 import {UserRoleEnum} from "@live-bid/contracts/enums";
 import type {SafeUser} from "@live-bid/services/types";
+import {beforeEach, describe, expect, it, vi} from "vitest";
 import {appErrorOf} from "../../../../../../test/helpers/errors";
 
 /**
@@ -42,6 +41,9 @@ describe("UsersService", () => {
     ctx = setup();
   });
 
+  // ============================
+  // |     getPublicProfile     |
+  // ============================
   describe("getPublicProfile", () => {
     it("returns the four public fields and nothing else", async () => {
       await expect(ctx.service.getPublicProfile(USER_ID)).resolves.toEqual({
@@ -67,12 +69,18 @@ describe("UsersService", () => {
     });
   });
 
+  // ============================
+  // |      getMyProfile        |
+  // ============================
   describe("getMyProfile", () => {
     it("returns the user from the cache layer as it is", async () => {
       await expect(ctx.service.getMyProfile(USER_ID)).resolves.toBe(safeUser);
     });
   });
 
+  // ============================
+  // |     updateProfile        |
+  // ============================
   describe("updateProfile", () => {
     it("writes only the fields that actually changed", async () => {
       await ctx.service.updateProfile({
@@ -130,6 +138,9 @@ describe("UsersService", () => {
     });
   });
 
+  // ============================
+  // |        findOne           |
+  // ============================
   describe("findOne", () => {
     it("uses the cache when it gets a user id", async () => {
       await expect(ctx.service.findOne({user_id: USER_ID})).resolves.toBe(safeUser);
@@ -163,6 +174,9 @@ describe("UsersService", () => {
     });
   });
 
+  // ============================
+  // |        findMany          |
+  // ============================
   describe("findMany", () => {
     it("hands the options to the cached list lookup and returns its result", async () => {
       const options = {limit: 10, offset: 0, orderBy: "created_at", sortBy: "desc"} as never;
@@ -173,5 +187,4 @@ describe("UsersService", () => {
       expect(ctx.usersCache.getOrSetCacheUserList).toHaveBeenCalledWith(options);
     });
   });
-
 });
