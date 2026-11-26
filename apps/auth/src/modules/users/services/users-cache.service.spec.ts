@@ -121,4 +121,20 @@ describe("UsersCacheService", () => {
     });
   });
 
+  describe("deleteUserCache", () => {
+    it("deletes the profile key and returns how many keys went", async () => {
+      await expect(ctx.service.deleteUserCache(USER_ID)).resolves.toBe(1);
+
+      expect(ctx.cache.delete).toHaveBeenCalledWith(RedisKey.getUserProfileKey(USER_ID));
+    });
+
+    it("logs a failure and doesn't throw", async () => {
+      ctx.cache.delete.mockRejectedValue(new Error("redis is down"));
+
+      await expect(ctx.service.deleteUserCache(USER_ID)).resolves.toBeUndefined();
+
+      expect(ctx.logger.error).toHaveBeenCalledTimes(1);
+    });
+  });
+
 });
