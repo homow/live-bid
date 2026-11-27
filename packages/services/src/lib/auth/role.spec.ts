@@ -26,3 +26,25 @@ describe("ROLE_HIERARCHY", () => {
     expect(ROLE_HIERARCHY[UserRoleEnum.ADMIN]).toBeLessThan(ROLE_HIERARCHY[UserRoleEnum.OWNER]);
   });
 });
+
+describe("isRoleAccess", () => {
+  const level = (role: UserRoleEnum) => ROLE_HIERARCHY[role];
+
+  describe("hierarchical (the default)", () => {
+    it.each(pairs)("user %s, required %s", (userRole, requiredRole) => {
+      expect(isRoleAccess({userRole, requiredRole})).toBe(level(userRole) >= level(requiredRole));
+      expect(isRoleAccess({userRole, requiredRole, strict: false})).toBe(level(userRole) >= level(requiredRole));
+    });
+
+    it("lets an admin use a user route and keeps a user out of an admin route", () => {
+      expect(isRoleAccess({userRole: UserRoleEnum.ADMIN, requiredRole: UserRoleEnum.USER})).toBe(true);
+      expect(isRoleAccess({userRole: UserRoleEnum.USER, requiredRole: UserRoleEnum.ADMIN})).toBe(false);
+    });
+  });
+
+  describe("strict", () => {
+    it.each(pairs)("user %s, required %s", (userRole, requiredRole) => {
+      expect(isRoleAccess({userRole, requiredRole, strict: true})).toBe(userRole === requiredRole);
+    });
+  });
+});
