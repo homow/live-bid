@@ -432,7 +432,13 @@ export class AuthService {
   logout(rawRefreshTokenId: string | null) {
     if (rawRefreshTokenId !== null) {
       const hashedRefreshToken = hashSecretToken(rawRefreshTokenId);
-      void this.authRepository.revokeToken(hashedRefreshToken);
+
+      void this.authRepository.revokeToken(hashedRefreshToken)
+        .catch((e: Error) => this.logger.error(
+            {e},
+            'Failed to revoke refresh token during logout'
+          )
+        );
     }
   }
 
