@@ -1,7 +1,7 @@
 {
   "name": "live-bid",
   "version": "0.0.1",
-  "description": "",
+  "description": "A real-time auction platform built with Next.js (frontend) and NestJS (backend). High-performance microservices architecture with Redis, PostgreSQL, and GraphQL.",
   "author": "",
   "private": false,
   "license": "",
@@ -38,12 +38,14 @@
     "db:migrate-prod": "node ./packages/services/dist/database/seed/migrate.js",
     "db:generate": "npx drizzle-kit generate",
     "db:sync": "npm run db:generate && npm run db:migrate-dev",
-    "seed:owner": "node ./packages/services/dist/database/seed/owner.js"
+    "seed:owner": "node ./packages/services/dist/database/seed/owner.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:int": "vitest run -c vitest.int.config.ts"
   },
   "dependencies": {
     "@apollo/server": "^5.5.1",
     "@as-integrations/express5": "^1.1.2",
-    "@hookform/resolvers": "^5.9.1",
     "@nestjs-modules/mailer": "^4.0.0",
     "@nestjs/apollo": "^13.4.4",
     "@nestjs/common": "^11.0.1",
@@ -72,13 +74,12 @@
     "ioredis": "^6.0.0",
     "nestjs-pino": "^5.3.1",
     "nestjs-zod": "^5.5.0",
-    "nodemailer": "^10.2.1",
+    "nodemailer": "10.4.1",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "pg": "^8.23.0",
     "pino": "^10.4.0",
     "pino-http": "^11.0.0",
-    "react-hook-form": "^7.89.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
     "socket.io": "^4.8.3",
@@ -92,6 +93,7 @@
     "@nestjs/cli": "^11.0.0",
     "@nestjs/schematics": "^11.0.0",
     "@nestjs/testing": "^11.0.1",
+    "@swc/core": "^1.16.22",
     "@types/cookie-parser": "^1.4.10",
     "@types/express": "^5.0.0",
     "@types/geoip-lite": "^1.4.4",
@@ -109,7 +111,10 @@
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.7.3",
-    "typescript-eslint": "^8.20.0"
+    "typescript-eslint": "^8.20.0",
+    "unplugin-swc": "^2.0.0",
+    "vite-tsconfig-paths": "^6.1.1",
+    "vitest": "^5.1.2"
   },
   "allowScripts": {
     "bcrypt@6.0.0": true,

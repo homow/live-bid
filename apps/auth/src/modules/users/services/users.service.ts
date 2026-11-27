@@ -118,11 +118,20 @@ export class UsersService {
 
     const finalData: UpdateProfileSchemaType = {};
 
-    if (updatableData.username !== undefined && updatableData.username !== user.username) {
-      finalData.username = updatableData.username;
+    if (
+      updatableData.username !== undefined &&
+      updatableData.username !== user.username
+    ) {
+      finalData.username =
+        updatableData.username === ''
+          ? null
+          : updatableData.username;
     }
 
-    if (updatableData.display_name && updatableData.display_name !== user.display_name) {
+    if (
+      updatableData.display_name &&
+      updatableData.display_name !== user.display_name
+    ) {
       finalData.display_name = updatableData.display_name;
     }
 

@@ -4,6 +4,7 @@ import {ConfigService} from "@nestjs/config";
 import {Strategy, ExtractJwt} from "passport-jwt";
 import {PassportStrategy} from "@nestjs/passport";
 import {ACCESS_TOKEN_NAME} from "@live-bid/services/names";
+import {GatewayException} from "@app/gateway/common/filters";
 import type {AccessTokenPayload, UserAccess} from "@live-bid/services/types";
 
 export const ACCESS_STRATEGY_NAME = "jwt-access";
@@ -11,7 +12,15 @@ export const ACCESS_STRATEGY_NAME = "jwt-access";
 @Injectable()
 export class AccessStrategy extends PassportStrategy(Strategy, ACCESS_STRATEGY_NAME) {
   constructor(readonly config: ConfigService) {
-    const secretOrKey: string = config.get<string>("JWT_SECRET") ?? "JWT_SECRET";
+    const secretOrKey = config.get<string>("JWT_SECRET");
+
+    if (!secretOrKey) {
+      throw new GatewayException({
+        statusCode: 500,
+        code: "JWT_SECRET_NOT_FOUND",
+        message: "JWT_SECRET must be set",
+      });
+    }
 
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
