@@ -1,4 +1,4 @@
-import type { PostIdType } from '../../../../enums/wordpress/post-id-type.enum';
+import type {PostIdType} from '../../../../enums';
 
 export interface GetPostVariables {
   id: string;

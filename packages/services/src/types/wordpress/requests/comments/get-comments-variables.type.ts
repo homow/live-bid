@@ -1,5 +1,4 @@
-import type { PaginationArgs } from '../../queries/pagination-args.type';
-import type { CommentWhereArgs } from '../../queries/comment-where-args.type';
+import type {PaginationArgs, CommentWhereArgs} from '../../queries';
 
 export interface GetCommentsVariables extends PaginationArgs {
   where?: CommentWhereArgs;
