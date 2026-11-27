@@ -1,5 +1,4 @@
 import {describe, expect, it, vi} from "vitest";
-
 import {RolesPolicy} from "./roles-policy.service";
 import {UserRoleEnum} from "@live-bid/contracts/enums";
 import {appErrorOfSync} from "../../../../../../test/helpers/errors";
@@ -25,6 +24,9 @@ const request = (overrides: { actorRole?: UserRoleEnum; actorId?: string; target
 });
 
 describe("RolesPolicy", () => {
+  // =============================
+  // |    assertCanModifyRole    |
+  // =============================
   describe("assertCanModifyRole", () => {
     it("lets an owner change someone else to a role that isn't owner", () => {
       for (const newRole of assignableRoles) {
@@ -71,6 +73,9 @@ describe("RolesPolicy", () => {
     });
   });
 
+  // =============================
+  // |    assertCanDemoteOwner   |
+  // =============================
   describe("assertCanDemoteOwner", () => {
     it("rejects a target that currently holds the owner role", () => {
       const error = appErrorOfSync(() =>
