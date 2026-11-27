@@ -1,8 +1,7 @@
 import {v4, v7} from "uuid";
-import {createHash, randomBytes} from "node:crypto";
 import {describe, expect, it} from "vitest";
-
 import {RefreshGuard} from "./refresh.guard";
+import {createHash, randomBytes} from "node:crypto";
 import {gatewayErrorOf, graphqlContext} from "../../../../../test/helpers/graphql";
 
 /**
@@ -24,10 +23,10 @@ const validToken = (userId = v7()) => `${userId}:${randomPart()}`;
 type FakeRequest = {
   cookies?: Record<string, string>;
   headers: Record<string, string | string[] | undefined>;
-  refreshGuardData?: {userId: string; tokenHash: string};
+  refreshGuardData?: { userId: string; tokenHash: string };
 };
 
-const run = (req: FakeRequest) => guard.canActivate(graphqlContext(Resolver, "refresh", req as never));
+const run = (req: FakeRequest) => guard.canActivate(graphqlContext(Resolver, "refresh", req));
 
 describe("RefreshGuard", () => {
   describe("reading the token", () => {
