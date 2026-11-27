@@ -112,4 +112,48 @@ describe("CacheService (real Redis)", () => {
     });
   });
 
+  describe("setPwdTokenAtomic", () => {
+    const payload = {id: "user-1", email: "dpk@example.com"};
+
+    it("writes the token key and the user lock together, both with the TTL", async () => {
+      const written = await cache.setPwdTokenAtomic("pwd:token:t1", "pwd:user:u1", payload, "hash-1", 60_000);
+
+      expect(written).toBe(true);
+
+      // The prefix has to be applied to the keys inside the Lua script too
+      expect(JSON.parse((await raw.get(fullKey("pwd:token:t1")))!)).toEqual(payload);
+      expect(await raw.get(fullKey("pwd:user:u1"))).toBe("hash-1");
+      expect(await raw.pttl(fullKey("pwd:token:t1"))).toBeGreaterThan(55_000);
+      expect(await raw.pttl(fullKey("pwd:user:u1"))).toBeGreaterThan(55_000);
+    });
+
+    it("refuses while the user lock exists, and leaves the first token alone", async () => {
+      await cache.setPwdTokenAtomic("pwd:token:t2", "pwd:user:u2", payload, "hash-first", 60_000);
+
+      const second = await cache.setPwdTokenAtomic("pwd:token:t3", "pwd:user:u2", payload, "hash-second", 60_000);
+
+      expect(second).toBe(false);
+      expect(await raw.exists(fullKey("pwd:token:t3"))).toBe(0);
+      expect(await raw.get(fullKey("pwd:user:u2"))).toBe("hash-first");
+    });
+
+    it("lets only one of many parallel requests through", async () => {
+      const attempts = Array.from({length: 10}, (_, index) =>
+        cache.setPwdTokenAtomic(`pwd:token:race-${index}`, "pwd:user:race", payload, `hash-${index}`, 60_000),
+      );
+
+      const results = await Promise.all(attempts);
+
+      expect(results.filter(Boolean)).toHaveLength(1);
+      expect(await raw.keys(fullKey("pwd:token:race-*"))).toHaveLength(1);
+    });
+
+    it("pairs with getDel for a single-use token", async () => {
+      await cache.setPwdTokenAtomic("pwd:token:t4", "pwd:user:u4", payload, "hash-4", 60_000);
+
+      await expect(cache.getDel("pwd:token:t4")).resolves.toEqual(payload);
+      await expect(cache.getDel("pwd:token:t4")).resolves.toBeNull();
+    });
+  });
+
 });
