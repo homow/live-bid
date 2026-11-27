@@ -82,4 +82,52 @@ describe("RedisKey", () => {
     });
   });
 
+  describe("buildVersionedListKey", () => {
+    const inputs = {limit: 10, page: 1, orderBy: "created_at", sortBy: "desc"};
+
+    it("has the list marker and the version in it", () => {
+      expect(RedisKey.buildVersionedListKey({resource: "user", version: 3, inputs: {limit: 10, page: 1}})).toBe(
+        "user:v=3:list:limit=10:page=1",
+      );
+    });
+
+    it("is the same for the same query, however the inputs are ordered", () => {
+      const one = RedisKey.buildVersionedListKey({resource: "user", version: 1, inputs});
+      const two = RedisKey.buildVersionedListKey({
+        resource: "user",
+        version: 1,
+        inputs: {sortBy: "desc", orderBy: "created_at", page: 1, limit: 10},
+      });
+
+      expect(one).toBe(two);
+    });
+
+    it("changes with the version, which is how a whole list cache gets thrown away at once", () => {
+      const v1 = RedisKey.buildVersionedListKey({resource: "user", version: 1, inputs});
+      const v2 = RedisKey.buildVersionedListKey({resource: "user", version: 2, inputs});
+
+      expect(v1).not.toBe(v2);
+    });
+
+    it.each([
+      ["another page", {...inputs, page: 2}],
+      ["another page size", {...inputs, limit: 20}],
+      ["another sort direction", {...inputs, sortBy: "asc"}],
+      ["a role filter", {...inputs, role: "ADMIN"}],
+      ["is_active false", {...inputs, is_active: false}],
+      ["is_active true", {...inputs, is_active: true}],
+    ])("is different for %s", (_label, other) => {
+      const base = RedisKey.buildVersionedListKey({resource: "user", version: 1, inputs});
+
+      expect(RedisKey.buildVersionedListKey({resource: "user", version: 1, inputs: other})).not.toBe(base);
+    });
+
+    it("tells is_active true and false apart from no filter at all", () => {
+      const none = RedisKey.buildVersionedListKey({resource: "user", version: 1, inputs});
+      const active = RedisKey.buildVersionedListKey({resource: "user", version: 1, inputs: {...inputs, is_active: true}});
+      const inactive = RedisKey.buildVersionedListKey({resource: "user", version: 1, inputs: {...inputs, is_active: false}});
+
+      expect(new Set([none, active, inactive]).size).toBe(3);
+    });
+  });
 });
