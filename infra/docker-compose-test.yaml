@@ -22,7 +22,7 @@ services:
     container_name: live-bid-redis-test
     restart: 'no'
     ports:
-      - "6380:6380"
+      - "6380:6379"
     volumes:
       - live_bid_redis_test_data:/data
     healthcheck:

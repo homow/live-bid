@@ -28,5 +28,58 @@ const settings: Record<string, string> = {
 };
 
 describe("CacheService (real Redis)", () => {
+  const logger = {setContext: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn()};
+  const cache = new CacheService(logger as never, {get: (key: string) => settings[key]} as never);
+
+  // A second client without any prefix, to look at what really ended up in Redis
+  const raw = new Redis({host: HOST, port: PORT, db: TEST_DB, lazyConnect: true});
+
+  beforeAll(async () => {
+    await cache.onModuleInit();
+    await raw.connect();
+  });
+
+  afterAll(async () => {
+    const leftovers = await raw.keys(`${PREFIX}:*`);
+    if (leftovers.length) await raw.del(...leftovers);
+
+    await cache.onModuleDestroy();
+    await raw.quit();
+  });
+
+  describe("set and get", () => {
+    it("round-trips a JSON value", async () => {
+      await cache.set("roundtrip", {id: 1, tags: ["a", "b"]});
+
+      await expect(cache.get("roundtrip")).resolves.toEqual({id: 1, tags: ["a", "b"]});
+    });
+
+    it("returns null for a key that isn't there", async () => {
+      await expect(cache.get("missing")).resolves.toBeNull();
+    });
+
+    it("stores keys under the configured prefix", async () => {
+      await cache.set("prefixed", "value");
+
+      expect(await raw.exists(fullKey("prefixed"))).toBe(1);
+      expect(await raw.exists("prefixed")).toBe(0);
+    });
+
+    it("applies the TTL it is given", async () => {
+      await cache.set("with-ttl", "value", 60_000);
+
+      const ttl = await raw.pttl(fullKey("with-ttl"));
+      expect(ttl).toBeGreaterThan(55_000);
+      expect(ttl).toBeLessThanOrEqual(60_000);
+    });
+
+    it("falls back to five minutes without a TTL", async () => {
+      await cache.set("default-ttl", "value");
+
+      const ttl = await raw.pttl(fullKey("default-ttl"));
+      expect(ttl).toBeGreaterThan(295_000);
+      expect(ttl).toBeLessThanOrEqual(300_000);
+    });
+  });
 
 });
