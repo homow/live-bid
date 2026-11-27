@@ -36,4 +36,43 @@ function authenticate(strategy: AccessStrategy, req: Record<string, unknown>): P
 
 const base64Url = (value: unknown) => Buffer.from(JSON.stringify(value)).toString("base64url");
 
-describe("AccessStrategy", () => {});
+describe("AccessStrategy", () => {
+  const payload = {sub: "user-1", role: "ADMIN", jti: "jti-1"};
+
+  describe("finding the token", () => {
+    it("accepts a token from the access cookie", async () => {
+      const token = sign(payload);
+
+      const outcome = await authenticate(makeStrategy(), {headers: {}, cookies: {[ACCESS_TOKEN_NAME]: token}});
+
+      expect(outcome.result).toBe("success");
+    });
+
+    it("accepts a bearer token from the Authorization header", async () => {
+      const token = sign(payload);
+
+      const outcome = await authenticate(makeStrategy(), {headers: {authorization: `Bearer ${token}`}});
+
+      expect(outcome.result).toBe("success");
+    });
+
+    it("prefers the cookie when both are sent", async () => {
+      const cookieToken = sign({...payload, sub: "from-cookie"});
+      const headerToken = sign({...payload, sub: "from-header"});
+
+      const outcome = await authenticate(makeStrategy(), {
+        headers: {authorization: `Bearer ${headerToken}`},
+        cookies: {[ACCESS_TOKEN_NAME]: cookieToken},
+      });
+
+      expect(outcome.user).toMatchObject({userId: "from-cookie"});
+    });
+
+    it("rejects a request without any token", async () => {
+      const outcome = await authenticate(makeStrategy(), {headers: {}, cookies: {}});
+
+      expect(outcome.result).toBe("fail");
+    });
+  });
+
+});
