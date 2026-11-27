@@ -30,7 +30,7 @@ const request = (overrides: { actorRole?: UserRoleEnum; targetId?: string; newRo
 
 function setup() {
   const logger = {setContext: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn()};
-  const drizzle = {db: {transaction: vi.fn(async (callback: (tx: unknown) => unknown) => callback(TX))}};
+  const drizzle = {db: {transaction: vi.fn((callback: (tx: unknown) => unknown) => callback(TX))}};
   const usersRepository = {findOne: vi.fn(), updateRole: vi.fn().mockResolvedValue(undefined)};
   const usersCache = {deleteUserCache: vi.fn().mockResolvedValue(1)};
 
@@ -89,7 +89,7 @@ describe("RolesService.modifyRole", () => {
       committed = true;
       return result;
     });
-    ctx.usersCache.deleteUserCache.mockImplementation(async () => {
+    ctx.usersCache.deleteUserCache.mockImplementation(() => {
       committedWhenCacheWasCleared = committed;
       return 1;
     });
@@ -113,4 +113,43 @@ describe("RolesService.modifyRole", () => {
     });
   });
 
+  describe("rules that need the stored user", () => {
+    it("answers 404 when the target does not exist", async () => {
+      ctx.usersRepository.findOne.mockResolvedValue(null);
+
+      const error = await appErrorOf(ctx.service.modifyRole(request()));
+
+      expect(error).toMatchObject({statusCode: 404, code: "NOT_FOUND"});
+      expect(ctx.usersRepository.updateRole).not.toHaveBeenCalled();
+      expect(ctx.usersCache.deleteUserCache).not.toHaveBeenCalled();
+    });
+
+    it("refuses to demote an owner, judging by the stored role and not the request", async () => {
+      ctx.usersRepository.findOne.mockResolvedValue({id: TARGET_ID, role: UserRoleEnum.OWNER});
+
+      const error = await appErrorOf(ctx.service.modifyRole(request()));
+
+      expect(error).toMatchObject({statusCode: 403, code: "OWNER_DEMOTION_FORBIDDEN"});
+      expect(ctx.usersRepository.updateRole).not.toHaveBeenCalled();
+      expect(ctx.usersCache.deleteUserCache).not.toHaveBeenCalled();
+    });
+
+    it("answers 409 when the user already has that role", async () => {
+      ctx.usersRepository.findOne.mockResolvedValue({id: TARGET_ID, role: assignable});
+
+      const error = await appErrorOf(ctx.service.modifyRole(request()));
+
+      expect(error).toMatchObject({statusCode: 409, code: "ROLE_ALREADY_ASSIGNED"});
+      expect(ctx.usersRepository.updateRole).not.toHaveBeenCalled();
+      expect(ctx.usersCache.deleteUserCache).not.toHaveBeenCalled();
+    });
+
+    it("leaves the cache alone when the update itself fails", async () => {
+      ctx.usersRepository.updateRole.mockRejectedValue(new Error("boom"));
+
+      await expect(ctx.service.modifyRole(request())).rejects.toThrow("boom");
+
+      expect(ctx.usersCache.deleteUserCache).not.toHaveBeenCalled();
+    });
+  });
 });
