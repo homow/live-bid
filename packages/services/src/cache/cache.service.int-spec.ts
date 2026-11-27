@@ -82,4 +82,34 @@ describe("CacheService (real Redis)", () => {
     });
   });
 
+  describe("setNX", () => {
+    it("writes only when the key is free", async () => {
+      await expect(cache.setNX("nx", "first")).resolves.toBe("OK");
+      await expect(cache.setNX("nx", "second")).resolves.toBeNull();
+
+      await expect(cache.get("nx")).resolves.toBe("first");
+    });
+  });
+
+  describe("delete", () => {
+    it("removes several keys at once and counts them", async () => {
+      await cache.set("del-a", 1);
+      await cache.set("del-b", 2);
+
+      await expect(cache.delete("del-a", "del-b", "del-never-existed")).resolves.toBe(2);
+
+      await expect(cache.get("del-a")).resolves.toBeNull();
+      await expect(cache.get("del-b")).resolves.toBeNull();
+    });
+  });
+
+  describe("getDel", () => {
+    it("returns the value and removes it, so it can only be read once", async () => {
+      await cache.set("one-shot", {secret: true});
+
+      await expect(cache.getDel("one-shot")).resolves.toEqual({secret: true});
+      await expect(cache.getDel("one-shot")).resolves.toBeNull();
+    });
+  });
+
 });
