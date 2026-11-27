@@ -103,4 +103,30 @@ describe("AccessStrategy", () => {
       expect((await attempt(tampered)).result).toBe("fail");
     });
   });
+
+  describe("validate", () => {
+    it("turns the token payload into the user the resolvers see", async () => {
+      const token = sign(payload);
+
+      const outcome = await authenticate(makeStrategy(), {headers: {authorization: `Bearer ${token}`}});
+
+      expect(outcome.user).toEqual({
+        userId: "user-1",
+        role: "ADMIN",
+        jti: "jti-1",
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        iat: expect.any(Number),
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        exp: expect.any(Number),
+      });
+    });
+  });
+
+  describe("configuration", () => {
+    // Fails until the strategy refuses to start without a secret, see the notes.
+    // Today a missing JWT_SECRET quietly turns the literal text "JWT_SECRET" into the signing key.
+    it("refuses to start when JWT_SECRET is missing", () => {
+      expect(() => makeStrategy({})).toThrow();
+    });
+  });
 });
