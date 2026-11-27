@@ -190,16 +190,15 @@ export class UsersRepository {
 
     const query = db
       .select()
-      .from(user)
-      .groupBy(user.id);
+      .from(user);
+
+    if (whereCondition && lock) {
+      return query
+        .where(whereCondition)
+        .for('update');
+    }
 
     if (whereCondition) {
-      if (lock) {
-        return query
-          .where(whereCondition)
-          .for('update');
-      }
-
       return query.where(whereCondition);
     }
 
@@ -223,10 +222,13 @@ export class UsersRepository {
    * @param data - Partial profile data. Only `username` and `display_name` are applied.
    * @returns A promise that resolves once the update is executed.
    */
-  async updateProfile(userId: string, data: UpdateProfileSchemaType) {
+  async updateProfile(userId: string, {display_name, username}: UpdateProfileSchemaType) {
     await this.drizzle.db
       .update(user)
-      .set(data)
+      .set({
+        username,
+        display_name,
+      })
       .where(eq(user.id, userId));
   }
 
@@ -237,7 +239,7 @@ export class UsersRepository {
    * @param role - New role to assign to the user.
    * @param tx - Optional transaction; falls back to `drizzle.db`.
    */
-  async updateRole(userID: string, role: UserRoleEnum, tx?: DrizzleTransaction) {
+  async updateRole(userID: string, role: UserRoleEnum, tx ?: DrizzleTransaction) {
     const db = tx ?? this.drizzle.db;
 
     await db
