@@ -70,5 +70,28 @@ describe("RoleGuard", () => {
       expect(error.message).toContain("hierarchical");
     });
   });
+  describe("a strict @Role (strict: true)", () => {
+    it("lets the exact role through", () => {
+      expect(run(Resolver, "adminExactly", asRole(ADMIN))).toBe(true);
+    });
 
+    it.each([USER, OWNER])("rejects %s, since only an exact match counts", (role) => {
+      const error = gatewayErrorOf(() => run(Resolver, "adminExactly", asRole(role)));
+
+      expect(error).toMatchObject({statusCode: 403, code: "ROLE_NOT_ALLOWED"});
+      expect(error.message).toContain("strict");
+    });
+  });
+
+  describe("a route with no @Role at all", () => {
+    it("lets a regular user in", () => {
+      expect(run(Resolver, "plain", asRole(USER))).toBe(true);
+    });
+
+    // Fails until the default becomes hierarchical, see the notes.
+    // If "only plain users on undecorated routes" is on purpose, delete this test.
+    it.each([ADMIN, OWNER])("lets %s in too, since higher roles inherit lower ones", (role) => {
+      expect(run(Resolver, "plain", asRole(role))).toBe(true);
+    });
+  });
 });
