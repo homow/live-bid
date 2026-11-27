@@ -1,8 +1,7 @@
 import z from "zod";
+import {ZodPipe} from "./zod.pipe";
 import {GraphQLError} from "graphql";
 import {describe, expect, it} from "vitest";
-
-import {ZodPipe} from "./zod.pipe";
 
 /**
  * ZodPipe sits in front of every GraphQL input, so the shape of its error
