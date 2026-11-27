@@ -98,4 +98,19 @@ describe("RolesService.modifyRole", () => {
 
     expect(committedWhenCacheWasCleared).toBe(true);
   });
+
+  describe("rules that apply before the transaction opens", () => {
+    it.each([
+      ["a non-owner actor", request({actorRole: UserRoleEnum.USER}), "ROLE_MODIFICATION_REQUIRES_OWNER"],
+      ["an owner changing themselves", request({targetId: OWNER_ID}), "ROLE_SELF_MODIFICATION_NOT_ALLOWED"],
+      ["assigning the owner role", request({newRole: UserRoleEnum.OWNER}), "OWNER_ROLE_ASSIGNMENT_FORBIDDEN"],
+    ])("rejects %s without touching the database", async (_label, input, code) => {
+      const error = await appErrorOf(ctx.service.modifyRole(input));
+
+      expect(error).toMatchObject({statusCode: 403, code});
+      expect(ctx.drizzle.db.transaction).not.toHaveBeenCalled();
+      expect(ctx.usersCache.deleteUserCache).not.toHaveBeenCalled();
+    });
+  });
+
 });
