@@ -139,4 +139,53 @@ describe("UsersRepository (real Postgres)", () => {
     });
   });
 
+  describe("findMany", () => {
+    const query = (overrides: Partial<FindManyUsersSchemaType> = {}) =>
+      repo.findMany({
+        limit: 10,
+        offset: 0,
+        orderBy: "display_name",
+        sortBy: BaseSortByEnum.desc,
+        ...overrides,
+      } as FindManyUsersSchemaType);
+
+    beforeEach(async () => {
+      await createUser({display_name: "Alice"});
+      await createUser({display_name: "Bob", is_active: false});
+      await createUser({display_name: "Carol", role: otherRole});
+    });
+
+    it("returns safe columns only", async () => {
+      const rows = await query();
+
+      for (const row of rows) {
+        expect(row).not.toHaveProperty("password");
+      }
+    });
+
+    it("sorts by the requested column", async () => {
+      const rows = await query();
+
+      expect(rows.map((row) => row.display_name)).toEqual(["Carol", "Bob", "Alice"]);
+    });
+
+    it("filters by is_active", async () => {
+      const rows = await query({is_active: false});
+
+      expect(rows.map((row) => row.display_name)).toEqual(["Bob"]);
+    });
+
+    it("filters by role", async () => {
+      const rows = await query({role: otherRole});
+
+      expect(rows.map((row) => row.display_name)).toEqual(["Carol"]);
+    });
+
+    it("pages with limit and offset", async () => {
+      const rows = await query({limit: 2, offset: 1});
+
+      expect(rows.map((row) => row.display_name)).toEqual(["Bob", "Alice"]);
+    });
+  });
+
 });
