@@ -1,6 +1,5 @@
 import "reflect-metadata";
 import {describe, expect, it} from "vitest";
-
 import {UserRoleEnum} from "@live-bid/contracts/enums";
 import {IS_PUBLIC_KEY, Public, ROLE_METADATA, Role} from "./index";
 
