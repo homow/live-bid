@@ -19,6 +19,21 @@ add_action('graphql_process_http_request', function () {
 
     // Fail closed: with no secret configured nobody but admins gets in.
     if ($secret !== '' && hash_equals($secret, $sent)) {
+        // The secret proves this call is from Nest, so the visitor info it
+        // forwards can be trusted. Without this, every comment would be stored
+        // with Nest's IP and WordPress flood control would treat all visitors
+        // as one person.
+        $ip = trim((string) ($_SERVER['HTTP_X_LIVEBID_CLIENT_IP'] ?? ''));
+        if (filter_var($ip, FILTER_VALIDATE_IP)) {
+            $_SERVER['REMOTE_ADDR'] = $ip;
+        }
+
+        $agent = trim((string) ($_SERVER['HTTP_X_LIVEBID_CLIENT_USER_AGENT'] ?? ''));
+        if ($agent !== '') {
+            // Comment agent is stored as-is, so keep it to a sane length.
+            $_SERVER['HTTP_USER_AGENT'] = substr($agent, 0, 254);
+        }
+
         return;
     }
 
