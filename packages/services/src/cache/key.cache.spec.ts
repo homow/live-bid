@@ -54,4 +54,32 @@ describe("RedisKey", () => {
     });
   });
 
+  describe("keyPrefix", () => {
+    it("sorts inputs by name, so the order they were written in doesn't matter", () => {
+      const one = RedisKey.keyPrefix({resource: "user", inputs: {role: "ADMIN", limit: 10}});
+      const two = RedisKey.keyPrefix({resource: "user", inputs: {limit: 10, role: "ADMIN"}});
+
+      expect(one).toBe(two);
+      expect(one).toBe("user:limit=10:role=ADMIN");
+    });
+
+    it("skips undefined, null and empty inputs", () => {
+      const key = RedisKey.keyPrefix({resource: "user", inputs: {a: undefined, b: null, c: "", d: "kept"}});
+
+      expect(key).toBe("user:d=kept");
+    });
+
+    it("keeps false and 0, because they are real answers and not 'no filter'", () => {
+      const key = RedisKey.keyPrefix({resource: "user", inputs: {is_active: false, page: 0}});
+
+      expect(key).toBe("user:is_active=false:page=0");
+    });
+
+    it("puts extra segments first, then the list marker", () => {
+      const key = RedisKey.keyPrefix({resource: "user", extraKeys: ["profile"], pagination: true, inputs: {a: 1}});
+
+      expect(key).toBe("user:profile:list:a=1");
+    });
+  });
+
 });
