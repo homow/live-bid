@@ -1,8 +1,7 @@
-import {beforeEach, describe, expect, it, vi} from "vitest";
-
 import {RolesService} from "./roles.service";
 import {RolesPolicy} from "./roles-policy.service";
 import {UserRoleEnum} from "@live-bid/contracts/enums";
+import {beforeEach, describe, expect, it, vi} from "vitest";
 import {appErrorOf} from "../../../../../../test/helpers/errors";
 
 /**
