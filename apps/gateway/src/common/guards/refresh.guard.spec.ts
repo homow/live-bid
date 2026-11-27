@@ -71,4 +71,40 @@ describe("RefreshGuard", () => {
     });
   });
 
+  describe("what it hands on", () => {
+    it("sets the user id from the token and the sha256 of the whole raw token", () => {
+      const userId = v7();
+      const token = validToken(userId);
+      const req: FakeRequest = {cookies: {refreshToken: token}, headers: {}};
+
+      run(req);
+
+      expect(req.refreshGuardData).toEqual({userId, tokenHash: sha256(token)});
+    });
+  });
+
+  describe("rejecting bad tokens", () => {
+    const expectRejected = (req: FakeRequest) => {
+      const error = gatewayErrorOf(() => run(req));
+
+      expect(error).toMatchObject({statusCode: 401, code: "REFRESH_TOKEN_EXPIRE"});
+      expect(req.refreshGuardData).toBeUndefined();
+    };
+
+    it("rejects a request without any token", () => {
+      expectRejected({cookies: {}, headers: {}});
+    });
+
+    it.each([
+      ["a token with no colon", "justonepart"],
+      ["a user id that isn't a uuid", `not-a-uuid:${randomPart()}`],
+      ["a uuid of the wrong version (v4)", `${v4()}:${randomPart()}`],
+      ["a random part that is too short", `${v7()}:abc123`],
+      ["a random part that isn't hex", `${v7()}:${"z".repeat(128)}`],
+      ["an empty random part", `${v7()}:`],
+    ])("rejects %s", (_label, token) => {
+      expectRejected({cookies: {refreshToken: token}, headers: {}});
+    });
+  });
+
 });
