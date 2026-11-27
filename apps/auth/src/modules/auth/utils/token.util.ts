@@ -84,7 +84,6 @@ export class TokenUtil {
       : 12 * 60 * 60 * 1000;    // 12 Hours
   }
 
-
   /**
    * Calculates the access-token TTL in milliseconds from `JWT_EXPIRES`.
    */

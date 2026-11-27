@@ -1,0 +1,154 @@
+import {RolesService} from "./roles.service";
+import {RolesPolicy} from "./roles-policy.service";
+import {UserRoleEnum} from "@live-bid/contracts/enums";
+import {beforeEach, describe, expect, it, vi} from "vitest";
+import {appErrorOf} from "../../../../../../test/helpers/errors";
+
+/**
+ * RolesService with the repository, the cache and the transaction faked.
+ * The policy is the real RolesPolicy, so the rules themselves are exercised too.
+ */
+
+const roles = Object.values(UserRoleEnum) as UserRoleEnum[];
+const assignable = roles.find((role) => role !== UserRoleEnum.USER && role !== UserRoleEnum.OWNER);
+
+if (!assignable) {
+  throw new Error("UserRoleEnum needs a role besides USER and OWNER for these tests");
+}
+
+const OWNER_ID = "01900000-0000-7000-8000-0000000000a1";
+const TARGET_ID = "01900000-0000-7000-8000-0000000000b2";
+
+// Stands in for the drizzle transaction object, we only check it gets passed along
+const TX = {tag: "tx"};
+
+const request = (overrides: { actorRole?: UserRoleEnum; targetId?: string; newRole?: UserRoleEnum } = {}) => ({
+  actor: {id: OWNER_ID, role: overrides.actorRole ?? UserRoleEnum.OWNER},
+  target: {id: overrides.targetId ?? TARGET_ID, newRole: overrides.newRole ?? assignable},
+});
+
+function setup() {
+  const logger = {setContext: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn()};
+  const drizzle = {db: {transaction: vi.fn((callback: (tx: unknown) => unknown) => callback(TX))}};
+  const usersRepository = {findOne: vi.fn(), updateRole: vi.fn().mockResolvedValue(undefined)};
+  const usersCache = {deleteUserCache: vi.fn().mockResolvedValue(1)};
+
+  usersRepository.findOne.mockResolvedValue({id: TARGET_ID, role: UserRoleEnum.USER});
+
+  const service = new RolesService(
+    logger as never,
+    drizzle as never,
+    new RolesPolicy(logger as never),
+    usersRepository as never,
+    usersCache as never,
+  );
+
+  return {service, drizzle, usersRepository, usersCache};
+}
+
+describe("RolesService.modifyRole", () => {
+  let ctx: ReturnType<typeof setup>;
+
+  beforeEach(() => {
+    ctx = setup();
+  });
+
+  it("changes the role and returns a summary", async () => {
+    await expect(ctx.service.modifyRole(request())).resolves.toEqual({
+      userId: TARGET_ID,
+      newRole: assignable,
+      result: "Target user role updated successfully.",
+    });
+
+    expect(ctx.usersRepository.updateRole).toHaveBeenCalledWith(TARGET_ID, assignable, TX);
+  });
+
+  it("loads the target with a lock, inside the transaction", async () => {
+    await ctx.service.modifyRole(request());
+
+    expect(ctx.drizzle.db.transaction).toHaveBeenCalledWith(expect.any(Function), {
+      accessMode: "read write",
+      isolationLevel: "read committed",
+    });
+    expect(ctx.usersRepository.findOne).toHaveBeenCalledWith({lock: true, id: TARGET_ID}, true, TX);
+  });
+
+  it("clears the target's cache so the new role shows up right away", async () => {
+    await ctx.service.modifyRole(request());
+
+    expect(ctx.usersCache.deleteUserCache).toHaveBeenCalledWith(TARGET_ID);
+  });
+
+  it("clears the cache only after the transaction has committed", async () => {
+    let committed = false;
+    let committedWhenCacheWasCleared: boolean | undefined;
+
+    ctx.drizzle.db.transaction.mockImplementation(async (callback: (tx: unknown) => unknown) => {
+      const result = await callback(TX);
+      committed = true;
+      return result;
+    });
+    ctx.usersCache.deleteUserCache.mockImplementation(() => {
+      committedWhenCacheWasCleared = committed;
+      return 1;
+    });
+
+    await ctx.service.modifyRole(request());
+
+    expect(committedWhenCacheWasCleared).toBe(true);
+  });
+
+  describe("rules that apply before the transaction opens", () => {
+    it.each([
+      ["a non-owner actor", request({actorRole: UserRoleEnum.USER}), "ROLE_MODIFICATION_REQUIRES_OWNER"],
+      ["an owner changing themselves", request({targetId: OWNER_ID}), "ROLE_SELF_MODIFICATION_NOT_ALLOWED"],
+      ["assigning the owner role", request({newRole: UserRoleEnum.OWNER}), "OWNER_ROLE_ASSIGNMENT_FORBIDDEN"],
+    ])("rejects %s without touching the database", async (_label, input, code) => {
+      const error = await appErrorOf(ctx.service.modifyRole(input));
+
+      expect(error).toMatchObject({statusCode: 403, code});
+      expect(ctx.drizzle.db.transaction).not.toHaveBeenCalled();
+      expect(ctx.usersCache.deleteUserCache).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("rules that need the stored user", () => {
+    it("answers 404 when the target does not exist", async () => {
+      ctx.usersRepository.findOne.mockResolvedValue(null);
+
+      const error = await appErrorOf(ctx.service.modifyRole(request()));
+
+      expect(error).toMatchObject({statusCode: 404, code: "NOT_FOUND"});
+      expect(ctx.usersRepository.updateRole).not.toHaveBeenCalled();
+      expect(ctx.usersCache.deleteUserCache).not.toHaveBeenCalled();
+    });
+
+    it("refuses to demote an owner, judging by the stored role and not the request", async () => {
+      ctx.usersRepository.findOne.mockResolvedValue({id: TARGET_ID, role: UserRoleEnum.OWNER});
+
+      const error = await appErrorOf(ctx.service.modifyRole(request()));
+
+      expect(error).toMatchObject({statusCode: 403, code: "OWNER_DEMOTION_FORBIDDEN"});
+      expect(ctx.usersRepository.updateRole).not.toHaveBeenCalled();
+      expect(ctx.usersCache.deleteUserCache).not.toHaveBeenCalled();
+    });
+
+    it("answers 409 when the user already has that role", async () => {
+      ctx.usersRepository.findOne.mockResolvedValue({id: TARGET_ID, role: assignable});
+
+      const error = await appErrorOf(ctx.service.modifyRole(request()));
+
+      expect(error).toMatchObject({statusCode: 409, code: "ROLE_ALREADY_ASSIGNED"});
+      expect(ctx.usersRepository.updateRole).not.toHaveBeenCalled();
+      expect(ctx.usersCache.deleteUserCache).not.toHaveBeenCalled();
+    });
+
+    it("leaves the cache alone when the update itself fails", async () => {
+      ctx.usersRepository.updateRole.mockRejectedValue(new Error("boom"));
+
+      await expect(ctx.service.modifyRole(request())).rejects.toThrow("boom");
+
+      expect(ctx.usersCache.deleteUserCache).not.toHaveBeenCalled();
+    });
+  });
+});

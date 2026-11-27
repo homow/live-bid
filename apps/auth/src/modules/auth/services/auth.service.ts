@@ -1,4 +1,4 @@
-import {
+import type {
   RefreshGuardData,
   DrizzleTransaction,
   RefreshTokenPayload,
@@ -163,6 +163,17 @@ export class AuthService {
       message: "Invalid user credentials",
     });
 
+    // Checked after the password on purpose, so a stranger can't probe which accounts are disabled
+    if (!user.is_active) {
+      this.logger.warn({id: user.id}, 'Login blocked: account is disabled');
+
+      throw new AppException({
+        statusCode: 403,
+        code: 'ACCOUNT_DISABLED',
+        message: 'This account has been disabled.',
+      });
+    }
+
     // Check password
     const isValidPassword: boolean = await compareSecret(userData.password, user.password);
 
@@ -300,6 +311,14 @@ export class AuthService {
         user,
         refreshRecord,
       };
+    }
+
+    if (tokenRecord.refreshRecord.expires_in.getTime() <= Date.now()) {
+      throw new AppException({
+        statusCode: 401,
+        code: 'REFRESH_TOKEN_EXPIRE',
+        message: 'Invalid or expired refresh token',
+      });
     }
 
     // If this token is revoked
@@ -498,33 +517,38 @@ export class AuthService {
   }
 
   /**
-   * **Initiates the password reset process.**
+   * Initiates the password reset process.
    *
    * @remarks
-   * - This method is **public** and does not require authentication.
-   * - To prevent **email enumeration attacks**, the same success message is returned
-   *   regardless of whether the email exists in the system.
-   * - The reset link contains a single-use token that expires after **15 minutes**.
-   * - Email sending is **fire-and-forget** (non-blocking) to keep the response fast.
+   * - This method is public and does not require authentication.
+   * - Returns a different message when no active account is associated
+   *   with the provided email address.
+   * - This behavior exposes account existence and may enable email enumeration.
+   * - The reset link contains a single-use token that expires after 15 minutes.
+   * - Existing valid reset tokens prevent issuing another token or sending
+   *   another email.
+   * - Email sending is fire-and-forget (non-blocking).
    *
-   * @param email - The user's registered email address.
+   * @param email - The user's email address.
    * @param clientInfo - Client metadata (IP, browser, OS, etc.) for the security email.
-   * @returns A generic success message to avoid revealing whether the email exists.
+   *
+   * @returns A message indicating whether password reset instructions were sent
+   *   or no active account was found.
    *
    * @example
    * await this.forgotPassword('user@example.com', clientInfo);
-   * // Returns: "If an account with that email exists, a password reset link has been sent."
+   * // Returns: "Password reset instructions have been sent to your email address. Please check your inbox."
    */
   async forgotPassword(
     email: string,
     clientInfo: NormalizeClientInfoType,
   ): Promise<string> {
-    const genericMessage = "If an account with that email exists, a password reset link has been sent.";
-
     const user = await this.usersRepository.findOne({email});
 
-    // Return a generic message even if the user does not exist (security).
-    if (!user) return genericMessage;
+    // Return a message indicating that no active account was found.
+    if (!user || !user.is_active) {
+      return 'No active account was found with this email address. Please check your email or contact support if you believe this is a mistake.';
+    }
 
     const rawToken = await this.tokenUtil.setPwdToken({email, id: user.id});
 
@@ -537,7 +561,7 @@ export class AuthService {
       );
     }
 
-    return genericMessage;
+    return 'Password reset instructions have been sent to your email address. Please check your inbox.';
   }
 
   /**
@@ -571,7 +595,7 @@ export class AuthService {
    *   clientInfo,
    * });
    */
-  async resetPassword({token, newPassword, clientInfo}: ResetPasswordRequestService) {
+  async resetPassword({token, newPassword, clientInfo}: ResetPasswordRequestService): Promise<string> {
     const cached = await this.tokenUtil.verifyPwdToken(token);
 
     if (!cached) throw new AppException({
