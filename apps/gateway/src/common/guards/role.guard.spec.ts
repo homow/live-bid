@@ -45,5 +45,30 @@ const run = (resolver: typeof Resolver | typeof OwnerResolver, method: string, r
 const asRole = (role: UserRoleEnum) => ({user: {role}});
 
 describe("RoleGuard", () => {
+  describe("@Public()", () => {
+    it("lets everyone in, even without a user", () => {
+      expect(run(Resolver, "open", {})).toBe(true);
+    });
+
+    it("only skips the role check when the role guard itself is marked public", () => {
+      // This one is public for the access guard only, so a role check still happens
+      expect(run(Resolver, "accessOnlyPublic", asRole(USER))).toBe(true);
+    });
+  });
+
+  describe("a hierarchical @Role (strict: false)", () => {
+    it.each([ADMIN, OWNER])("lets %s through", (role) => {
+      expect(run(Resolver, "adminAndUp", asRole(role))).toBe(true);
+    });
+
+    it("rejects a lower role with 403 ROLE_NOT_ALLOWED", () => {
+      const error = gatewayErrorOf(() => run(Resolver, "adminAndUp", asRole(USER)));
+
+      expect(error).toMatchObject({statusCode: 403, code: "ROLE_NOT_ALLOWED"});
+      expect(error.message).toContain(USER);
+      expect(error.message).toContain(ADMIN);
+      expect(error.message).toContain("hierarchical");
+    });
+  });
 
 });
