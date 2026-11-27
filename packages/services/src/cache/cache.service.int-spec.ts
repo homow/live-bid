@@ -156,4 +156,26 @@ describe("CacheService (real Redis)", () => {
     });
   });
 
+  describe("cache versions", () => {
+    it("starts at 1 and stays there until it is bumped", async () => {
+      await expect(cache.getCacheVersion("version:fresh")).resolves.toBe(1);
+      await expect(cache.getCacheVersion("version:fresh")).resolves.toBe(1);
+    });
+
+    it("moves forward with incrementCacheVersion", async () => {
+      await cache.getCacheVersion("version:bumped");
+
+      await expect(cache.incrementCacheVersion("version:bumped")).resolves.toBe(2);
+      await expect(cache.getCacheVersion("version:bumped")).resolves.toBe(2);
+    });
+
+    it("throws a 500 when the stored version isn't a positive integer", async () => {
+      await raw.set(fullKey("version:broken"), "not-a-number");
+
+      const error = await appErrorOf(cache.getCacheVersion("version:broken"));
+
+      expect(error).toMatchObject({statusCode: 500, code: "Redis cache version error"});
+    });
+  });
+
 });
