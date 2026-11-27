@@ -1,8 +1,9 @@
 import Redis from "ioredis";
 import {randomBytes} from "node:crypto";
 import {CacheService} from "./cache.service";
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
-import {appErrorOf} from "../../../../test/helpers/errors";
+import {appErrorOf} from '../../../../test/helpers/errors';
 import {afterAll, beforeAll, describe, expect, it, vi} from "vitest";
 
 /**
