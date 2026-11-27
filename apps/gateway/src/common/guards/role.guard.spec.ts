@@ -1,8 +1,7 @@
 import {Reflector} from "@nestjs/core";
-import {describe, expect, it} from "vitest";
-
 import {RoleGuard} from "./role.guard";
 import {Public, Role} from "../decorators";
+import {describe, expect, it} from "vitest";
 import {UserRoleEnum} from "@live-bid/contracts/enums";
 import {gatewayErrorOf, graphqlContext} from "../../../../../test/helpers/graphql";
 
