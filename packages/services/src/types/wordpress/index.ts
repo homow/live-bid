@@ -6,3 +6,5 @@ export * from './users';
 export * from './taxonomy';
 export * from './queries';
 export * from './mutations';
+export * from './requests';
+export * from './responses';

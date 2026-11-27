@@ -1,4 +1,4 @@
-import type { CreateCommentInput } from '../../comments/create-comment-input.type';
+import type { CreateCommentInput } from '../../comments';
 
 export interface CreateCommentVariables {
   input: CreateCommentInput;
