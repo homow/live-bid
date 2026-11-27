@@ -1,8 +1,8 @@
 import {PinoLogger} from "nestjs-pino";
 import {AppException} from "@live-bid/services/lib";
 import {Injectable, OnModuleInit} from "@nestjs/common";
-import {GetPostResponse, GetPostsResponse} from "@live-bid/services/types";
-import {GET_POST, GET_POSTS} from "@app/core/modules/wordpress/wordpress.document";
+import {GetCommentsResponse, GetPostResponse, GetPostsResponse} from "@live-bid/services/types";
+import {GET_CATEGORIES, GET_COMMENTS, GET_POST, GET_POSTS} from "@app/core/modules/wordpress/wordpress.document";
 import {PostIdType} from "@live-bid/services/enums";
 
 const MAX_PAGE_SIZE = 100;
@@ -124,5 +124,21 @@ export class WordpressService implements OnModuleInit {
     });
     // A missing post is a normal case (null), not an error.
     return data?.post ?? null;
+  }
+
+  getCategories() {
+    return this.request<{
+      categories: { nodes: { databaseId: number; slug: string; name: string; count: number }[] };
+    }>("GetCategories", GET_CATEGORIES);
+  }
+
+  getComments({postId, first, after, order = "DESC"}: {
+    postId: number; first?: number; after?: string; order?: "ASC" | "DESC";
+  }) {
+    return this.request<GetCommentsResponse>("GetComments", GET_COMMENTS, {
+      first: pageSize(first),
+      after: after ?? null,
+      where: {contentId: postId, parent: 0, order, orderby: "COMMENT_DATE"},
+    });
   }
 }

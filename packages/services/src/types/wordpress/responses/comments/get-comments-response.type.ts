@@ -1,7 +1,14 @@
-import {Connection} from "../../common";
-import type {Comment} from '../../comments';
-import type {GraphQLResponse} from '../graphql-response.type';
+import type { Comment } from "../../comments";
+import type { PageInfo } from "../../common";
+import type { GraphQLResponse } from "../graphql-response.type";
 
 export type GetCommentsResponse = GraphQLResponse<{
-  comments: Connection<Comment> | null;
+  comments: {
+    nodes: (Comment & {
+      replies: {
+        nodes: Comment[];
+      };
+    })[];
+    pageInfo: PageInfo;
+  };
 }>;
