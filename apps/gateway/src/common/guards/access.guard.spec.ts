@@ -61,5 +61,31 @@ describe("AccessTokenGuard", () => {
       expect(passport).toHaveBeenCalledTimes(1);
     });
   });
+  describe("handleRequest", () => {
+    const user = {userId: "user-1", role: "USER"};
+    const context = graphqlContext(Resolver, "guarded");
+
+    it("returns the user Passport resolved", () => {
+      expect(guard.handleRequest(null as never, user, undefined, context)).toBe(user);
+    });
+
+    it.each([
+      ["Passport reports an error", new Error("jwt expired"), false],
+      ["there is no user", null, null],
+      ["the user is false", null, false],
+    ])("answers 401 ACCESS_TOKEN_EXPIRED when %s", (_label, error, resolvedUser) => {
+      const result = gatewayErrorOf(() => guard.handleRequest(error as never, resolvedUser as never, undefined, context));
+
+      expect(result).toMatchObject({statusCode: 401, code: "ACCESS_TOKEN_EXPIRED"});
+    });
+  });
+
+  describe("getRequest", () => {
+    it("takes the request out of the GraphQL context", () => {
+      const req = {headers: {}};
+
+      expect(guard.getRequest(graphqlContext(Resolver, "guarded", req))).toBe(req);
+    });
+  });
 
 });
