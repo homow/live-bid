@@ -1,9 +1,9 @@
 import Redis from "ioredis";
 import {randomBytes} from "node:crypto";
-import {afterAll, beforeAll, describe, expect, it, vi} from "vitest";
-
 import {CacheService} from "./cache.service";
+// @ts-ignore
 import {appErrorOf} from "../../../../test/helpers/errors";
+import {afterAll, beforeAll, describe, expect, it, vi} from "vitest";
 
 /**
  * CacheService against a real Redis.
@@ -47,6 +47,9 @@ describe("CacheService (real Redis)", () => {
     await raw.quit();
   });
 
+  // ================================
+  // |        set and get           |
+  // ================================
   describe("set and get", () => {
     it("round-trips a JSON value", async () => {
       await cache.set("roundtrip", {id: 1, tags: ["a", "b"]});
@@ -82,6 +85,9 @@ describe("CacheService (real Redis)", () => {
     });
   });
 
+  // ================================
+  // |          setNX                |
+  // ================================
   describe("setNX", () => {
     it("writes only when the key is free", async () => {
       await expect(cache.setNX("nx", "first")).resolves.toBe("OK");
@@ -91,6 +97,9 @@ describe("CacheService (real Redis)", () => {
     });
   });
 
+  // ================================
+  // |        delete                |
+  // ================================
   describe("delete", () => {
     it("removes several keys at once and counts them", async () => {
       await cache.set("del-a", 1);
@@ -103,6 +112,9 @@ describe("CacheService (real Redis)", () => {
     });
   });
 
+  // ================================
+  // |        getDel                |
+  // ================================
   describe("getDel", () => {
     it("returns the value and removes it, so it can only be read once", async () => {
       await cache.set("one-shot", {secret: true});
@@ -112,6 +124,9 @@ describe("CacheService (real Redis)", () => {
     });
   });
 
+  // ================================
+  // |    setPwdTokenAtomic         |
+  // ================================
   describe("setPwdTokenAtomic", () => {
     const payload = {id: "user-1", email: "dpk@example.com"};
 
@@ -156,6 +171,9 @@ describe("CacheService (real Redis)", () => {
     });
   });
 
+  // ================================
+  // |        cache version         |
+  // ================================
   describe("cache versions", () => {
     it("starts at 1 and stays there until it is bumped", async () => {
       await expect(cache.getCacheVersion("version:fresh")).resolves.toBe(1);
@@ -178,6 +196,9 @@ describe("CacheService (real Redis)", () => {
     });
   });
 
+  // ================================
+  // |        deletePrefix          |
+  // ================================
   describe("deletePrefix", () => {
     // Fails until deletePrefix applies the key prefix to the pattern, see the notes
     it("deletes every key that starts with the given prefix, and only those", async () => {
@@ -206,5 +227,4 @@ describe("CacheService (real Redis)", () => {
       await expect(cache.deletePrefix("nothing-here:*")).resolves.toBeNull();
     });
   });
-
 });
