@@ -1,7 +1,7 @@
 {
   "name": "live-bid",
   "version": "0.0.1",
-  "description": "",
+  "description": "A real-time auction platform built with Next.js (frontend) and NestJS (backend). High-performance microservices architecture with Redis, PostgreSQL, and GraphQL.",
   "author": "",
   "private": false,
   "license": "",
