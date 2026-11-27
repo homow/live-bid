@@ -178,4 +178,33 @@ describe("CacheService (real Redis)", () => {
     });
   });
 
+  describe("deletePrefix", () => {
+    // Fails until deletePrefix applies the key prefix to the pattern, see the notes
+    it("deletes every key that starts with the given prefix, and only those", async () => {
+      await cache.set("group:1", "a");
+      await cache.set("group:2", "b");
+      await cache.set("other:1", "c");
+
+      await expect(cache.deletePrefix("group:*")).resolves.toBe(2);
+
+      await expect(cache.get("group:1")).resolves.toBeNull();
+      await expect(cache.get("group:2")).resolves.toBeNull();
+      await expect(cache.get("other:1")).resolves.toBe("c");
+    });
+
+    it("also works with a leading wildcard, which is what the cache-evict interceptor sends", async () => {
+      await cache.set("wild:zebra:1", "a");
+      await cache.set("wild:zebra:2", "b");
+      await cache.set("wild:keep:1", "c");
+
+      await expect(cache.deletePrefix("*zebra*")).resolves.toBe(2);
+
+      await expect(cache.get("wild:keep:1")).resolves.toBe("c");
+    });
+
+    it("returns null when nothing matches", async () => {
+      await expect(cache.deletePrefix("nothing-here:*")).resolves.toBeNull();
+    });
+  });
+
 });
