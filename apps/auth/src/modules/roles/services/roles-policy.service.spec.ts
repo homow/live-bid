@@ -71,4 +71,17 @@ describe("RolesPolicy", () => {
     });
   });
 
+  describe("assertCanDemoteOwner", () => {
+    it("rejects a target that currently holds the owner role", () => {
+      const error = appErrorOfSync(() =>
+        policy.assertCanDemoteOwner({id: TARGET_ID, role: UserRoleEnum.OWNER}),
+      );
+
+      expect(error).toMatchObject({statusCode: 403, code: "OWNER_DEMOTION_FORBIDDEN"});
+    });
+
+    it.each(nonOwnerRoles)("allows a target with the %s role", (role) => {
+      expect(() => policy.assertCanDemoteOwner({id: TARGET_ID, role})).not.toThrow();
+    });
+  });
 });
