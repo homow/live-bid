@@ -188,4 +188,30 @@ describe("UsersRepository (real Postgres)", () => {
     });
   });
 
+  describe("updateProfile", () => {
+    it("updates username and display name", async () => {
+      const target = await createUser({display_name: "Before"});
+
+      await repo.updateProfile(target.id, {username: "after", display_name: "After"} as never);
+
+      expect(await loadUser(target.id)).toMatchObject({username: "after", display_name: "After"});
+    });
+
+    // Fails until updateProfile picks the two allowed fields itself, see the notes
+    it("ignores every other field, like role and is_active", async () => {
+      const target = await createUser({display_name: "Before"});
+
+      await repo.updateProfile(target.id, {
+        display_name: "After",
+        role: otherRole,
+        is_active: false,
+      } as never);
+
+      const after = await loadUser(target.id);
+      expect(after.display_name).toBe("After");
+      expect(after.role).toBe(UserRoleEnum.USER);
+      expect(after.is_active).toBe(true);
+    });
+  });
+
 });
