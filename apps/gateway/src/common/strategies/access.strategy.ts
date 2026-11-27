@@ -12,15 +12,15 @@ export const ACCESS_STRATEGY_NAME = "jwt-access";
 @Injectable()
 export class AccessStrategy extends PassportStrategy(Strategy, ACCESS_STRATEGY_NAME) {
   constructor(readonly config: ConfigService) {
-    let secretOrKey: string | undefined = config.get<string>("JWT_SECRET");
+    const secretOrKey = config.get<string>("JWT_SECRET");
 
-    if (process.env.NODE_ENV === 'production' && !secretOrKey) throw new GatewayException({
-      statusCode: 500,
-      code: 'JWT_SECRET_NOT_FOUND',
-      message: "JWT_SECRET must be set",
-    });
-
-    secretOrKey = 'JWT_SECRET';
+    if (!secretOrKey) {
+      throw new GatewayException({
+        statusCode: 500,
+        code: "JWT_SECRET_NOT_FOUND",
+        message: "JWT_SECRET must be set",
+      });
+    }
 
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
