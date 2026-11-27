@@ -1,8 +1,8 @@
-import {afterAll, beforeEach, describe, expect, it} from "vitest";
-
-import {UsersRepository} from "./users.repository";
+import {eq, sql} from "drizzle-orm";
 import {user} from "@live-bid/services/database";
+import {UsersRepository} from "./users.repository";
 import {DrizzleService} from "@live-bid/services/modules";
+import {afterAll, beforeEach, describe, expect, it} from "vitest";
 import {BaseSortByEnum, UserRoleEnum} from "@live-bid/contracts/enums";
 import type {FindManyUsersSchemaType} from "@live-bid/contracts/schemas";
 import {appErrorOf, pgErrorCode} from "../../../../../test/helpers/errors";
@@ -11,7 +11,6 @@ import {closeDb, createUser, resetDb} from "../../../../../test/helpers/db";
 /**
  * UsersRepository against a real Postgres (the *_test database).
  */
-
 describe("UsersRepository (real Postgres)", () => {
   const drizzle = new DrizzleService();
   const repo = new UsersRepository(drizzle);
@@ -114,7 +113,11 @@ describe("UsersRepository (real Postgres)", () => {
     // Tries to grab the same row from a second connection without waiting.
     // If the first transaction really holds a FOR UPDATE lock, Postgres says "lock not available" (55P03).
     const tryToLock = (id: string) =>
-      pgErrorCode(drizzle.db.execute(sql`SELECT id FROM users WHERE id = ${id} FOR UPDATE NOWAIT`));
+      pgErrorCode(drizzle.db.execute(sql`
+          SELECT id
+          FROM users
+          WHERE id = ${id} FOR UPDATE NOWAIT
+      `));
 
     // Fails until findOne passes `lock` on to the query, see the notes
     it("findOne holds a row lock for the transaction when lock is requested", async () => {
@@ -122,7 +125,7 @@ describe("UsersRepository (real Postgres)", () => {
       let lockCode: string | undefined;
 
       await drizzle.db.transaction(async (tx) => {
-        await repo.findOne({id: target.id, lock: true} as never, true, tx);
+        await repo.findOne({id: target.id, lock: true}, true, tx);
         lockCode = await tryToLock(target.id);
       });
 
@@ -192,7 +195,7 @@ describe("UsersRepository (real Postgres)", () => {
     it("updates username and display name", async () => {
       const target = await createUser({display_name: "Before"});
 
-      await repo.updateProfile(target.id, {username: "after", display_name: "After"} as never);
+      await repo.updateProfile(target.id, {username: "after", display_name: "After"});
 
       expect(await loadUser(target.id)).toMatchObject({username: "after", display_name: "After"});
     });
