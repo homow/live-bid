@@ -1,9 +1,19 @@
+import type {
+  GetPostResponseWP,
+  GetPostVariablesWP,
+  GetPostsResponseWP,
+  GetPostsVariablesWP,
+  GetCommentsResponseWP,
+  GetCommentsVariablesWP,
+  CreateCommentResponseWP,
+  GetCategoriesResponseWP,
+  CreateCommentVariablesWP,
+} from "@live-bid/services/types";
+
 import {PinoLogger} from "nestjs-pino";
 import {AppException} from "@live-bid/services/lib";
-import {PostIdTypeWP} from "@live-bid/services/enums";
 import {Injectable, OnModuleInit} from "@nestjs/common";
-import {CREATE_COMMENT, GET_CATEGORIES, GET_COMMENTS, GET_POST, GET_POSTS} from "@app/core/modules/wordpress/wordpress.document";
-import type {CreateCommentResponseWP, GetCommentsResponseWP, GetPostResponseWP, GetPostsResponseWP} from "@live-bid/services/types";
+import {CREATE_COMMENT, GET_CATEGORIES, GET_COMMENTS, GET_POST, GET_POSTS} from "./wordpress.document";
 
 const MAX_PAGE_SIZE = 100;
 const DEFAULT_PAGE_SIZE = 10;
@@ -37,7 +47,7 @@ export class WordpressService implements OnModuleInit {
   private async request<TData>(
     operation: string,
     query: string,
-    variables: Record<string, unknown> = {},
+    variables: object = {},
     extraHeaders: Record<string, string> = {},
   ): Promise<TData> {
     let res: Response;
@@ -106,58 +116,40 @@ export class WordpressService implements OnModuleInit {
     return body.data;
   }
 
-  getPosts({first, after, categoryId}: { first?: number; after?: string; categoryId?: number } = {}) {
+  getPosts(variables: GetPostsVariablesWP = {}) {
     return this.request<GetPostsResponseWP['data']>("GetPosts", GET_POSTS, {
-      first: pageSize(first),
-      after: after ?? null,
-      where: {
-        ...(categoryId ? {categoryId} : {}),
-        orderby: [{field: "DATE", order: "DESC"}],
-      },
+      ...variables,
+      first: pageSize(variables.first ?? undefined),
+      where: {orderby: [{field: "DATE", order: "DESC"}], ...variables.where},
     });
   }
 
-  async getPost(id: string | number, idType: PostIdTypeWP = PostIdTypeWP.SLUG) {
-    const data = await this.request<GetPostResponseWP['data']>("GetPost", GET_POST, {
-      id: String(id),
-      idType,
-    });
+  async getPost(variables: GetPostVariablesWP) {
+    const data = await this.request<GetPostResponseWP['data']>("GetPost", GET_POST, variables);
     // A missing post is a normal case (null), not an error.
     return data?.post ?? null;
   }
 
   getCategories() {
-    return this.request("GetCategories", GET_CATEGORIES);
+    return this.request<GetCategoriesResponseWP['data']>("GetCategories", GET_CATEGORIES);
   }
 
-  getComments({postId, first, after, order = "DESC"}: {
-    postId: number; first?: number; after?: string; order?: "ASC" | "DESC";
-  }) {
-    return this.request<GetCommentsResponseWP>("GetComments", GET_COMMENTS, {
-      first: pageSize(first),
-      after: after ?? null,
-      where: {contentId: postId, parent: 0, order, orderby: "COMMENT_DATE"},
+  getComments(variables: GetCommentsVariablesWP) {
+    return this.request<GetCommentsResponseWP['data']>("GetComments", GET_COMMENTS, {
+      ...variables,
+      first: pageSize(variables.first ?? undefined),
+      where: {parent: 0, orderby: "COMMENT_DATE", ...variables.where},
     });
   }
 
-  async createComment(
-    input: { postId: number; content: string; author: string; authorEmail?: string; parentId?: number },
-    clientIp?: string,
-  ) {
+  async createComment(variables: CreateCommentVariablesWP, client?: { ip?: string; userAgent?: string }) {
+    // Without these, WordPress would see our own IP as the author of every comment.
+    const headers: Record<string, string> = {};
+    if (client?.ip) headers["X-LiveBid-Client-IP"] = client.ip;
+    if (client?.userAgent) headers["X-LiveBid-Client-User-Agent"] = client.userAgent;
+
     const data = await this.request<CreateCommentResponseWP['data']>(
-      "CreateComment",
-      CREATE_COMMENT,
-      {
-        input: {
-          commentOn: input.postId,
-          content: input.content,
-          author: input.author,
-          authorEmail: input.authorEmail,
-          parent: input.parentId,
-        },
-      },
-      // WordPress would otherwise see our own IP as the author of every comment.
-      clientIp ? {"X-LiveBid-Client-IP": clientIp} : {},
+      "CreateComment", CREATE_COMMENT, variables, headers,
     );
     return data?.createComment;
   }
