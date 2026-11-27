@@ -1,6 +1,9 @@
 import {PinoLogger} from "nestjs-pino";
 import {AppException} from "@live-bid/services/lib";
 import {Injectable, OnModuleInit} from "@nestjs/common";
+import {GetPostResponse, GetPostsResponse} from "@live-bid/services/types";
+import {GET_POST, GET_POSTS} from "@app/core/modules/wordpress/wordpress.document";
+import {PostIdType} from "@live-bid/services/enums";
 
 const MAX_PAGE_SIZE = 100;
 const DEFAULT_PAGE_SIZE = 10;
@@ -101,5 +104,25 @@ export class WordpressService implements OnModuleInit {
     }
 
     return body.data;
+  }
+
+  getPosts({first, after, categoryId}: { first?: number; after?: string; categoryId?: number } = {}) {
+    return this.request<GetPostsResponse['data']>("GetPosts", GET_POSTS, {
+      first: pageSize(first),
+      after: after ?? null,
+      where: {
+        ...(categoryId ? {categoryId} : {}),
+        orderby: [{field: "DATE", order: "DESC"}],
+      },
+    });
+  }
+
+  async getPost(id: string | number, idType: PostIdType = PostIdType.SLUG) {
+    const data = await this.request<GetPostResponse['data']>("GetPost", GET_POST, {
+      id: String(id),
+      idType,
+    });
+    // A missing post is a normal case (null), not an error.
+    return data?.post ?? null;
   }
 }
