@@ -29,5 +29,22 @@ class OwnerOnly {}
 const metadata = (key: string, target: object) => Reflect.getMetadata(key, target);
 
 describe("@Public()", () => {
+  it("bypasses both guards by default", () => {
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    expect(metadata(IS_PUBLIC_KEY, Resolver.prototype.fullyPublic)).toEqual({
+      makePublicRoleGuard: true,
+      makePublicAccessGuard: true,
+    });
+  });
 
+  it("stores exactly what it was given, so a partial config leaves the other guard on", () => {
+    // Only the access guard is bypassed: makePublicRoleGuard is simply missing, which means false
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    expect(metadata(IS_PUBLIC_KEY, Resolver.prototype.accessOnly)).toEqual({makePublicAccessGuard: true});
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    expect(metadata(IS_PUBLIC_KEY, Resolver.prototype.roleOnly)).toEqual({
+      makePublicRoleGuard: true,
+      makePublicAccessGuard: false,
+    });
+  });
 });
