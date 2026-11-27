@@ -214,4 +214,16 @@ describe("UsersRepository (real Postgres)", () => {
     });
   });
 
+  describe("updateRole", () => {
+    it("changes the role of that user only", async () => {
+      const target = await createUser();
+      const bystander = await createUser();
+
+      await repo.updateRole(target.id, otherRole);
+
+      expect((await loadUser(target.id)).role).toBe(otherRole);
+      expect((await loadUser(bystander.id)).role).toBe(UserRoleEnum.USER);
+    });
+  });
+
 });
