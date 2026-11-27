@@ -48,3 +48,17 @@ describe("@Public()", () => {
     });
   });
 });
+
+describe("@Role()", () => {
+  it("stores the role and strictness on a method", () => {
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    expect(metadata(ROLE_METADATA, Resolver.prototype.strictAdmin)).toEqual({
+      requiredRole: UserRoleEnum.ADMIN,
+      strict: true,
+    });
+  });
+
+  it("stores them on a class too", () => {
+    expect(metadata(ROLE_METADATA, OwnerOnly)).toEqual({requiredRole: UserRoleEnum.OWNER, strict: false});
+  });
+});
