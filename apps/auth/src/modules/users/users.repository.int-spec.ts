@@ -31,6 +31,9 @@ describe("UsersRepository (real Postgres)", () => {
     await closeDb();
   });
 
+  // ==========================
+  // |      insertUser        |
+  // ==========================
   describe("insertUser", () => {
     const input = {email: "dpk@example.com", display_name: "dpk", password: "hashed-password"};
 
@@ -62,6 +65,10 @@ describe("UsersRepository (real Postgres)", () => {
       await expect(pgErrorCode(repo.insertUser(input))).resolves.toBe("23505");
     });
   });
+
+  // ==========================
+  // |        findOne         |
+  // ==========================
   describe("findOne", () => {
     it("finds a user by id, email and username", async () => {
       const target = await createUser({username: "dpk"});
@@ -109,6 +116,9 @@ describe("UsersRepository (real Postgres)", () => {
     });
   });
 
+  // ==========================
+  // |     row  locking       |
+  // ==========================
   describe("row locking", () => {
     // Tries to grab the same row from a second connection without waiting.
     // If the first transaction really holds a FOR UPDATE lock, Postgres says "lock not available" (55P03).
@@ -142,6 +152,9 @@ describe("UsersRepository (real Postgres)", () => {
     });
   });
 
+  // ==========================
+  // |       findMany         |
+  // ==========================
   describe("findMany", () => {
     const query = (overrides: Partial<FindManyUsersSchemaType> = {}) =>
       repo.findMany({
@@ -191,6 +204,9 @@ describe("UsersRepository (real Postgres)", () => {
     });
   });
 
+  // ==========================
+  // |     updateProfile      |
+  // ==========================
   describe("updateProfile", () => {
     it("updates username and display name", async () => {
       const target = await createUser({display_name: "Before"});
@@ -217,6 +233,9 @@ describe("UsersRepository (real Postgres)", () => {
     });
   });
 
+  // ==========================
+  // |      updateRole        |
+  // ==========================
   describe("updateRole", () => {
     it("changes the role of that user only", async () => {
       const target = await createUser();
@@ -228,5 +247,4 @@ describe("UsersRepository (real Postgres)", () => {
       expect((await loadUser(bystander.id)).role).toBe(UserRoleEnum.USER);
     });
   });
-
 });
