@@ -1,8 +1,8 @@
 import {PinoLogger} from "nestjs-pino";
 import {AppException} from "@live-bid/services/lib";
 import {Injectable, OnModuleInit} from "@nestjs/common";
-import {GetCommentsResponse, GetPostResponse, GetPostsResponse} from "@live-bid/services/types";
-import {GET_CATEGORIES, GET_COMMENTS, GET_POST, GET_POSTS} from "@app/core/modules/wordpress/wordpress.document";
+import {CreateCommentResponse, GetCommentsResponse, GetPostResponse, GetPostsResponse} from "@live-bid/services/types";
+import {CREATE_COMMENT, GET_CATEGORIES, GET_COMMENTS, GET_POST, GET_POSTS} from "@app/core/modules/wordpress/wordpress.document";
 import {PostIdType} from "@live-bid/services/enums";
 
 const MAX_PAGE_SIZE = 100;
@@ -127,9 +127,7 @@ export class WordpressService implements OnModuleInit {
   }
 
   getCategories() {
-    return this.request<{
-      categories: { nodes: { databaseId: number; slug: string; name: string; count: number }[] };
-    }>("GetCategories", GET_CATEGORIES);
+    return this.request("GetCategories", GET_CATEGORIES);
   }
 
   getComments({postId, first, after, order = "DESC"}: {
@@ -140,5 +138,27 @@ export class WordpressService implements OnModuleInit {
       after: after ?? null,
       where: {contentId: postId, parent: 0, order, orderby: "COMMENT_DATE"},
     });
+  }
+
+  async createComment(
+    input: { postId: number; content: string; author: string; authorEmail?: string; parentId?: number },
+    clientIp?: string,
+  ) {
+    const data = await this.request<CreateCommentResponse['data']>(
+      "CreateComment",
+      CREATE_COMMENT,
+      {
+        input: {
+          commentOn: input.postId,
+          content: input.content,
+          author: input.author,
+          authorEmail: input.authorEmail,
+          parent: input.parentId,
+        },
+      },
+      // WordPress would otherwise see our own IP as the author of every comment.
+      clientIp ? {"X-LiveBid-Client-IP": clientIp} : {},
+    );
+    return data?.createComment;
   }
 }
