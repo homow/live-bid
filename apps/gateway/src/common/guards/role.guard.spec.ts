@@ -94,4 +94,49 @@ describe("RoleGuard", () => {
       expect(run(Resolver, "plain", asRole(role))).toBe(true);
     });
   });
+  describe("class level versus method level", () => {
+    it("applies the class @Role to methods that have none of their own", () => {
+      expect(run(OwnerResolver, "inherited", asRole(OWNER))).toBe(true);
+
+      const error = gatewayErrorOf(() => run(OwnerResolver, "inherited", asRole(ADMIN)));
+      expect(error).toMatchObject({statusCode: 403, code: "ROLE_NOT_ALLOWED"});
+    });
+
+    it("lets a method @Role override the class one", () => {
+      expect(run(OwnerResolver, "overridden", asRole(USER))).toBe(true);
+    });
+  });
+
+  describe("when there is no authenticated user", () => {
+    // Fails until the guard checks for a user, see the notes.
+    // It happens on a route that is public for the access guard but not for the role guard.
+    it("answers 401 instead of crashing", () => {
+      const error = gatewayErrorOf(() => run(Resolver, "accessOnlyPublic", {}));
+
+      expect(error).toMatchObject({statusCode: 401, code: "ACCESS_TOKEN_EXPIRED"});
+    });
+  });
+  describe("class level versus method level", () => {
+    it("applies the class @Role to methods that have none of their own", () => {
+      expect(run(OwnerResolver, "inherited", asRole(OWNER))).toBe(true);
+
+      const error = gatewayErrorOf(() => run(OwnerResolver, "inherited", asRole(ADMIN)));
+      expect(error).toMatchObject({statusCode: 403, code: "ROLE_NOT_ALLOWED"});
+    });
+
+    it("lets a method @Role override the class one", () => {
+      expect(run(OwnerResolver, "overridden", asRole(USER))).toBe(true);
+    });
+  });
+
+  describe("when there is no authenticated user", () => {
+    // Fails until the guard checks for a user, see the notes.
+    // It happens on a route that is public for the access guard but not for the role guard.
+    it("answers 401 instead of crashing", () => {
+      const error = gatewayErrorOf(() => run(Resolver, "accessOnlyPublic", {}));
+
+      expect(error).toMatchObject({statusCode: 401, code: "ACCESS_TOKEN_EXPIRED"});
+    });
+  });
+
 });
