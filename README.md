@@ -46,7 +46,7 @@ clients/web/src/
 │   ├── (dashboard)/   # Authenticated dashboard routes
 │   └── (pages)/       # Public pages
 ├── Components/        # Layout, providers, and UI components
-├── featuer/           # Feature modules (Auth, Dashboard, Home)
+├── feature/           # Feature modules (Auth, Dashboard, Home)
 ├── hooks/             # Shared React hooks
 ├── lib/               # Apollo Client configuration and utilities
 └── mocks/             # Static mock data

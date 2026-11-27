@@ -7,6 +7,7 @@ import { Muted } from "@/Components/Ui/typography/typography";
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import type { z } from "zod";
 
 import {
   LoginUserSchema,
@@ -22,7 +23,7 @@ const LoginForm = ({ onRegisterClick }: LoginFormProps) => {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<LoginUserSchemaType>({
+  } = useForm<z.input<typeof LoginUserSchema>, unknown, LoginUserSchemaType>({
     resolver: zodResolver(LoginUserSchema),
   });
 

@@ -104,6 +104,7 @@ export class UsersRepository {
   async findOne(
     {
       id,
+      lock,
       email,
       username,
     }: FindOneUserParams,
@@ -126,7 +127,7 @@ export class UsersRepository {
       });
     }
 
-    const [findUser] = await this.buildUserQuery(eqUser, tx);
+    const [findUser] = await this.buildUserQuery(eqUser, tx, lock);
 
     if (!findUser) return null;
 
@@ -136,78 +137,6 @@ export class UsersRepository {
     }
 
     return findUser satisfies User;
-  }
-
-  /**
-   * Builds a base user query, optionally filtered by a `WHERE` clause
-   * and/or locked with `FOR UPDATE`.
-   *
-   * @param whereCondition - Optional SQL condition to filter the query.
-   * @param tx - Optional transaction; falls back to `drizzle.db`.
-   * @param lock - When `true`, appends a `FOR UPDATE` clause to lock the
-   *               matched rows. Should only be used inside a transaction.
-   * @returns A Drizzle query object (executable).
-   */
-  buildUserQuery(whereCondition?: SQL<unknown>, tx?: DrizzleTransaction, lock?: boolean) {
-    const db = tx ?? this.drizzle.db;
-
-    const query = db
-      .select()
-      .from(user)
-      .groupBy(user.id);
-
-    if (whereCondition) {
-
-      if (lock) {
-        return query
-          .where(whereCondition)
-          .for('update');
-      }
-
-      return query.where(whereCondition);
-    }
-
-    if (lock) return query.for('update');
-
-    return query;
-  }
-
-  /**
-   * Updates the editable fields of a user's profile.
-   *
-   * @remarks
-   * - Only **`username`** and **`display_name`** are allowed to be updated.
-   *   Any other field in `data` is silently ignored to prevent mass-assignment
-   *   vulnerabilities (e.g., a client trying to change `role` or `is_active`).
-   * - This method does not throw if the user does not exist (Drizzle returns 0 rows);
-   *   existence checks should be handled by the caller if required.
-   * - Cache invalidation is the caller's responsibility (e.g., `UsersCacheService`).
-   *
-   * @param userId - ID of the user whose profile is being updated.
-   * @param data - Partial profile data. Only `username` and `display_name` are applied.
-   * @returns A promise that resolves once the update is executed.
-   */
-  async updateProfile(userId: string, data: UpdateProfileSchemaType) {
-    await this.drizzle.db
-      .update(user)
-      .set(data)
-      .where(eq(user.id, userId));
-  }
-
-  /**
-   * Updates the role assigned to a user.
-   *
-   * @param userID - ID of the user whose role is being updated.
-   * @param role - New role to assign to the user.
-   * @param tx - Optional transaction; falls back to `drizzle.db`.
-   */
-  async updateRole(userID: string, role: UserRoleEnum, tx?: DrizzleTransaction) {
-    const db = tx ?? this.drizzle.db;
-
-    await db
-      .update(user)
-      .set({role})
-      .where(eq(user.id, userID));
   }
 
   /**
@@ -244,5 +173,78 @@ export class UsersRepository {
           : asc(user[orderBy])
       )
       .where(and(...conditions));
+  }
+
+  /**
+   * Builds a base user query, optionally filtered by a `WHERE` clause
+   * and/or locked with `FOR UPDATE`.
+   *
+   * @param whereCondition - Optional SQL condition to filter the query.
+   * @param tx - Optional transaction; falls back to `drizzle.db`.
+   * @param lock - When `true`, appends a `FOR UPDATE` clause to lock the
+   *               matched rows. Should only be used inside a transaction.
+   * @returns A Drizzle query object (executable).
+   */
+  buildUserQuery(whereCondition?: SQL<unknown>, tx?: DrizzleTransaction, lock?: boolean) {
+    const db = tx ?? this.drizzle.db;
+
+    const query = db
+      .select()
+      .from(user);
+
+    if (whereCondition && lock) {
+      return query
+        .where(whereCondition)
+        .for('update');
+    }
+
+    if (whereCondition) {
+      return query.where(whereCondition);
+    }
+
+    if (lock) return query.for('update');
+
+    return query;
+  }
+
+  /**
+   * Updates the editable fields of a user's profile.
+   *
+   * @remarks
+   * - Only **`username`** and **`display_name`** are allowed to be updated.
+   *   Any other field in `data` is silently ignored to prevent mass-assignment
+   *   vulnerabilities (e.g., a client trying to change `role` or `is_active`).
+   * - This method does not throw if the user does not exist (Drizzle returns 0 rows);
+   *   existence checks should be handled by the caller if required.
+   * - Cache invalidation is the caller's responsibility (e.g., `UsersCacheService`).
+   *
+   * @param userId - ID of the user whose profile is being updated.
+   * @param data - Partial profile data. Only `username` and `display_name` are applied.
+   * @returns A promise that resolves once the update is executed.
+   */
+  async updateProfile(userId: string, {display_name, username}: UpdateProfileSchemaType) {
+    await this.drizzle.db
+      .update(user)
+      .set({
+        username,
+        display_name,
+      })
+      .where(eq(user.id, userId));
+  }
+
+  /**
+   * Updates the role assigned to a user.
+   *
+   * @param userID - ID of the user whose role is being updated.
+   * @param role - New role to assign to the user.
+   * @param tx - Optional transaction; falls back to `drizzle.db`.
+   */
+  async updateRole(userID: string, role: UserRoleEnum, tx ?: DrizzleTransaction) {
+    const db = tx ?? this.drizzle.db;
+
+    await db
+      .update(user)
+      .set({role})
+      .where(eq(user.id, userID));
   }
 }

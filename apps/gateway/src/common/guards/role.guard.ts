@@ -1,6 +1,5 @@
 import {Reflector} from "@nestjs/core";
 import {isRoleAccess} from "@live-bid/services/lib";
-import {UserRoleEnum} from "@live-bid/contracts/enums";
 import {getRequestResponse} from "@app/gateway/lib/utils";
 import type {AccessRequest} from "@live-bid/services/types";
 import {GatewayException} from "@app/gateway/common/filters";
@@ -64,15 +63,24 @@ export class RoleGuard implements CanActivate {
 
     if (isPublic.makePublicRoleGuard) return true;
 
-    const {requiredRole, strict} = this.reflector.getAllAndOverride<RoleDecoratorParams>(ROLE_METADATA, [
+    const {req} = getRequestResponse<AccessRequest>(context);
+
+    if (!req.user) {
+      throw new GatewayException({
+        statusCode: 401,
+        code: "ACCESS_TOKEN_EXPIRED",
+        message: "Access token missing or expired",
+      });
+    }
+
+    const roleMetadata = this.reflector.getAllAndOverride<RoleDecoratorParams>(ROLE_METADATA, [
       context.getHandler(),
       context.getClass(),
-    ]) || {
-      strict: true,
-      requiredRole: UserRoleEnum.USER,
-    };
+    ]);
 
-    const {req} = getRequestResponse<AccessRequest>(context);
+    if (!roleMetadata) return true;
+
+    const {requiredRole, strict} = roleMetadata;
 
     const userRole = req.user.role;
 

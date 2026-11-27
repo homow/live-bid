@@ -1,3 +1,14 @@
+import type {
+  SafeUser,
+  UserAccess,
+  FindOneUserRequestService,
+  GetProfileResponseService,
+  UpdateProfileRequestService,
+  FindManyUsersRequestService,
+  UpdateProfileResponseService,
+  PublicProfileResponseService,
+} from "@live-bid/services/types";
+
 import * as Inputs from "./inputs";
 import {firstValueFrom} from "rxjs";
 import * as Outputs from "./outputs";
@@ -9,8 +20,7 @@ import {CurrentUser} from "@app/gateway/common/decorators";
 import {AUTH_SERVICE_NAME} from "@live-bid/services/names";
 import {USERS_PATTERNS} from "@live-bid/services/messages";
 import {Args, ID, Mutation, Query, Resolver} from "@nestjs/graphql";
-import {type UpdateProfileSchemaType, UpdateProfileSchema, UUIDv7Schema, type FindManyUsersSchemaType, FindManyUsersSchema} from "@live-bid/contracts/schemas";
-import type {FindManyUsersRequestService, GetProfileResponseService, PublicProfileResponseService, SafeUser, UpdateProfileRequestService, UpdateProfileResponseService, UserAccess} from "@live-bid/services/types";
+import {type UpdateProfileSchemaType, UpdateProfileSchema, UUIDv7Schema, type FindManyUsersSchemaType, FindManyUsersSchema, FindOneUserSchema, type FindOneUserSchemaType} from "@live-bid/contracts/schemas";
 
 /**
  * **UserResolver**
@@ -170,6 +180,39 @@ export class UserResolver {
   }
 
   /**
+   * Retrieves a single user based on the provided lookup criteria.
+   *
+   * @remarks
+   * **GraphQL**
+   * - Exposes a query that accepts `FindOneInput` and returns `FindOneOutput`.
+   *
+   * **Validation & Data Flow**
+   * - Validates the input using `FindOneUserSchema` through `ZodPipe`.
+   * - Delegates the lookup request to the Auth microservice via `USERS_PATTERNS.FIND_ONE`.
+   *
+   * @param input - User lookup criteria, such as ID, email, or username.
+   * @returns A promise resolving to the matching user as `SafeUser`.
+   */
+  @Decorators.GetFindOneUserDecorators()
+  @Query(() => Outputs.FindOneOutput)
+  user(
+    @Args(
+      'input',
+      {type: () => Inputs.FindOneInput},
+      new ZodPipe(FindOneUserSchema)
+    ) input: FindOneUserSchemaType
+  ): Promise<SafeUser> {
+    return firstValueFrom<SafeUser>(
+      this.authClient.send(
+        USERS_PATTERNS.FIND_ONE,
+        {
+          ...input,
+        } satisfies FindOneUserRequestService
+      )
+    );
+  }
+
+  /**
    * Resolves a GraphQL query for retrieving a paginated list of users.
    *
    * @remarks
@@ -194,8 +237,8 @@ export class UserResolver {
    * @param input - Validated filtering, sorting, and pagination parameters.
    * @returns A promise resolving to the requested list of users.
    */
-  @Decorators.GetUserListDecorators()
-  @Query(() => [Outputs.FindManyOutput])
+  @Decorators.GetUsersListDecorators()
+  @Query(() => [Outputs.FindOneOutput])
   users(
     @Args(
       'input',

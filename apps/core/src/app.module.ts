@@ -1,10 +1,11 @@
+import * as Modules from './modules';
 import {Module} from '@nestjs/common';
 import {LoggerModule} from "nestjs-pino";
 import {ConfigModule} from "@nestjs/config";
 import {loggerConfig} from "@live-bid/services/lib";
 import {CacheModule} from "@live-bid/services/cache";
-import {DrizzleModule, MailModule} from "@live-bid/services/modules";
 import * as drizzleSchemas from "@live-bid/services/database/schema";
+import {DrizzleModule, MailModule} from "@live-bid/services/modules";
 
 @Module({
   imports: [
@@ -28,6 +29,9 @@ import * as drizzleSchemas from "@live-bid/services/database/schema";
 
     // Mail Module
     MailModule,
+
+    // App Modules
+    Modules.WalletsModule,
   ],
 })
 export class AppModule {}
