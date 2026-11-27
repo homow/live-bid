@@ -110,4 +110,33 @@ describe("UsersRepository (real Postgres)", () => {
     });
   });
 
+  describe("row locking", () => {
+    // Tries to grab the same row from a second connection without waiting.
+    // If the first transaction really holds a FOR UPDATE lock, Postgres says "lock not available" (55P03).
+    const tryToLock = (id: string) =>
+      pgErrorCode(drizzle.db.execute(sql`SELECT id FROM users WHERE id = ${id} FOR UPDATE NOWAIT`));
+
+    // Fails until findOne passes `lock` on to the query, see the notes
+    it("findOne holds a row lock for the transaction when lock is requested", async () => {
+      const target = await createUser();
+      let lockCode: string | undefined;
+
+      await drizzle.db.transaction(async (tx) => {
+        await repo.findOne({id: target.id, lock: true} as never, true, tx);
+        lockCode = await tryToLock(target.id);
+      });
+
+      expect(lockCode).toBe("55P03");
+    });
+
+    // Fails until buildUserQuery stops using GROUP BY, Postgres rejects it together with FOR UPDATE
+    it("buildUserQuery can lock the matched rows", async () => {
+      const target = await createUser();
+
+      await expect(
+        drizzle.db.transaction(async (tx) => repo.buildUserQuery(eq(user.id, target.id), tx, true)),
+      ).resolves.toHaveLength(1);
+    });
+  });
+
 });
