@@ -63,5 +63,51 @@ describe("UsersRepository (real Postgres)", () => {
       await expect(pgErrorCode(repo.insertUser(input))).resolves.toBe("23505");
     });
   });
+  describe("findOne", () => {
+    it("finds a user by id, email and username", async () => {
+      const target = await createUser({username: "dpk"});
+
+      await expect(repo.findOne({id: target.id})).resolves.toMatchObject({id: target.id});
+      await expect(repo.findOne({email: target.email})).resolves.toMatchObject({id: target.id});
+      await expect(repo.findOne({username: "dpk"})).resolves.toMatchObject({id: target.id});
+    });
+
+    it("leaves the password out by default", async () => {
+      const target = await createUser();
+
+      const found = await repo.findOne({id: target.id});
+
+      expect(found).not.toHaveProperty("password");
+    });
+
+    it("includes the password hash when asked for the full row", async () => {
+      const target = await createUser({password: "the-hash"});
+
+      const found = await repo.findOne({id: target.id}, false);
+
+      expect(found?.password).toBe("the-hash");
+    });
+
+    it("prefers id over email, and email over username", async () => {
+      const first = await createUser({username: "first"});
+      const second = await createUser({username: "second"});
+
+      const byId = await repo.findOne({id: first.id, email: second.email, username: "second"});
+      const byEmail = await repo.findOne({email: first.email, username: "second"});
+
+      expect(byId?.id).toBe(first.id);
+      expect(byEmail?.id).toBe(first.id);
+    });
+
+    it("returns null for a user that does not exist", async () => {
+      await expect(repo.findOne({id: "00000000-0000-7000-8000-000000000000"})).resolves.toBeNull();
+    });
+
+    it("refuses to search without any identifier", async () => {
+      const error = await appErrorOf(repo.findOne({}));
+
+      expect(error).toMatchObject({statusCode: 500, code: "Missing identifier"});
+    });
+  });
 
 });
