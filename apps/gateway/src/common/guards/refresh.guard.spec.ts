@@ -30,5 +30,45 @@ type FakeRequest = {
 const run = (req: FakeRequest) => guard.canActivate(graphqlContext(Resolver, "refresh", req as never));
 
 describe("RefreshGuard", () => {
+  describe("reading the token", () => {
+    it("takes it from the refreshToken cookie", () => {
+      const token = validToken();
+      const req: FakeRequest = {cookies: {refreshToken: token}, headers: {}};
+
+      expect(run(req)).toBe(true);
+      expect(req.refreshGuardData?.tokenHash).toBe(sha256(token));
+    });
+
+    it("falls back to the x-refresh-token header", () => {
+      const token = validToken();
+      const req: FakeRequest = {cookies: {}, headers: {"x-refresh-token": token}};
+
+      expect(run(req)).toBe(true);
+      expect(req.refreshGuardData?.tokenHash).toBe(sha256(token));
+    });
+
+    it("uses the first value when the header comes as a list", () => {
+      const first = validToken();
+      const req: FakeRequest = {headers: {"x-refresh-token": [first, validToken()]}};
+
+      expect(run(req)).toBe(true);
+      expect(req.refreshGuardData?.tokenHash).toBe(sha256(first));
+    });
+
+    it("prefers the cookie when both are present", () => {
+      const cookieToken = validToken();
+      const req: FakeRequest = {cookies: {refreshToken: cookieToken}, headers: {"x-refresh-token": validToken()}};
+
+      run(req);
+
+      expect(req.refreshGuardData?.tokenHash).toBe(sha256(cookieToken));
+    });
+
+    it("works when cookie-parser isn't installed and req.cookies is undefined", () => {
+      const req: FakeRequest = {cookies: undefined, headers: {"x-refresh-token": validToken()}};
+
+      expect(run(req)).toBe(true);
+    });
+  });
 
 });
