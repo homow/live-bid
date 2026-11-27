@@ -1,9 +1,9 @@
 import {PinoLogger} from "nestjs-pino";
 import {AppException} from "@live-bid/services/lib";
+import {PostIdTypeWP} from "@live-bid/services/enums";
 import {Injectable, OnModuleInit} from "@nestjs/common";
-import {CreateCommentResponse, GetCommentsResponse, GetPostResponse, GetPostsResponse} from "@live-bid/services/types";
 import {CREATE_COMMENT, GET_CATEGORIES, GET_COMMENTS, GET_POST, GET_POSTS} from "@app/core/modules/wordpress/wordpress.document";
-import {PostIdType} from "@live-bid/services/enums";
+import type {CreateCommentResponseWP, GetCommentsResponseWP, GetPostResponseWP, GetPostsResponseWP} from "@live-bid/services/types";
 
 const MAX_PAGE_SIZE = 100;
 const DEFAULT_PAGE_SIZE = 10;
@@ -107,7 +107,7 @@ export class WordpressService implements OnModuleInit {
   }
 
   getPosts({first, after, categoryId}: { first?: number; after?: string; categoryId?: number } = {}) {
-    return this.request<GetPostsResponse['data']>("GetPosts", GET_POSTS, {
+    return this.request<GetPostsResponseWP['data']>("GetPosts", GET_POSTS, {
       first: pageSize(first),
       after: after ?? null,
       where: {
@@ -117,8 +117,8 @@ export class WordpressService implements OnModuleInit {
     });
   }
 
-  async getPost(id: string | number, idType: PostIdType = PostIdType.SLUG) {
-    const data = await this.request<GetPostResponse['data']>("GetPost", GET_POST, {
+  async getPost(id: string | number, idType: PostIdTypeWP = PostIdTypeWP.SLUG) {
+    const data = await this.request<GetPostResponseWP['data']>("GetPost", GET_POST, {
       id: String(id),
       idType,
     });
@@ -133,7 +133,7 @@ export class WordpressService implements OnModuleInit {
   getComments({postId, first, after, order = "DESC"}: {
     postId: number; first?: number; after?: string; order?: "ASC" | "DESC";
   }) {
-    return this.request<GetCommentsResponse>("GetComments", GET_COMMENTS, {
+    return this.request<GetCommentsResponseWP>("GetComments", GET_COMMENTS, {
       first: pageSize(first),
       after: after ?? null,
       where: {contentId: postId, parent: 0, order, orderby: "COMMENT_DATE"},
@@ -144,7 +144,7 @@ export class WordpressService implements OnModuleInit {
     input: { postId: number; content: string; author: string; authorEmail?: string; parentId?: number },
     clientIp?: string,
   ) {
-    const data = await this.request<CreateCommentResponse['data']>(
+    const data = await this.request<CreateCommentResponseWP['data']>(
       "CreateComment",
       CREATE_COMMENT,
       {

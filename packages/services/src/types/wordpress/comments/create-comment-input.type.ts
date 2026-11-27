@@ -1,6 +1,6 @@
-import type {CommentStatusEnum} from '../../../enums';
+import type {CommentStatusEnumWP} from '../../../enums';
 
-export interface CreateCommentInput {
+export interface CreateCommentInputWP {
   author?: string;
   authorEmail?: string;
   authorUrl?: string;
@@ -9,6 +9,6 @@ export interface CreateCommentInput {
   content?: string;
   date?: string;
   parent?: string;
-  status?: CommentStatusEnum;
+  status?: CommentStatusEnumWP;
   type?: string;
 }

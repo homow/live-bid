@@ -1,4 +1,4 @@
-export interface MediaSize {
+export interface MediaSizeWP {
   file: string | null;
   filePath: string | null;
   fileSize: number | null;

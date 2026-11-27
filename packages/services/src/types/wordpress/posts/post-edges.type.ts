@@ -1,19 +1,19 @@
-import type {User} from '../users';
-import type {MediaItem} from '../media';
-import type {Comment} from '../comments';
-import type {Tag, Category} from '../taxonomy';
-import type {Connection, ConnectionEdge} from '../common';
+import type {UserWP} from '../users';
+import type {MediaItemWP} from '../media';
+import type {CommentWP} from '../comments';
+import type {TagWP, CategoryWP} from '../taxonomy';
+import type {ConnectionWP, ConnectionEdgeWP} from '../common';
 
-export type NodeWithAuthorToUserConnectionEdge = ConnectionEdge<User>;
+export type NodeWithAuthorToUserConnectionEdgeWP = ConnectionEdgeWP<UserWP>;
 
-export type NodeWithFeaturedImageToMediaItemConnectionEdge = ConnectionEdge<MediaItem>;
+export type NodeWithFeaturedImageToMediaItemConnectionEdgeWP = ConnectionEdgeWP<MediaItemWP>;
 
-export type PostToCategoryConnectionEdge = ConnectionEdge<Category>;
+export type PostToCategoryConnectionEdgeWP = ConnectionEdgeWP<CategoryWP>;
 
-export type PostToTagConnectionEdge = ConnectionEdge<Tag>;
+export type PostToTagConnectionEdgeWP = ConnectionEdgeWP<TagWP>;
 
-export type PostToCommentConnectionEdge = ConnectionEdge<Comment>;
+export type PostToCommentConnectionEdgeWP = ConnectionEdgeWP<CommentWP>;
 
-export type PostToCategoryConnection = Connection<Category, PostToCategoryConnectionEdge>;
-export type PostToTagConnection = Connection<Tag, PostToTagConnectionEdge>;
-export type PostToCommentConnection = Connection<Comment, PostToCommentConnectionEdge>;
+export type PostToCategoryConnectionWP = ConnectionWP<CategoryWP, PostToCategoryConnectionEdgeWP>;
+export type PostToTagConnectionWP = ConnectionWP<TagWP, PostToTagConnectionEdgeWP>;
+export type PostToCommentConnectionWP = ConnectionWP<CommentWP, PostToCommentConnectionEdgeWP>;

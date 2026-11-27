@@ -1,4 +1,4 @@
-export interface MediaItemMeta {
+export interface MediaItemMetaWP {
   aperture: number | null;
   camera: string | null;
   caption: string | null;

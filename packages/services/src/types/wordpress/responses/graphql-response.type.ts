@@ -1,17 +1,17 @@
-export interface GraphQLErrorLocation {
+export interface GraphQLErrorLocationWP {
   line: number;
   column: number;
 }
 
-export interface GraphQLError {
+export interface GraphQLErrorWP {
   message: string;
-  locations?: GraphQLErrorLocation[];
+  locations?: GraphQLErrorLocationWP[];
   path?: Array<string | number>;
   extensions?: Record<string, unknown>;
 }
 
-export interface GraphQLResponse<TData> {
+export interface GraphQLResponseWP<TData> {
   data?: TData | null;
-  errors?: GraphQLError[];
+  errors?: GraphQLErrorWP[];
   extensions?: Record<string, unknown>;
 }

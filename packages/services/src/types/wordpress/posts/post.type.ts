@@ -1,6 +1,6 @@
-import type {PostToCategoryConnection, PostToTagConnection, PostToCommentConnection, NodeWithAuthorToUserConnectionEdge, NodeWithFeaturedImageToMediaItemConnectionEdge} from './post-edges.type';
+import type {PostToCategoryConnectionWP, PostToTagConnectionWP, PostToCommentConnectionWP, NodeWithAuthorToUserConnectionEdgeWP, NodeWithFeaturedImageToMediaItemConnectionEdgeWP} from './post-edges.type';
 
-export interface Post {
+export interface PostWP {
   id: string;
   databaseId: number;
   title: string | null;
@@ -23,9 +23,9 @@ export interface Post {
   uri: string | null;
   isSticky: boolean;
   hasPassword: boolean | null;
-  author: NodeWithAuthorToUserConnectionEdge | null;
-  categories: PostToCategoryConnection | null;
-  tags: PostToTagConnection | null;
-  comments: PostToCommentConnection | null;
-  featuredImage: NodeWithFeaturedImageToMediaItemConnectionEdge | null;
+  author: NodeWithAuthorToUserConnectionEdgeWP | null;
+  categories: PostToCategoryConnectionWP | null;
+  tags: PostToTagConnectionWP | null;
+  comments: PostToCommentConnectionWP | null;
+  featuredImage: NodeWithFeaturedImageToMediaItemConnectionEdgeWP | null;
 }

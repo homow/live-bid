@@ -1,4 +1,4 @@
-export interface CommentWhereArgs {
+export interface CommentWhereArgsWP {
   authorEmail?: string | null;
   authorIn?: string[] | null;
   authorNotIn?: string[] | null;

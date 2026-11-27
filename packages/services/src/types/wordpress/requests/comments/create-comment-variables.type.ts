@@ -1,5 +1,5 @@
-import type { CreateCommentInput } from '../../comments';
+import type { CreateCommentInputWP } from '../../comments';
 
-export interface CreateCommentVariables {
-  input: CreateCommentInput;
+export interface CreateCommentVariablesWP {
+  input: CreateCommentInputWP;
 }

@@ -1,5 +1,5 @@
-import {PostWhereArgs, PaginationArgs} from "../../queries";
+import {PostWhereArgsWP, PaginationArgsWP} from "../../queries";
 
-export interface GetPostsVariables extends PaginationArgs {
-  where?: PostWhereArgs;
+export interface GetPostsVariablesWP extends PaginationArgsWP {
+  where?: PostWhereArgsWP;
 }

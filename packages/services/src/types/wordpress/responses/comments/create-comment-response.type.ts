@@ -1,9 +1,9 @@
-import type { Comment } from "../../comments";
-import type { GraphQLResponse } from "../graphql-response.type";
+import type { CommentWP } from "../../comments";
+import type { GraphQLResponseWP } from "../graphql-response.type";
 
-export type CreateCommentResponse = GraphQLResponse<{
+export type CreateCommentResponseWP = GraphQLResponseWP<{
   createComment: {
     success: boolean;
-    comment: Comment | null;
+    comment: CommentWP | null;
   } | null;
 }>;

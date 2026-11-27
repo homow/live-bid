@@ -1,7 +1,7 @@
-import type {Comment} from './comment.type';
+import type {CommentWP} from './comment.type';
 
-export interface CreateCommentPayload {
+export interface CreateCommentPayloadWP {
   clientMutationId: string | null;
-  comment: Comment | null;
+  comment: CommentWP | null;
   success: boolean | null;
 }

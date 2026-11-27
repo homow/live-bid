@@ -1,9 +1,9 @@
-import {CommentAuthorType, User} from "../users";
-import type {CommentToCommenterConnectionEdge, CommentToContentNodeConnectionEdge, CommentToParentCommentConnectionEdge, CommentToCommentConnection} from './comment-edges.type';
+import {CommentAuthorTypeWP, UserWP} from "../users";
+import type {CommentToCommenterConnectionEdgeWP, CommentToContentNodeConnectionEdgeWP, CommentToParentCommentConnectionEdgeWP, CommentToCommentConnectionWP} from './comment-edges.type';
 
-export type Commenter = User | CommentAuthorType;
+export type CommenterWP = UserWP | CommentAuthorTypeWP;
 
-export interface Comment {
+export interface CommentWP {
   id: string;
   databaseId: number;
   content: string | null;
@@ -11,12 +11,12 @@ export interface Comment {
   dateGmt: string | null;
   status: string | null;
   type: string | null;
-  author: CommentToCommenterConnectionEdge | null;
-  commentedOn: CommentToContentNodeConnectionEdge | null;
-  parent: CommentToParentCommentConnectionEdge | null;
+  author: CommentToCommenterConnectionEdgeWP | null;
+  commentedOn: CommentToContentNodeConnectionEdgeWP | null;
+  parent: CommentToParentCommentConnectionEdgeWP | null;
   parentDatabaseId: number | null;
   parentId: string | null;
-  replies: CommentToCommentConnection | null;
+  replies: CommentToCommentConnectionWP | null;
   agent: string | null;
   karma: number | null;
   link: string | null;

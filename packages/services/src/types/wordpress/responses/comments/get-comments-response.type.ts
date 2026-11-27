@@ -1,14 +1,14 @@
-import type { Comment } from "../../comments";
-import type { PageInfo } from "../../common";
-import type { GraphQLResponse } from "../graphql-response.type";
+import type { CommentWP } from "../../comments";
+import type { PageInfoWP } from "../../common";
+import type { GraphQLResponseWP } from "../graphql-response.type";
 
-export type GetCommentsResponse = GraphQLResponse<{
+export type GetCommentsResponseWP = GraphQLResponseWP<{
   comments: {
-    nodes: (Comment & {
+    nodes: (CommentWP & {
       replies: {
-        nodes: Comment[];
+        nodes: CommentWP[];
       };
     })[];
-    pageInfo: PageInfo;
+    pageInfo: PageInfoWP;
   };
 }>;

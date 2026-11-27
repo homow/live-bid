@@ -1,4 +1,4 @@
-export enum PostStatusEnum {
+export enum PostStatusEnumWP {
   AUTO_DRAFT = 'AUTO_DRAFT',
   DRAFT = 'DRAFT',
   FUTURE = 'FUTURE',

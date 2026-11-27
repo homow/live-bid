@@ -1,5 +1,5 @@
-import type {PaginationArgs, CommentWhereArgs} from '../../queries';
+import type {PaginationArgsWP, CommentWhereArgsWP} from '../../queries';
 
-export interface GetCommentsVariables extends PaginationArgs {
-  where?: CommentWhereArgs;
+export interface GetCommentsVariablesWP extends PaginationArgsWP {
+  where?: CommentWhereArgsWP;
 }

@@ -1,6 +1,6 @@
-import type { Avatar } from './avatar.type';
+import type { AvatarWP } from './avatar.type';
 
-export interface User {
+export interface UserWP {
   id: string;
   databaseId: number;
   username: string | null;
@@ -12,7 +12,7 @@ export interface User {
   email: string | null;
   url: string | null;
   description: string | null;
-  avatar: Avatar | null;
+  avatar: AvatarWP | null;
   registeredDate: string | null;
   locale: string | null;
 }

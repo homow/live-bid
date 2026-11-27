@@ -1,20 +1,20 @@
-import type {Post} from '../posts';
-import type {Comment, Commenter} from './comment.type';
-import type {Connection, ConnectionEdge} from '../common';
+import type {PostWP} from '../posts';
+import type {CommentWP, CommenterWP} from './comment.type';
+import type {ConnectionWP, ConnectionEdgeWP} from '../common';
 
-export interface CommentToCommenterConnectionEdge {
+export interface CommentToCommenterConnectionEdgeWP {
   cursor: string | null;
   email: string | null;
   ipAddress: string | null;
   name: string | null;
-  node: Commenter;
+  node: CommenterWP;
   url: string | null;
 }
 
-export type CommentToContentNodeConnectionEdge = ConnectionEdge<Post>;
+export type CommentToContentNodeConnectionEdgeWP = ConnectionEdgeWP<PostWP>;
 
-export type CommentToParentCommentConnectionEdge = ConnectionEdge<Comment>;
+export type CommentToParentCommentConnectionEdgeWP = ConnectionEdgeWP<CommentWP>;
 
-export type CommentToCommentConnectionEdge = ConnectionEdge<Comment>;
+export type CommentToCommentConnectionEdgeWP = ConnectionEdgeWP<CommentWP>;
 
-export type CommentToCommentConnection = Connection<Comment, CommentToCommentConnectionEdge>;
+export type CommentToCommentConnectionWP = ConnectionWP<CommentWP, CommentToCommentConnectionEdgeWP>;

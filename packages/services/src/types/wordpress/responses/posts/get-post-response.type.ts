@@ -1,6 +1,6 @@
-import type {Post} from '../../posts';
-import type {GraphQLResponse} from '../graphql-response.type';
+import type {PostWP} from '../../posts';
+import type {GraphQLResponseWP} from '../graphql-response.type';
 
-export type GetPostResponse = GraphQLResponse<{
-  post: Post | null;
+export type GetPostResponseWP = GraphQLResponseWP<{
+  post: PostWP | null;
 }>;

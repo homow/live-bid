@@ -1,4 +1,4 @@
-export interface CommentAuthorType {
+export interface CommentAuthorTypeWP {
   id: string;
   databaseId: number;
   name: string | null;

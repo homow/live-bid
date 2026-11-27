@@ -1,4 +1,4 @@
-export interface PostWhereArgs {
+export interface PostWhereArgsWP {
   author?: number | null;
   authorIn?: string[] | null;
   authorName?: string | null;

@@ -1,12 +1,12 @@
-import type {PageInfo} from './page-info.type';
+import type {PageInfoWP} from './page-info.type';
 
-export interface ConnectionEdge<TNode> {
+export interface ConnectionEdgeWP<TNode> {
   cursor: string | null;
   node: TNode;
 }
 
-export interface Connection<TNode, TEdge extends ConnectionEdge<TNode> = ConnectionEdge<TNode>> {
+export interface ConnectionWP<TNode, TEdge extends ConnectionEdgeWP<TNode> = ConnectionEdgeWP<TNode>> {
   edges: TEdge[] | null;
   nodes: TNode[] | null;
-  pageInfo: PageInfo;
+  pageInfo: PageInfoWP;
 }

@@ -1,4 +1,4 @@
-export interface Category {
+export interface CategoryWP {
   id: string;
   databaseId: number;
   name: string | null;

@@ -1,4 +1,4 @@
-export interface Avatar {
+export interface AvatarWP {
   default: string | null;
   extraAttr: string | null;
   forceDefault: boolean | null;

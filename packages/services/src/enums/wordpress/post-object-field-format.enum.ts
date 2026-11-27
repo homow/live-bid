@@ -1,4 +1,4 @@
-export enum PostObjectFieldFormatEnum {
+export enum PostObjectFieldFormatEnumWP {
   RAW = 'RAW',
   RENDERED = 'RENDERED',
 }

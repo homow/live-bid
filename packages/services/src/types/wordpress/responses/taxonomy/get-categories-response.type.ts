@@ -1,8 +1,8 @@
-import type { Category } from "../../taxonomy";
-import type { GraphQLResponse } from "../graphql-response.type";
+import type { CategoryWP } from "../../taxonomy";
+import type { GraphQLResponseWP } from "../graphql-response.type";
 
-export type GetCategoriesResponse = GraphQLResponse<{
+export type GetCategoriesResponseWP = GraphQLResponseWP<{
   categories: {
-    nodes: Category[];
+    nodes: CategoryWP[];
   };
 }>;

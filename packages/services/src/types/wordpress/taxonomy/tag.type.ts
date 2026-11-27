@@ -1,4 +1,4 @@
-export interface Tag {
+export interface TagWP {
   id: string;
   databaseId: number;
   name: string | null;

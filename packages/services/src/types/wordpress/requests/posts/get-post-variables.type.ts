@@ -1,6 +1,6 @@
-import type {PostIdType} from '../../../../enums';
+import type {PostIdTypeWP} from '../../../../enums';
 
-export interface GetPostVariables {
+export interface GetPostVariablesWP {
   id: string;
-  idType?: PostIdType;
+  idType?: PostIdTypeWP;
 }
