@@ -1,13 +1,15 @@
 import {describe, expect, it} from "vitest";
-
-import {UserRoleEnum} from "@live-bid/contracts/enums";
 import {ROLE_HIERARCHY, isRoleAccess} from "./role";
+import {UserRoleEnum} from "@live-bid/contracts/enums";
 
 const roles = Object.values(UserRoleEnum) as UserRoleEnum[];
 
 // Every (user role, required role) combination
 const pairs = roles.flatMap((userRole) => roles.map((requiredRole) => [userRole, requiredRole] as const));
 
+/*
+ * **ROLE_HIERARCHY**
+ */
 describe("ROLE_HIERARCHY", () => {
   it("has a level for every role, otherwise a new role would be denied everywhere without a sound", () => {
     for (const role of roles) {
@@ -27,6 +29,9 @@ describe("ROLE_HIERARCHY", () => {
   });
 });
 
+/*
+ * **ROLE_HIERARCHY**
+ */
 describe("isRoleAccess", () => {
   const level = (role: UserRoleEnum) => ROLE_HIERARCHY[role];
 
