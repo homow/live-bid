@@ -1,8 +1,7 @@
-import {Reflector} from "@nestjs/core";
-import {afterEach, describe, expect, it, vi} from "vitest";
-
 import {Public} from "../decorators";
+import {Reflector} from "@nestjs/core";
 import {AccessTokenGuard} from "./access.guard";
+import {afterEach, describe, expect, it, vi} from "vitest";
 import {gatewayErrorOf, graphqlContext} from "../../../../../test/helpers/graphql";
 
 /**
@@ -31,6 +30,9 @@ afterEach(() => {
 });
 
 describe("AccessTokenGuard", () => {
+  // ==============================
+  // |          canActivate       |
+  // ==============================
   describe("canActivate", () => {
     it("lets a @Public() route through without asking Passport", () => {
       const passport = vi.spyOn(passportGuard, "canActivate");
@@ -61,6 +63,10 @@ describe("AccessTokenGuard", () => {
       expect(passport).toHaveBeenCalledTimes(1);
     });
   });
+
+  // ==============================
+  // |          handleRequest     |
+  // ==============================
   describe("handleRequest", () => {
     const user = {userId: "user-1", role: "USER"};
     const context = graphqlContext(Resolver, "guarded");
@@ -80,6 +86,9 @@ describe("AccessTokenGuard", () => {
     });
   });
 
+  // ==============================
+  // |          getRequest        |
+  // ==============================
   describe("getRequest", () => {
     it("takes the request out of the GraphQL context", () => {
       const req = {headers: {}};
@@ -87,5 +96,4 @@ describe("AccessTokenGuard", () => {
       expect(guard.getRequest(graphqlContext(Resolver, "guarded", req))).toBe(req);
     });
   });
-
 });
