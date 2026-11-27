@@ -17,5 +17,21 @@ services:
       timeout: 5s
       retries: 10
 
+  redis-test:
+    image: redis:7-alpine
+    container_name: live-bid-redis-test
+    restart: 'no'
+    ports:
+      - "6380:6380"
+    volumes:
+      - live_bid_redis_test_data:/data
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+
 volumes:
+  live_bid_redis_test_data:
   live_bid_postgres_test_data:
