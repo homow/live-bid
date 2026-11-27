@@ -23,7 +23,7 @@ const TARGET_ID = "01900000-0000-7000-8000-0000000000b2";
 // Stands in for the drizzle transaction object, we only check it gets passed along
 const TX = {tag: "tx"};
 
-const request = (overrides: {actorRole?: UserRoleEnum; targetId?: string; newRole?: UserRoleEnum} = {}) => ({
+const request = (overrides: { actorRole?: UserRoleEnum; targetId?: string; newRole?: UserRoleEnum } = {}) => ({
   actor: {id: OWNER_ID, role: overrides.actorRole ?? UserRoleEnum.OWNER},
   target: {id: overrides.targetId ?? TARGET_ID, newRole: overrides.newRole ?? assignable},
 });
@@ -48,5 +48,54 @@ function setup() {
 }
 
 describe("RolesService.modifyRole", () => {
+  let ctx: ReturnType<typeof setup>;
 
+  beforeEach(() => {
+    ctx = setup();
+  });
+
+  it("changes the role and returns a summary", async () => {
+    await expect(ctx.service.modifyRole(request())).resolves.toEqual({
+      userId: TARGET_ID,
+      newRole: assignable,
+      result: "Target user role updated successfully.",
+    });
+
+    expect(ctx.usersRepository.updateRole).toHaveBeenCalledWith(TARGET_ID, assignable, TX);
+  });
+
+  it("loads the target with a lock, inside the transaction", async () => {
+    await ctx.service.modifyRole(request());
+
+    expect(ctx.drizzle.db.transaction).toHaveBeenCalledWith(expect.any(Function), {
+      accessMode: "read write",
+      isolationLevel: "read committed",
+    });
+    expect(ctx.usersRepository.findOne).toHaveBeenCalledWith({lock: true, id: TARGET_ID}, true, TX);
+  });
+
+  it("clears the target's cache so the new role shows up right away", async () => {
+    await ctx.service.modifyRole(request());
+
+    expect(ctx.usersCache.deleteUserCache).toHaveBeenCalledWith(TARGET_ID);
+  });
+
+  it("clears the cache only after the transaction has committed", async () => {
+    let committed = false;
+    let committedWhenCacheWasCleared: boolean | undefined;
+
+    ctx.drizzle.db.transaction.mockImplementation(async (callback: (tx: unknown) => unknown) => {
+      const result = await callback(TX);
+      committed = true;
+      return result;
+    });
+    ctx.usersCache.deleteUserCache.mockImplementation(async () => {
+      committedWhenCacheWasCleared = committed;
+      return 1;
+    });
+
+    await ctx.service.modifyRole(request());
+
+    expect(committedWhenCacheWasCleared).toBe(true);
+  });
 });
