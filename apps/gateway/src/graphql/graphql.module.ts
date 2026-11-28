@@ -45,6 +45,7 @@ import {AUTH_SERVICE_NAME, CORE_SERVICE_NAME} from "@live-bid/services/names";
     Resolvers.UserResolver,
     Resolvers.RolesResolver,
     Resolvers.HealthResolver,
+    Resolvers.WordpressResolver
   ],
 })
 export class AppGraphQLModule {}
